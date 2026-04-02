@@ -2,7 +2,7 @@ export function cn(...classes: (string | undefined | null | false)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export function formatDate(dateStr: string): string {
+export function formatDate(dateStr: string, locale: string = 'vi'): string {
   const date = new Date(dateStr);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
@@ -11,12 +11,31 @@ export function formatDate(dateStr: string): string {
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
 
-  if (minutes < 1) return "Vừa xong";
+  if (locale === 'en') {
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString('en-US');
+  }
+
+  if (minutes < 1) return 'Vừa xong';
   if (minutes < 60) return `${minutes} phút trước`;
   if (hours < 24) return `${hours} giờ trước`;
   if (days < 7) return `${days} ngày trước`;
+  return date.toLocaleDateString('vi-VN');
+}
 
-  return date.toLocaleDateString("vi-VN");
+type UrgencyLevel = 'normal' | 'warning' | 'urgent';
+
+const TERMINAL_STATUSES = ['Done', 'Cancelled'];
+
+export function getTimeUrgency(createdAt: string, status: string): UrgencyLevel {
+  if (TERMINAL_STATUSES.includes(status)) return 'normal';
+  const hours = (Date.now() - new Date(createdAt).getTime()) / 3600000;
+  if (hours >= 24) return 'urgent';
+  if (hours >= 4) return 'warning';
+  return 'normal';
 }
 
 export function formatNumber(num: number): string {

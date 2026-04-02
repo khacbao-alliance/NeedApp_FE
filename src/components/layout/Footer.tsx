@@ -1,7 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
 
 export function Footer() {
+  const { t } = useTranslation();
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--surface-1)]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -17,27 +21,27 @@ export function Footer() {
               className="h-auto w-auto mb-4"
             />
             <p className="text-sm text-[var(--text-muted)] max-w-xs leading-relaxed">
-              Hệ thống quản lý yêu cầu khách hàng thông minh — giúp bạn giao tiếp và theo dõi dự án dễ dàng.
+              {t('footer.tagline')}
             </p>
           </div>
 
           {/* Product */}
           <div>
-            <h4 className="mb-4 text-sm font-semibold text-[var(--foreground)]">Sản phẩm</h4>
+            <h4 className="mb-4 text-sm font-semibold text-[var(--foreground)]">{t('footer.product')}</h4>
             <ul className="space-y-2.5">
               <li>
                 <a href="#features" className="text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors">
-                  Tính năng
+                  {t('footer.features')}
                 </a>
               </li>
               <li>
                 <a href="#how-it-works" className="text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors">
-                  Cách hoạt động
+                  {t('footer.howItWorks')}
                 </a>
               </li>
               <li>
                 <Link href="/register" className="text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors">
-                  Đăng ký
+                  {t('footer.register')}
                 </Link>
               </li>
             </ul>
@@ -45,21 +49,21 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="mb-4 text-sm font-semibold text-[var(--foreground)]">Công ty</h4>
+            <h4 className="mb-4 text-sm font-semibold text-[var(--foreground)]">{t('footer.company')}</h4>
             <ul className="space-y-2.5">
               <li>
                 <a href="#" className="text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors">
-                  Về chúng tôi
+                  {t('footer.about')}
                 </a>
               </li>
               <li>
                 <a href="#" className="text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors">
-                  Liên hệ
+                  {t('footer.contact')}
                 </a>
               </li>
               <li>
                 <a href="#" className="text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors">
-                  Blog
+                  {t('footer.blog')}
                 </a>
               </li>
             </ul>
@@ -67,16 +71,16 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="mb-4 text-sm font-semibold text-[var(--foreground)]">Pháp lý</h4>
+            <h4 className="mb-4 text-sm font-semibold text-[var(--foreground)]">{t('footer.legal')}</h4>
             <ul className="space-y-2.5">
               <li>
                 <a href="#" className="text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors">
-                  Điều khoản sử dụng
+                  {t('footer.terms')}
                 </a>
               </li>
               <li>
                 <a href="#" className="text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors">
-                  Chính sách bảo mật
+                  {t('footer.privacy')}
                 </a>
               </li>
             </ul>
@@ -86,7 +90,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-[var(--border)] py-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
           <p className="text-xs text-[var(--text-muted)]">
-            © {new Date().getFullYear()} NeedApp. All rights reserved.
+            © {new Date().getFullYear()} NeedApp. {t('footer.rights')}
           </p>
           <div className="flex items-center gap-4">
             {/* Social icons placeholder */}

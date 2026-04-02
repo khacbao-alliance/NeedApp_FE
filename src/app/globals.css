@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-/* ── Design Tokens ──────────────────────────────────── */
+/* ── Dark Theme (default) ──────────────────────────────── */
+[data-theme="dark"],
 :root {
   /* Surfaces */
   --background: #0b0d14;
@@ -43,6 +44,65 @@
   /* Soft overlay for glassmorphism */
   --glass-bg: rgba(17, 20, 32, 0.75);
   --glass-border: rgba(139, 92, 246, 0.1);
+
+  /* Overlay */
+  --overlay: rgba(0, 0, 0, 0.5);
+
+  /* Input */
+  --input-bg: #181c2a;
+  --input-border: #1e2235;
+}
+
+/* ── Light Theme ──────────────────────────────────────── */
+[data-theme="light"] {
+  /* Surfaces */
+  --background: #f8f9fc;
+  --surface-1: #ffffff;
+  --surface-2: #f1f3f8;
+  --surface-3: #e8ecf4;
+  --surface-hover: #dde2ee;
+
+  /* Text */
+  --foreground: #111420;
+  --text-secondary: #5a6178;
+  --text-muted: #8b92a8;
+
+  /* Brand gradient: violet → indigo → cyan */
+  --accent-violet: #7c3aed;
+  --accent-indigo: #4f46e5;
+  --accent-cyan: #0891b2;
+  --accent-gradient: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #0891b2 100%);
+  --accent-gradient-hover: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #06b6d4 100%);
+
+  /* Status Colors */
+  --status-draft: #6b7280;
+  --status-intake: #d97706;
+  --status-pending: #2563eb;
+  --status-missing: #dc2626;
+  --status-progress: #7c3aed;
+  --status-done: #059669;
+  --status-cancelled: #6b7280;
+
+  /* Priority */
+  --priority-low: #6b7280;
+  --priority-medium: #2563eb;
+  --priority-high: #d97706;
+  --priority-urgent: #dc2626;
+
+  /* Border */
+  --border: #dde2ee;
+  --border-subtle: #e8ecf4;
+
+  /* Soft overlay for glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(139, 92, 246, 0.15);
+
+  /* Overlay */
+  --overlay: rgba(0, 0, 0, 0.3);
+
+  /* Input */
+  --input-bg: #ffffff;
+  --input-border: #dde2ee;
 }
 
 @theme inline {

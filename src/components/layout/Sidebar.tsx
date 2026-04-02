@@ -17,25 +17,28 @@ import {
   UserGroupIcon as UserGroupSolid,
   UserCircleIcon as UserSolid,
 } from '@heroicons/react/24/solid';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/ui/Avatar';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
   href: string;
-  label: string;
+  labelKey: string;
   Icon: React.ComponentType<{ className?: string }>;
   ActiveIcon: React.ComponentType<{ className?: string }>;
   roles?: ('Admin' | 'Staff' | 'Client')[];
 }
 
 const navItems: NavItem[] = [
-  { href: '/dashboard', label: 'Tổng quan', Icon: HomeIcon, ActiveIcon: HomeSolid },
-  { href: '/requests', label: 'Yêu cầu', Icon: DocumentTextIcon, ActiveIcon: DocSolid },
-  { href: '/admin/users', label: 'Người dùng', Icon: UserGroupIcon, ActiveIcon: UserGroupSolid, roles: ['Admin'] },
+  { href: '/dashboard', labelKey: 'nav.dashboard', Icon: HomeIcon, ActiveIcon: HomeSolid },
+  { href: '/requests', labelKey: 'nav.requests', Icon: DocumentTextIcon, ActiveIcon: DocSolid },
+  { href: '/admin/users', labelKey: 'nav.users', Icon: UserGroupIcon, ActiveIcon: UserGroupSolid, roles: ['Admin'] },
   {
     href: '/admin/intake-questions',
-    label: 'Câu hỏi tiếp nhận',
+    labelKey: 'nav.intakeQuestions',
     Icon: QuestionMarkCircleIcon,
     ActiveIcon: QuestionMarkCircleIcon,
     roles: ['Admin'],
@@ -45,6 +48,7 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout, role } = useAuth();
+  const { t } = useTranslation();
 
   const visibleItems = navItems.filter(
     (item) => !item.roles || (role && item.roles.includes(role))
@@ -52,21 +56,25 @@ export function Sidebar() {
 
   return (
     <aside className="glass sticky top-0 flex h-screen w-64 flex-col px-4 py-6 border-r border-[var(--border)]">
-      {/* Logo */}
-      <Link href="/dashboard" className="mb-8 flex items-center px-2">
-        <Image
-          src="/NeedAPP_logo.png"
-          alt="NeedApp"
-          width={140}
-          height={40}
-          priority
-          className="h-auto w-auto"
-        />
-      </Link>
+      {/* Logo & Theme Toggle */}
+      <div className="mb-8 flex items-center justify-between px-2">
+        <Link href="/dashboard" className="flex items-center">
+          <Image
+            src="/NeedAPP_logo.png"
+            alt="NeedApp"
+            width={140}
+            height={40}
+            priority
+            className="h-auto w-auto"
+          />
+        </Link>
+        <LanguageToggle size="sm" />
+        <ThemeToggle size="sm" />
+      </div>
 
       {/* Navigation */}
       <nav className="flex flex-1 flex-col gap-1">
-        {visibleItems.map(({ href, label, Icon, ActiveIcon }) => {
+        {visibleItems.map(({ href, labelKey, Icon, ActiveIcon }) => {
           const isActive =
             pathname === href || pathname.startsWith(href + '/');
           const Ico = isActive ? ActiveIcon : Icon;
@@ -82,7 +90,7 @@ export function Sidebar() {
               )}
             >
               <Ico className="h-5 w-5 flex-shrink-0" />
-              {label}
+              {t(labelKey)}
             </Link>
           );
         })}
@@ -98,7 +106,7 @@ export function Sidebar() {
             )}
           >
             <UserCircleIcon className="h-5 w-5 flex-shrink-0" />
-            Hồ sơ
+            {t('nav.profile')}
           </Link>
         )}
       </nav>
@@ -117,7 +125,7 @@ export function Sidebar() {
             <button
               onClick={logout}
               className="rounded-lg p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-3)] hover:text-red-400"
-              title="Đăng xuất"
+              title={t('nav.logout')}
             >
               <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
             </button>

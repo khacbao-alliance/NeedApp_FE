@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/ui/Avatar';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { cn } from '@/lib/utils';
 import {
   Bars3Icon,
@@ -17,13 +20,8 @@ import {
   HomeIcon,
 } from '@heroicons/react/24/outline';
 
-const navLinks = [
-  { href: '/', label: 'Trang chủ', Icon: HomeIcon },
-  { href: '/requests', label: 'Yêu cầu', Icon: DocumentTextIcon },
-  { href: '/requests/new', label: 'Tạo yêu cầu', Icon: PlusCircleIcon },
-];
-
 export function ClientNavbar() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -53,6 +51,12 @@ export function ClientNavbar() {
 
   const isLanding = pathname === '/';
 
+  const navLinks = [
+    { href: '/', label: t('nav.home'), Icon: HomeIcon },
+    { href: '/requests', label: t('nav.requests'), Icon: DocumentTextIcon },
+    { href: '/requests/new', label: t('nav.newRequest'), Icon: PlusCircleIcon },
+  ];
+
   return (
     <>
       <nav
@@ -80,7 +84,7 @@ export function ClientNavbar() {
           <div className="hidden md:flex items-center gap-1">
             {isAuthenticated &&
               navLinks.map(({ href, label }) => {
-                const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+                const isActive = pathname === href;
                 return (
                   <Link
                     key={href}
@@ -102,20 +106,22 @@ export function ClientNavbar() {
                   href="#features"
                   className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                 >
-                  Tính năng
+                  {t('nav.features')}
                 </a>
                 <a
                   href="#how-it-works"
                   className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                 >
-                  Cách hoạt động
+                  {t('nav.howItWorks')}
                 </a>
               </>
             )}
           </div>
 
           {/* Desktop Auth Section */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
+            <ThemeToggle size="sm" />
+            <LanguageToggle size="sm" />
             {isAuthenticated ? (
               <div className="relative">
                 <button
@@ -149,14 +155,14 @@ export function ClientNavbar() {
                       className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] transition-colors"
                     >
                       <UserCircleIcon className="h-4 w-4" />
-                      Hồ sơ
+                      {t('nav.profile')}
                     </Link>
                     <button
                       onClick={logout}
                       className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                     >
                       <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
-                      Đăng xuất
+                      {t('nav.logout')}
                     </button>
                   </div>
                 )}
@@ -167,13 +173,13 @@ export function ClientNavbar() {
                   href="/login"
                   className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                 >
-                  Đăng nhập
+                  {t('nav.login')}
                 </Link>
                 <Link
                   href="/register"
                   className="btn-gradient rounded-xl px-5 py-2 text-sm font-semibold"
                 >
-                  Đăng ký
+                  {t('nav.register')}
                 </Link>
               </>
             )}
@@ -200,7 +206,7 @@ export function ClientNavbar() {
               {isAuthenticated ? (
                 <>
                   {navLinks.map(({ href, label, Icon }) => {
-                    const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+                    const isActive = pathname === href;
                     return (
                       <Link
                         key={href}
@@ -222,7 +228,7 @@ export function ClientNavbar() {
                     className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
                   >
                     <UserCircleIcon className="h-5 w-5" />
-                    Hồ sơ
+                    {t('nav.profile')}
                   </Link>
                   <div className="border-t border-[var(--border)] mt-2 pt-2">
                     <button
@@ -230,7 +236,7 @@ export function ClientNavbar() {
                       className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-500/10"
                     >
                       <ArrowRightStartOnRectangleIcon className="h-5 w-5" />
-                      Đăng xuất
+                      {t('nav.logout')}
                     </button>
                   </div>
                 </>
@@ -240,26 +246,29 @@ export function ClientNavbar() {
                     href="#features"
                     className="block rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
                   >
-                    Tính năng
+                    {t('nav.features')}
                   </a>
                   <a
                     href="#how-it-works"
                     className="block rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
                   >
-                    Cách hoạt động
+                    {t('nav.howItWorks')}
                   </a>
                   <div className="border-t border-[var(--border)] mt-2 pt-3 flex flex-col gap-2">
+                    <div className="flex items-center justify-center gap-2 pb-1">
+                      <LanguageToggle size="sm" />
+                    </div>
                     <Link
                       href="/login"
                       className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-center text-sm font-medium text-[var(--foreground)]"
                     >
-                      Đăng nhập
+                      {t('nav.login')}
                     </Link>
                     <Link
                       href="/register"
                       className="btn-gradient rounded-xl px-4 py-2.5 text-center text-sm font-semibold"
                     >
-                      Đăng ký miễn phí
+                      {t('nav.register')}
                     </Link>
                   </div>
                 </>

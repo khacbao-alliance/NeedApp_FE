@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
@@ -11,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { ApiRequestError } from '@/services/requests';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -35,7 +37,7 @@ export default function LoginPage() {
       if (err instanceof ApiRequestError) {
         setError(err.message);
       } else {
-        setError('Đăng nhập thất bại. Vui lòng thử lại.');
+        setError(t('auth.login.failed'));
       }
     } finally {
       setLoading(false);
@@ -56,7 +58,7 @@ export default function LoginPage() {
             priority
           />
           <p className="mt-3 text-sm text-[var(--text-muted)]">
-            Đăng nhập để quản lý yêu cầu
+            {t('auth.login.subtitle')}
           </p>
         </div>
 
@@ -73,7 +75,7 @@ export default function LoginPage() {
           />
           <PasswordInput
             id="login-password"
-            label="Mật khẩu"
+            label={t('auth.login.password')}
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -85,7 +87,7 @@ export default function LoginPage() {
               href="/forgot-password"
               className="text-xs text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors"
             >
-              Quên mật khẩu?
+              {t('auth.login.forgotPassword')}
             </Link>
           </div>
 
@@ -96,15 +98,15 @@ export default function LoginPage() {
           )}
 
           <Button type="submit" loading={loading} variant="gradient" className="w-full mt-2" id="login-submit">
-            Đăng nhập
+            {t('auth.login.submit')}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-[var(--text-muted)]">
-            Chưa có tài khoản?{' '}
+            {t('auth.login.noAccount')}{' '}
             <Link href="/register" className="font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
-              Đăng ký ngay
+              {t('auth.login.registerNow')}
             </Link>
           </p>
         </div>

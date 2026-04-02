@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/hooks/useLanguage';
 import { messageService } from '@/services/messages';
 import { fileService } from '@/services/files';
 import { requestService } from '@/services/requestsApi';
@@ -28,6 +30,8 @@ export default function RequestChatPage() {
   const router = useRouter();
   const { user, role } = useAuth();
   const requestId = params.id as string;
+  const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const [request, setRequest] = useState<RequestDto | null>(null);
   const [messages, setMessages] = useState<MessageDto[]>([]);
@@ -248,7 +252,7 @@ export default function RequestChatPage() {
 
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-sm font-semibold text-[var(--foreground)]">
-            {request?.title || 'Đang tải...'}
+            {request?.title || t('common.loading')}
           </h1>
           <div className="mt-0.5 flex items-center gap-2 flex-wrap">
             {request && (
@@ -275,7 +279,7 @@ export default function RequestChatPage() {
                     ) : (
                       <SignalSlashIcon className="h-3 w-3" />
                     )}
-                    {isConnected ? 'Live' : 'Đang kết nối...'}
+                    {isConnected ? t('chat.live') : t('chat.connecting')}
                   </span>
                 )}
               </>
@@ -305,8 +309,8 @@ export default function RequestChatPage() {
       {isIntake && intakeMeta && (
         <div className="border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-2">
           <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
-            <span>Tiến trình tiếp nhận</span>
-            <span>{intakeMeta.orderIndex + 1}/{intakeMeta.totalQuestions} câu hỏi</span>
+            <span>{t('chat.intakeProgress')}</span>
+            <span>{t('chat.intakeOf', { current: intakeMeta.orderIndex + 1, total: intakeMeta.totalQuestions })}</span>
           </div>
           <div className="mt-1.5 h-1.5 rounded-full bg-[var(--surface-3)] overflow-hidden">
             <div
@@ -335,7 +339,7 @@ export default function RequestChatPage() {
               ) : (
                 <ArrowPathIcon className="h-3.5 w-3.5" />
               )}
-              Tải thêm tin nhắn cũ
+              {t('chat.loadMore')}
             </button>
           </div>
         )}
@@ -346,7 +350,7 @@ export default function RequestChatPage() {
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <p className="text-sm text-[var(--text-muted)]">Chưa có tin nhắn nào</p>
+            <p className="text-sm text-[var(--text-muted)]">{t('chat.empty')}</p>
           </div>
         ) : (
           messages.map((msg) => (
@@ -367,7 +371,7 @@ export default function RequestChatPage() {
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--text-muted)] animate-bounce [animation-delay:300ms]" />
             </div>
             <span className="text-xs text-[var(--text-muted)]">
-              {typingUsers.map((u) => u.userName).join(', ')} đang nhập...
+              {typingUsers.map((u) => u.userName).join(', ')} {t('chat.typing')}
             </span>
           </div>
         )}
@@ -376,10 +380,10 @@ export default function RequestChatPage() {
       </div>
 
       {/* Input */}
-      {request?.status === 'Done' || request?.status === 'Cancelled' ? (
+      {role === 'Admin' ? null : request?.status === 'Done' || request?.status === 'Cancelled' ? (
         <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-center">
           <p className="text-xs text-[var(--text-muted)]">
-            {request?.status === 'Done' ? '✅ Yêu cầu đã hoàn tất' : '❌ Yêu cầu đã bị hủy'}
+            {request?.status === 'Done' ? t('chat.doneStatus') : t('chat.cancelledStatus')}
           </p>
         </div>
       ) : showMissingInfo ? (
@@ -407,22 +411,22 @@ export default function RequestChatPage() {
             placeholder={
               isIntake
                 ? currentIntakeQuestion?.metadata
-                  ? ((currentIntakeQuestion.metadata as { placeholder?: string }).placeholder || 'Nhập câu trả lời...')
-                  : 'Nhập câu trả lời...'
-                : 'Nhập tin nhắn...'
+                  ? ((currentIntakeQuestion.metadata as { placeholder?: string }).placeholder || t('chat.answerPlaceholder'))
+                  : t('chat.answerPlaceholder')
+                : t('chat.messagePlaceholder')
             }
             disabled={sending}
             isIntake={isIntake}
           />
-          {/* Missing Info toggle (Staff/Admin only, not during Intake) */}
-          {(role === 'Staff' || role === 'Admin') && !isIntake && (
+          {/* Missing Info toggle (Staff only, not during Intake; Admin is already excluded above) */}
+          {role === 'Staff' && !isIntake && (
             <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-1.5 flex justify-end">
               <button
                 onClick={() => setShowMissingInfo(true)}
                 className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[10px] font-medium text-amber-400/60 transition-all hover:text-amber-400 hover:bg-amber-500/10"
               >
                 <ExclamationTriangleIcon className="h-3.5 w-3.5" />
-                Yêu cầu bổ sung thông tin
+                {t('chat.missingInfoToggle')}
               </button>
             </div>
           )}

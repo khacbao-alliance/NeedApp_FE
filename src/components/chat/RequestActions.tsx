@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { requestService } from '@/services/requestsApi';
 import { userService } from '@/services/users';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,24 +19,26 @@ import {
 } from '@heroicons/react/24/outline';
 
 /* ─── Valid Transitions ─── */
-const STATUS_TRANSITIONS: Record<string, { status: RequestStatus; label: string; icon: React.ReactNode; variant: string }[]> = {
-  Pending: [
-    { status: 'InProgress', label: 'Bắt đầu xử lý', icon: <PlayIcon className="h-3.5 w-3.5" />, variant: 'primary' },
-    { status: 'Cancelled', label: 'Hủy', icon: <XMarkIcon className="h-3.5 w-3.5" />, variant: 'danger' },
-  ],
-  InProgress: [
-    { status: 'Done', label: 'Hoàn tất', icon: <CheckCircleIcon className="h-3.5 w-3.5" />, variant: 'success' },
-    { status: 'Pending', label: 'Tạm dừng', icon: <PauseIcon className="h-3.5 w-3.5" />, variant: 'warning' },
-    { status: 'Cancelled', label: 'Hủy', icon: <XMarkIcon className="h-3.5 w-3.5" />, variant: 'danger' },
-  ],
-  MissingInfo: [
-    { status: 'InProgress', label: 'Tiếp tục xử lý', icon: <PlayIcon className="h-3.5 w-3.5" />, variant: 'primary' },
-    { status: 'Cancelled', label: 'Hủy', icon: <XMarkIcon className="h-3.5 w-3.5" />, variant: 'danger' },
-  ],
-  Done: [
-    { status: 'InProgress', label: 'Mở lại', icon: <ArrowPathIcon className="h-3.5 w-3.5" />, variant: 'warning' },
-  ],
-};
+function getStatusTransitions(t: (key: string) => string) {
+  return {
+    Pending: [
+      { status: 'InProgress', label: t('requestActions.startProcessing'), icon: <PlayIcon className="h-3.5 w-3.5" />, variant: 'primary' },
+      { status: 'Cancelled', label: t('requestActions.cancel'), icon: <XMarkIcon className="h-3.5 w-3.5" />, variant: 'danger' },
+    ],
+    InProgress: [
+      { status: 'Done', label: t('requestActions.complete'), icon: <CheckCircleIcon className="h-3.5 w-3.5" />, variant: 'success' },
+      { status: 'Pending', label: t('requestActions.pause'), icon: <PauseIcon className="h-3.5 w-3.5" />, variant: 'warning' },
+      { status: 'Cancelled', label: t('requestActions.cancel'), icon: <XMarkIcon className="h-3.5 w-3.5" />, variant: 'danger' },
+    ],
+    MissingInfo: [
+      { status: 'InProgress', label: t('requestActions.continue'), icon: <PlayIcon className="h-3.5 w-3.5" />, variant: 'primary' },
+      { status: 'Cancelled', label: t('requestActions.cancel'), icon: <XMarkIcon className="h-3.5 w-3.5" />, variant: 'danger' },
+    ],
+    Done: [
+      { status: 'InProgress', label: t('requestActions.reopen'), icon: <ArrowPathIcon className="h-3.5 w-3.5" />, variant: 'warning' },
+    ],
+  } as Record<string, { status: RequestStatus; label: string; icon: React.ReactNode; variant: string }[]>;
+}
 
 const VARIANT_CLASSES: Record<string, string> = {
   primary: 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)] hover:bg-[var(--accent-indigo)]/25',
@@ -52,9 +55,11 @@ export function RequestStatusActions({
   request: RequestDto;
   onUpdate: (updated: RequestDto) => void;
 }) {
+  const { t } = useTranslation();
   const { role } = useAuth();
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState('');
+  const STATUS_TRANSITIONS = getStatusTransitions(t);
 
   // Only Staff/Admin can change status
   if (role !== 'Staff' && role !== 'Admin') return null;
@@ -69,7 +74,7 @@ export function RequestStatusActions({
       const updated = await requestService.updateStatus(request.id, newStatus);
       onUpdate(updated);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Không thể chuyển trạng thái';
+      const message = err instanceof Error ? err.message : t('requestActions.cannotChangeStatus');
       setError(message);
       setTimeout(() => setError(''), 3000);
     } finally {
@@ -109,6 +114,7 @@ export function SelfAssignAction({
   request: RequestDto;
   onUpdate: (updated: RequestDto) => void;
 }) {
+  const { t } = useTranslation();
   const { role } = useAuth();
   const [assigning, setAssigning] = useState(false);
   const [error, setError] = useState('');
@@ -125,7 +131,7 @@ export function SelfAssignAction({
       const updated = await requestService.selfAssign(request.id);
       onUpdate(updated);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Không thể nhận request';
+      const message = err instanceof Error ? err.message : t('requestActions.cannotSelfAssign');
       setError(message);
       setTimeout(() => setError(''), 3000);
     } finally {
@@ -145,7 +151,7 @@ export function SelfAssignAction({
         ) : (
           <HandRaisedIcon className="h-3.5 w-3.5" />
         )}
-        Nhận xử lý
+        {t('requestActions.selfAssign')}
       </button>
       {error && (
         <span className="text-[10px] text-red-400 animate-fade-in">{error}</span>
@@ -162,6 +168,7 @@ export function AssignStaffAction({
   request: RequestDto;
   onUpdate: (updated: RequestDto) => void;
 }) {
+  const { t } = useTranslation();
   const { role } = useAuth();
   const [open, setOpen] = useState(false);
   const [staffList, setStaffList] = useState<UserDetailDto[]>([]);
@@ -197,7 +204,7 @@ export function AssignStaffAction({
       onUpdate(updated);
       setOpen(false);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Không thể gán staff';
+      const message = err instanceof Error ? err.message : t('requestActions.cannotAssign');
       setError(message);
       setTimeout(() => setError(''), 3000);
     } finally {
@@ -213,7 +220,7 @@ export function AssignStaffAction({
       onUpdate(updated);
       setOpen(false);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Không thể gỡ staff';
+      const message = err instanceof Error ? err.message : t('requestActions.cannotUnassign');
       setError(message);
       setTimeout(() => setError(''), 3000);
     } finally {
@@ -231,7 +238,7 @@ export function AssignStaffAction({
         className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface-2)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--foreground)] hover:bg-[var(--surface-3)]"
       >
         <UserPlusIcon className="h-3.5 w-3.5" />
-        {request.assignedUser ? 'Đổi staff' : 'Gán staff'}
+        {request.assignedUser ? t('requestActions.changeStaff') : t('requestActions.assignStaff')}
         <ChevronDownIcon className="h-3 w-3" />
       </button>
 
@@ -247,7 +254,7 @@ export function AssignStaffAction({
                 <ArrowPathIcon className="h-4 w-4 animate-spin text-[var(--text-muted)]" />
               </div>
             ) : staffList.length === 0 ? (
-              <p className="px-3 py-2 text-xs text-[var(--text-muted)]">Không tìm thấy staff</p>
+              <p className="px-3 py-2 text-xs text-[var(--text-muted)]">{t('requestActions.noStaff')}</p>
             ) : (
               <>
                 {staffList.map((staff) => (
@@ -264,7 +271,7 @@ export function AssignStaffAction({
                       <p className="text-[var(--text-muted)] truncate">{staff.email}</p>
                     </div>
                     {staff.id === request.assignedUser?.id && (
-                      <span className="text-[10px] text-[var(--accent-violet)]">Hiện tại</span>
+                      <span className="text-[10px] text-[var(--accent-violet)]">{t('requestActions.current')}</span>
                     )}
                   </button>
                 ))}
@@ -279,7 +286,7 @@ export function AssignStaffAction({
                       className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
                     >
                       <UserMinusIcon className="h-3.5 w-3.5" />
-                      Gỡ staff ({request.assignedUser.name || 'Staff'})
+                      {t('requestActions.unassign', { name: request.assignedUser.name || 'Staff' })}
                     </button>
                   </>
                 )}
