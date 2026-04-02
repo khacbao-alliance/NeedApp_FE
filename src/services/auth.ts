@@ -1,17 +1,41 @@
-import { api } from "./requests";
-import type { ApiResponse, User } from "@/types";
+import { api, setTokens } from './requests';
+import type { AuthResponse, UserDto } from '@/types';
 
 export const authService = {
   login: (data: { email: string; password: string }) =>
-    api.post<ApiResponse<{ user: User; token: string }>>("/auth/login", data),
+    api.post<AuthResponse>('/auth/login', data),
 
-  register: (data: { name: string; username: string; email: string; password: string }) =>
-    api.post<ApiResponse<{ user: User; token: string }>>("/auth/register", data),
+  register: (data: { email: string; password: string; name?: string }) =>
+    api.post<AuthResponse>('/auth/register', data),
 
-  logout: () => api.post<ApiResponse<void>>("/auth/logout", {}),
+  googleLogin: (idToken: string) =>
+    api.post<AuthResponse>('/auth/google', { idToken }),
 
-  me: () => api.get<ApiResponse<User>>("/auth/me"),
+  refreshToken: (refreshToken: string) =>
+    api.post<AuthResponse>('/auth/refresh-token', { refreshToken }),
 
-  refreshToken: () =>
-    api.post<ApiResponse<{ token: string }>>("/auth/refresh", {}),
+  logout: (refreshToken: string) =>
+    api.post<void>('/auth/logout', { refreshToken }),
+
+  me: () => api.get<UserDto>('/auth/me'),
+
+  forgotPassword: (email: string) =>
+    api.post<{ message: string }>('/auth/forgot-password', { email }),
+
+  resetPassword: (data: { email: string; otpCode: string; newPassword: string }) =>
+    api.post<void>('/auth/reset-password', data),
+
+  /** Helper — login and store tokens */
+  async loginAndStore(email: string, password: string): Promise<AuthResponse> {
+    const res = await this.login({ email, password });
+    setTokens(res.accessToken, res.refreshToken);
+    return res;
+  },
+
+  /** Helper — register and store tokens */
+  async registerAndStore(data: { email: string; password: string; name?: string }): Promise<AuthResponse> {
+    const res = await this.register(data);
+    setTokens(res.accessToken, res.refreshToken);
+    return res;
+  },
 };

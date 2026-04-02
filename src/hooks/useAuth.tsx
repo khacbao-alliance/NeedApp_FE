@@ -1,51 +1,93 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useEffect, useState } from "react";
-import type { User } from "@/types";
-import { authService } from "@/services/auth";
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import type { AuthResponse, UserDto, UserRole } from '@/types';
+import { authService } from '@/services/auth';
+import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '@/services/requests';
 
 interface AuthContextType {
-  user: User | null;
+  user: UserDto | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  hasClient: boolean;
+  role: UserRole | null;
+  login: (email: string, password: string) => Promise<AuthResponse>;
+  register: (data: { email: string; password: string; name?: string }) => Promise<AuthResponse>;
   logout: () => void;
+  updateUser: (user: Partial<UserDto>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getAccessToken();
     if (token) {
       authService
         .me()
-        .then((res) => setUser(res.data))
-        .catch(() => localStorage.removeItem("token"))
+        .then((userData) => setUser(userData))
+        .catch(() => {
+          clearTokens();
+        })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const res = await authService.login({ email, password });
-    localStorage.setItem("token", res.data.token);
-    setUser(res.data.user);
-  };
+  const login = useCallback(async (email: string, password: string) => {
+    const res = await authService.loginAndStore(email, password);
+    setUser({
+      id: res.userId,
+      email: res.email,
+      name: res.name,
+      role: res.role,
+      hasClient: res.hasClient,
+      avatarUrl: res.avatarUrl,
+    });
+    return res;
+  }, []);
 
-  const logout = () => {
-    localStorage.removeItem("token");
+  const register = useCallback(async (data: { email: string; password: string; name?: string }) => {
+    const res = await authService.registerAndStore(data);
+    setUser({
+      id: res.userId,
+      email: res.email,
+      name: res.name,
+      role: res.role,
+      hasClient: res.hasClient,
+      avatarUrl: res.avatarUrl,
+    });
+    return res;
+  }, []);
+
+  const logout = useCallback(() => {
+    const rt = getRefreshToken();
+    if (rt) authService.logout(rt).catch(() => {});
+    clearTokens();
     setUser(null);
-    authService.logout().catch(() => {});
-  };
+  }, []);
+
+  const updateUser = useCallback((updates: Partial<UserDto>) => {
+    setUser((prev) => (prev ? { ...prev, ...updates } : null));
+  }, []);
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, isLoading, login, logout }}
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        hasClient: user?.hasClient ?? false,
+        role: user?.role ?? null,
+        login,
+        register,
+        logout,
+        updateUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -54,6 +96,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }

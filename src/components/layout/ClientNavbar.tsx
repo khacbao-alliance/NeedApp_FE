@@ -1,0 +1,276 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { Avatar } from '@/components/ui/Avatar';
+import { cn } from '@/lib/utils';
+import {
+  Bars3Icon,
+  XMarkIcon,
+  ArrowRightStartOnRectangleIcon,
+  UserCircleIcon,
+  DocumentTextIcon,
+  PlusCircleIcon,
+  HomeIcon,
+} from '@heroicons/react/24/outline';
+
+const navLinks = [
+  { href: '/', label: 'Trang chủ', Icon: HomeIcon },
+  { href: '/requests', label: 'Yêu cầu', Icon: DocumentTextIcon },
+  { href: '/requests/new', label: 'Tạo yêu cầu', Icon: PlusCircleIcon },
+];
+
+export function ClientNavbar() {
+  const pathname = usePathname();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  // Track scroll for glass effect
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+    setProfileOpen(false);
+  }, [pathname]);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handler = () => setProfileOpen(false);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [profileOpen]);
+
+  const isLanding = pathname === '/';
+
+  return (
+    <>
+      <nav
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+          scrolled || !isLanding
+            ? 'bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--glass-border)] shadow-lg shadow-black/10'
+            : 'bg-transparent'
+        )}
+      >
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+            <Image
+              src="/NeedAPP_logo.png"
+              alt="NeedApp"
+              width={120}
+              height={34}
+              priority
+              className="h-auto w-auto"
+            />
+          </Link>
+
+          {/* Desktop Nav Links */}
+          <div className="hidden md:flex items-center gap-1">
+            {isAuthenticated &&
+              navLinks.map(({ href, label }) => {
+                const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                      'rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200',
+                      isActive
+                        ? 'bg-[var(--accent-indigo)]/10 text-[var(--accent-violet)]'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]'
+                    )}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
+            {!isAuthenticated && (
+              <>
+                <a
+                  href="#features"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                >
+                  Tính năng
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                >
+                  Cách hoạt động
+                </a>
+              </>
+            )}
+          </div>
+
+          {/* Desktop Auth Section */}
+          <div className="hidden md:flex items-center gap-3">
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setProfileOpen(!profileOpen);
+                  }}
+                  className="flex items-center gap-2.5 rounded-xl bg-[var(--surface-2)] px-3 py-1.5 transition-all hover:bg-[var(--surface-3)]"
+                >
+                  <Avatar
+                    src={user?.avatarUrl ?? undefined}
+                    name={user?.name || user?.email || ''}
+                    size="xs"
+                  />
+                  <span className="text-sm font-medium text-[var(--foreground)] max-w-[120px] truncate">
+                    {user?.name || 'User'}
+                  </span>
+                </button>
+
+                {/* Profile Dropdown */}
+                {profileOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-1.5 shadow-2xl shadow-black/30 animate-fade-in">
+                    <div className="border-b border-[var(--border)] px-3 py-2.5 mb-1">
+                      <p className="text-sm font-medium text-[var(--foreground)] truncate">
+                        {user?.name || 'User'}
+                      </p>
+                      <p className="text-xs text-[var(--text-muted)] truncate">{user?.email}</p>
+                    </div>
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] transition-colors"
+                    >
+                      <UserCircleIcon className="h-4 w-4" />
+                      Hồ sơ
+                    </Link>
+                    <button
+                      onClick={logout}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                    >
+                      <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                >
+                  Đăng nhập
+                </Link>
+                <Link
+                  href="/register"
+                  className="btn-gradient rounded-xl px-5 py-2 text-sm font-semibold"
+                >
+                  Đăng ký
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Hamburger */}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="md:hidden rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? (
+              <XMarkIcon className="h-6 w-6" />
+            ) : (
+              <Bars3Icon className="h-6 w-6" />
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileOpen && (
+          <div className="md:hidden border-t border-[var(--border)] bg-[var(--surface-1)] animate-fade-in">
+            <div className="px-4 py-4 space-y-1">
+              {isAuthenticated ? (
+                <>
+                  {navLinks.map(({ href, label, Icon }) => {
+                    const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+                    return (
+                      <Link
+                        key={href}
+                        href={href}
+                        className={cn(
+                          'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
+                          isActive
+                            ? 'bg-[var(--accent-indigo)]/10 text-[var(--accent-violet)]'
+                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]'
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {label}
+                      </Link>
+                    );
+                  })}
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+                  >
+                    <UserCircleIcon className="h-5 w-5" />
+                    Hồ sơ
+                  </Link>
+                  <div className="border-t border-[var(--border)] mt-2 pt-2">
+                    <button
+                      onClick={logout}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-500/10"
+                    >
+                      <ArrowRightStartOnRectangleIcon className="h-5 w-5" />
+                      Đăng xuất
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <a
+                    href="#features"
+                    className="block rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+                  >
+                    Tính năng
+                  </a>
+                  <a
+                    href="#how-it-works"
+                    className="block rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+                  >
+                    Cách hoạt động
+                  </a>
+                  <div className="border-t border-[var(--border)] mt-2 pt-3 flex flex-col gap-2">
+                    <Link
+                      href="/login"
+                      className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-center text-sm font-medium text-[var(--foreground)]"
+                    >
+                      Đăng nhập
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="btn-gradient rounded-xl px-4 py-2.5 text-center text-sm font-semibold"
+                    >
+                      Đăng ký miễn phí
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </nav>
+
+      {/* Spacer to prevent content from hiding behind fixed navbar */}
+      <div className="h-16" />
+    </>
+  );
+}

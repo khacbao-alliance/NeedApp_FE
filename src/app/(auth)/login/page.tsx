@@ -1,78 +1,114 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
+import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { Input } from '@/components/ui/Input';
+import { PasswordInput } from '@/components/ui/PasswordInput';
+import { Button } from '@/components/ui/Button';
+import { ApiRequestError } from '@/services/requests';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      router.push("/feed");
+      const res = await login(email, password);
+      if (!res.hasClient) {
+        router.push('/setup-client');
+      } else if (res.role === 'Client') {
+        router.push('/');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Đăng nhập thất bại");
+      if (err instanceof ApiRequestError) {
+        setError(err.message);
+      } else {
+        setError('Đăng nhập thất bại. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm dark:bg-gray-900">
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-blue-600">NeedApp</h1>
-        <p className="mt-1 text-sm text-gray-500">Đăng nhập để tiếp tục</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Input
-          id="email"
-          type="email"
-          label="Email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <Input
-          id="password"
-          type="password"
-          label="Mật khẩu"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        {error && (
-          <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950">
-            {error}
+    <div className="mx-auto w-full max-w-sm animate-slide-up" id="login-page">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-8">
+        {/* Logo */}
+        <div className="mb-8 text-center">
+          <Image
+            src="/NeedAPP_logo.png"
+            alt="NeedApp"
+            width={160}
+            height={40}
+            className="mx-auto h-auto w-auto"
+            priority
+          />
+          <p className="mt-3 text-sm text-[var(--text-muted)]">
+            Đăng nhập để quản lý yêu cầu
           </p>
-        )}
+        </div>
 
-        <Button type="submit" loading={loading} className="w-full">
-          Đăng nhập
-        </Button>
-      </form>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4" id="login-form">
+          <Input
+            id="login-email"
+            type="email"
+            label="Email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+          <PasswordInput
+            id="login-password"
+            label="Mật khẩu"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+          <div className="flex justify-end -mt-2">
+            <Link
+              href="/forgot-password"
+              className="text-xs text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors"
+            >
+              Quên mật khẩu?
+            </Link>
+          </div>
 
-      <p className="mt-4 text-center text-sm text-gray-500">
-        Chưa có tài khoản?{" "}
-        <Link href="/register" className="text-blue-600 hover:underline font-medium">
-          Đăng ký
-        </Link>
-      </p>
+          {error && (
+            <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3">
+              <p className="text-sm text-red-400">{error}</p>
+            </div>
+          )}
+
+          <Button type="submit" loading={loading} variant="gradient" className="w-full mt-2" id="login-submit">
+            Đăng nhập
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-[var(--text-muted)]">
+            Chưa có tài khoản?{' '}
+            <Link href="/register" className="font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
+              Đăng ký ngay
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

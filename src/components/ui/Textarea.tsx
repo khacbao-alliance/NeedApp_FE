@@ -1,14 +1,13 @@
 import { cn } from '@/lib/utils';
-import { forwardRef, InputHTMLAttributes } from 'react';
+import { forwardRef, TextareaHTMLAttributes } from 'react';
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
-  hint?: string;
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, hint, id, ...props }, ref) => {
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, label, error, id, ...props }, ref) => {
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
@@ -19,25 +18,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <input
+        <textarea
           ref={ref}
           id={id}
           className={cn(
-            'w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200',
+            'w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200 resize-none',
             'bg-[var(--surface-2)] border-[var(--border)] text-[var(--foreground)] placeholder-[var(--text-muted)]',
             'focus:border-[var(--accent-indigo)] focus:ring-1 focus:ring-[var(--accent-indigo)]/50',
-            'hover:border-[var(--surface-3)]',
             error && 'border-red-500/50 focus:border-red-500 focus:ring-red-500/30',
             className
           )}
           {...props}
         />
-        {hint && !error && (
-          <p className="text-xs text-[var(--text-muted)]">{hint}</p>
-        )}
         {error && <p className="text-xs text-red-400">{error}</p>}
       </div>
     );
   }
 );
-Input.displayName = 'Input';
+Textarea.displayName = 'Textarea';
