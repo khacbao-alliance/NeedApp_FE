@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useAuth } from '@/hooks/useAuth';
 import { intakeQuestionService } from '@/services/intakeQuestions';
 import { Button } from '@/components/ui/Button';
@@ -29,6 +31,8 @@ interface QuestionFormItem {
 
 export default function IntakeQuestionsPage() {
   const { role } = useAuth();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const [sets, setSets] = useState<IntakeQuestionSetDto[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,8 +70,8 @@ export default function IntakeQuestionsPage() {
     return (
       <EmptyState
         icon={<QuestionMarkCircleIcon className="h-8 w-8" />}
-        title="Không có quyền truy cập"
-        description="Chỉ Admin mới có thể quản lý câu hỏi tiếp nhận"
+        title={t('admin.intake.noPermission')}
+        description={t('admin.intake.noPermissionDesc')}
       />
     );
   }
@@ -121,7 +125,7 @@ export default function IntakeQuestionsPage() {
     setError('');
     const validQuestions = questions.filter((q) => q.content.trim());
     if (!formName.trim() || validQuestions.length === 0) {
-      setError('Tên bộ câu hỏi và ít nhất 1 câu hỏi là bắt buộc');
+      setError(t('admin.intake.nameRequired'));
       return;
     }
     setSaving(true);
@@ -147,14 +151,14 @@ export default function IntakeQuestionsPage() {
       fetchSets();
     } catch (err) {
       if (err instanceof ApiRequestError) setError(err.message);
-      else setError('Có lỗi xảy ra');
+      else setError(t('admin.intake.error'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc muốn xóa bộ câu hỏi này?')) return;
+    if (!confirm(t('admin.intake.deleteConfirm'))) return;
     try {
       await intakeQuestionService.delete(id);
       fetchSets();
@@ -176,14 +180,14 @@ export default function IntakeQuestionsPage() {
     <div className="space-y-6 animate-fade-in" id="intake-questions-page">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Câu hỏi tiếp nhận</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">{t('admin.intake.title')}</h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Quản lý bộ câu hỏi tự động cho quy trình tiếp nhận yêu cầu
+            {t('admin.intake.subtitle')}
           </p>
         </div>
         <Button variant="gradient" onClick={openCreate}>
           <PlusIcon className="h-4 w-4" />
-          Tạo bộ câu hỏi
+          {t('admin.intake.createSet')}
         </Button>
       </div>
 
@@ -197,12 +201,12 @@ export default function IntakeQuestionsPage() {
       ) : sets.length === 0 ? (
         <EmptyState
           icon={<QuestionMarkCircleIcon className="h-8 w-8" />}
-          title="Chưa có bộ câu hỏi nào"
-          description="Tạo bộ câu hỏi đầu tiên để bắt đầu quy trình tiếp nhận tự động"
+          title={t('admin.intake.empty')}
+          description={t('admin.intake.emptyDesc')}
           action={
             <Button variant="gradient" onClick={openCreate}>
               <PlusIcon className="h-4 w-4" />
-              Tạo bộ câu hỏi
+              {t('admin.intake.createSet')}
             </Button>
           }
         />
@@ -222,7 +226,7 @@ export default function IntakeQuestionsPage() {
                     {set.isDefault && (
                       <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
                         <StarIcon className="h-3 w-3" />
-                        Mặc định
+                        {t('admin.intake.default')}
                       </span>
                     )}
                   </div>
@@ -238,10 +242,10 @@ export default function IntakeQuestionsPage() {
                       ) : (
                         <XCircleIcon className="h-3.5 w-3.5 text-red-400" />
                       )}
-                      {set.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
+                      {set.isActive ? t('admin.intake.active') : t('admin.intake.inactive')}
                     </span>
                     <span>·</span>
-                    <span>{formatDate(set.createdAt)}</span>
+                    <span>{formatDate(set.createdAt, language)}</span>
                   </div>
                 </div>
 
@@ -295,7 +299,7 @@ export default function IntakeQuestionsPage() {
                     )}
                     <div className="mt-1 flex items-center gap-2">
                       {q.isRequired && (
-                        <span className="text-[10px] text-red-400">Bắt buộc</span>
+                        <span className="text-[10px] text-red-400">{t('admin.intake.isRequired')}</span>
                       )}
                     </div>
                   </div>
@@ -310,13 +314,13 @@ export default function IntakeQuestionsPage() {
       <Modal
         open={showModal}
         onClose={() => setShowModal(false)}
-        title={editingSet ? 'Chỉnh sửa bộ câu hỏi' : 'Tạo bộ câu hỏi mới'}
+        title={editingSet ? t('admin.intake.editTitle') : t('admin.intake.createTitle')}
         size="lg"
       >
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
           <Input
             id="set-name"
-            label="Tên bộ câu hỏi"
+            label={t('admin.intake.nameLabel')}
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
             placeholder="VD: Website Project"
@@ -324,7 +328,7 @@ export default function IntakeQuestionsPage() {
           />
           <Textarea
             id="set-desc"
-            label="Mô tả"
+            label={t('admin.intake.descLabel')}
             value={formDesc}
             onChange={(e) => setFormDesc(e.target.value)}
             placeholder="Mô tả bộ câu hỏi..."
@@ -338,15 +342,15 @@ export default function IntakeQuestionsPage() {
               onChange={(e) => setFormDefault(e.target.checked)}
               className="h-4 w-4 rounded border-[var(--border)] bg-[var(--surface-2)] text-[var(--accent-indigo)]"
             />
-            <span className="text-[var(--foreground)]">Đặt làm bộ câu hỏi mặc định</span>
+            <span className="text-[var(--foreground)]">{t('admin.intake.setAsDefault')}</span>
           </label>
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="text-sm font-medium text-[var(--foreground)]">Câu hỏi</label>
+              <label className="text-sm font-medium text-[var(--foreground)]">{t('admin.intake.questionsLabel')}</label>
               <Button variant="ghost" size="sm" onClick={addQuestion}>
                 <PlusIcon className="h-3.5 w-3.5" />
-                Thêm câu hỏi
+                {t('admin.intake.addQuestion')}
               </Button>
             </div>
             <div className="space-y-3">
@@ -360,13 +364,13 @@ export default function IntakeQuestionsPage() {
                       <input
                         value={q.content}
                         onChange={(e) => updateQuestion(i, 'content', e.target.value)}
-                        placeholder="Nội dung câu hỏi..."
+                        placeholder={t('admin.intake.questionContentPlaceholder')}
                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--foreground)] placeholder-[var(--text-muted)] outline-none focus:border-[var(--accent-indigo)]"
                       />
                       <input
                         value={q.placeholder}
                         onChange={(e) => updateQuestion(i, 'placeholder', e.target.value)}
-                        placeholder="Placeholder (gợi ý trả lời)..."
+                        placeholder={t('admin.intake.questionPlaceholderHint')}
                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-3)] px-3 py-1.5 text-xs text-[var(--text-secondary)] placeholder-[var(--text-muted)] outline-none focus:border-[var(--accent-indigo)]"
                       />
                       <label className="flex items-center gap-2 text-xs">
@@ -376,7 +380,7 @@ export default function IntakeQuestionsPage() {
                           onChange={(e) => updateQuestion(i, 'isRequired', e.target.checked)}
                           className="h-3.5 w-3.5 rounded"
                         />
-                        <span className="text-[var(--text-muted)]">Bắt buộc</span>
+                        <span className="text-[var(--text-muted)]">{t('admin.intake.isRequired')}</span>
                       </label>
                     </div>
                     {questions.length > 1 && (
@@ -401,10 +405,10 @@ export default function IntakeQuestionsPage() {
 
           <div className="flex justify-end gap-3 pt-2 sticky bottom-0 bg-[var(--surface-1)] py-3">
             <Button variant="ghost" onClick={() => setShowModal(false)}>
-              Hủy
+              {t('common.cancel')}
             </Button>
             <Button variant="gradient" onClick={handleSave} loading={saving}>
-              {editingSet ? 'Cập nhật' : 'Tạo bộ câu hỏi'}
+              {editingSet ? t('admin.intake.updateBtn') : t('admin.intake.createBtn')}
             </Button>
           </div>
         </div>

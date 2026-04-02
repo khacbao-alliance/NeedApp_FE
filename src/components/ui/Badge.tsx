@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { RequestStatus, RequestPriority } from '@/types';
 
@@ -21,17 +24,17 @@ export function Badge({ children, variant = 'default', className }: BadgeProps) 
   );
 }
 
-const statusConfig: Record<RequestStatus, { label: string; className: string }> = {
-  Draft: { label: 'Nháp', className: 'status-draft' },
-  Intake: { label: 'Tiếp nhận', className: 'status-intake' },
-  Pending: { label: 'Chờ xử lý', className: 'status-pending' },
-  MissingInfo: { label: 'Thiếu thông tin', className: 'status-missinginfo' },
-  InProgress: { label: 'Đang xử lý', className: 'status-inprogress' },
-  Done: { label: 'Hoàn thành', className: 'status-done' },
-  Cancelled: { label: 'Đã hủy', className: 'status-cancelled' },
-};
-
 export function StatusBadge({ status }: { status: RequestStatus }) {
+  const { t } = useTranslation();
+  const statusConfig: Record<RequestStatus, { label: string; className: string }> = {
+    Draft: { label: t('status.draft'), className: 'status-draft' },
+    Intake: { label: t('status.intake'), className: 'status-intake' },
+    Pending: { label: t('status.pending'), className: 'status-pending' },
+    MissingInfo: { label: t('status.missingInfo'), className: 'status-missinginfo' },
+    InProgress: { label: t('status.inProgress'), className: 'status-inprogress' },
+    Done: { label: t('status.done'), className: 'status-done' },
+    Cancelled: { label: t('status.cancelled'), className: 'status-cancelled' },
+  };
   const config = statusConfig[status];
   return (
     <span
@@ -46,14 +49,14 @@ export function StatusBadge({ status }: { status: RequestStatus }) {
   );
 }
 
-const priorityConfig: Record<RequestPriority, { label: string; color: string }> = {
-  Low: { label: 'Thấp', color: 'bg-gray-500/15 text-gray-400' },
-  Medium: { label: 'Trung bình', color: 'bg-blue-500/15 text-blue-400' },
-  High: { label: 'Cao', color: 'bg-amber-500/15 text-amber-400' },
-  Urgent: { label: 'Khẩn cấp', color: 'bg-red-500/15 text-red-400' },
-};
-
 export function PriorityBadge({ priority }: { priority: RequestPriority }) {
+  const { t } = useTranslation();
+  const priorityConfig: Record<RequestPriority, { label: string; color: string }> = {
+    Low: { label: t('priority.low'), color: 'bg-gray-500/15 text-gray-400' },
+    Medium: { label: t('priority.medium'), color: 'bg-blue-500/15 text-blue-400' },
+    High: { label: t('priority.high'), color: 'bg-amber-500/15 text-amber-400' },
+    Urgent: { label: t('priority.urgent'), color: 'bg-red-500/15 text-red-400' },
+  };
   const config = priorityConfig[priority];
   return (
     <span

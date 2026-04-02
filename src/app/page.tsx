@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { ClientNavbar } from '@/components/layout/ClientNavbar';
 import { Footer } from '@/components/layout/Footer';
@@ -18,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function LandingPage() {
+  const { t } = useTranslation();
   const { isAuthenticated, role, isLoading } = useAuth();
   const router = useRouter();
 
@@ -51,21 +53,20 @@ export default function LandingPage() {
               {/* Badge */}
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--surface-1)] px-4 py-1.5 text-sm animate-fade-in">
                 <SparklesIcon className="h-4 w-4 text-[var(--accent-violet)]" />
-                <span className="text-[var(--text-secondary)]">Quản lý yêu cầu thông minh</span>
+                <span className="text-[var(--text-secondary)]">{t('landing.badge')}</span>
               </div>
 
               {/* Headline */}
               <h1 className="text-4xl font-extrabold tracking-tight text-[var(--foreground)] sm:text-5xl lg:text-6xl animate-slide-up">
-                Biến ý tưởng thành{' '}
-                <span className="gradient-text">hiện thực</span>
+                {t('landing.headlineLine1')}{' '}
+                <span className="gradient-text">{t('landing.headlineGradient')}</span>
                 <br />
-                chỉ với vài bước
+                {t('landing.headlineLine2')}
               </h1>
 
               {/* Subtitle */}
               <p className="mt-6 text-lg text-[var(--text-secondary)] sm:text-xl max-w-2xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '100ms' }}>
-                NeedApp giúp bạn gửi yêu cầu, trao đổi trực tiếp với đội ngũ chuyên gia
-                và theo dõi tiến độ dự án — tất cả trong một nền tảng duy nhất.
+                {t('landing.subtitle')}
               </p>
 
               {/* CTAs */}
@@ -76,14 +77,14 @@ export default function LandingPage() {
                       href="/requests/new"
                       className="btn-gradient rounded-xl px-8 py-3.5 text-base font-semibold inline-flex items-center gap-2"
                     >
-                      Tạo yêu cầu mới
+                      {t('landing.createRequest')}
                       <ChevronRightIcon className="h-4 w-4" />
                     </Link>
                     <Link
                       href="/requests"
                       className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-8 py-3.5 text-base font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-all inline-flex items-center gap-2"
                     >
-                      Xem yêu cầu của tôi
+                      {t('landing.viewMyRequests')}
                     </Link>
                   </>
                 ) : (
@@ -92,14 +93,14 @@ export default function LandingPage() {
                       href="/register"
                       className="btn-gradient rounded-xl px-8 py-3.5 text-base font-semibold inline-flex items-center gap-2"
                     >
-                      Bắt đầu miễn phí
+                      {t('landing.startFree')}
                       <ChevronRightIcon className="h-4 w-4" />
                     </Link>
                     <Link
                       href="/login"
                       className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-8 py-3.5 text-base font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-all inline-flex items-center gap-2"
                     >
-                      Đăng nhập
+                      {t('nav.login')}
                     </Link>
                   </>
                 )}
@@ -154,53 +155,53 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center mb-16">
               <h2 className="text-3xl font-bold text-[var(--foreground)] sm:text-4xl">
-                Mọi thứ bạn cần, <span className="gradient-text">tại một nơi</span>
+                {t('landing.featuresTitleLine1')} <span className="gradient-text">{t('landing.featuresTitleGradient')}</span>
               </h2>
               <p className="mt-4 text-[var(--text-secondary)] text-lg">
-                Quy trình đơn giản, giao tiếp rõ ràng, theo dõi mọi lúc.
+                {t('landing.featuresSubtitle')}
               </p>
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <FeatureCard
                 icon={<DocumentTextIcon className="h-6 w-6" />}
-                title="Tạo yêu cầu dễ dàng"
-                description="Chỉ cần mô tả ngắn gọn, hệ thống tự động hỏi thêm thông tin cần thiết để hiểu rõ nhu cầu của bạn."
+                title={t('landing.feature1Title')}
+                description={t('landing.feature1Desc')}
                 color="text-[var(--accent-violet)]"
                 bg="bg-[var(--accent-violet)]/10"
               />
               <FeatureCard
                 icon={<ChatBubbleLeftRightIcon className="h-6 w-6" />}
-                title="Chat trực tiếp"
-                description="Trao đổi với đội ngũ qua giao diện chat hiện đại. Gửi file, ảnh và nhận phản hồi nhanh chóng."
+                title={t('landing.feature2Title')}
+                description={t('landing.feature2Desc')}
                 color="text-[var(--accent-cyan)]"
                 bg="bg-[var(--accent-cyan)]/10"
               />
               <FeatureCard
                 icon={<ArrowTrendingUpIcon className="h-6 w-6" />}
-                title="Theo dõi tiến độ"
-                description="Biết chính xác trạng thái yêu cầu — từ tiếp nhận, đang xử lý đến hoàn thành. Không bao giờ bị bỏ sót."
+                title={t('landing.feature3Title')}
+                description={t('landing.feature3Desc')}
                 color="text-emerald-400"
                 bg="bg-emerald-500/10"
               />
               <FeatureCard
                 icon={<BoltIcon className="h-6 w-6" />}
-                title="Xử lý nhanh chóng"
-                description="Quy trình tiếp nhận tự động giúp đội ngũ nắm bắt nhu cầu ngay lập tức, rút ngắn thời gian phản hồi."
+                title={t('landing.feature4Title')}
+                description={t('landing.feature4Desc')}
                 color="text-amber-400"
                 bg="bg-amber-500/10"
               />
               <FeatureCard
                 icon={<ShieldCheckIcon className="h-6 w-6" />}
-                title="Bảo mật cao"
-                description="Dữ liệu được mã hóa và bảo vệ. Chỉ bạn và đội ngũ được phân quyền mới truy cập được thông tin."
+                title={t('landing.feature5Title')}
+                description={t('landing.feature5Desc')}
                 color="text-blue-400"
                 bg="bg-blue-500/10"
               />
               <FeatureCard
                 icon={<ClockIcon className="h-6 w-6" />}
-                title="Hỗ trợ 24/7"
-                description="Gửi yêu cầu bất cứ lúc nào. Đội ngũ sẽ phản hồi trong thời gian sớm nhất có thể."
+                title={t('landing.feature6Title')}
+                description={t('landing.feature6Desc')}
                 color="text-pink-400"
                 bg="bg-pink-500/10"
               />
@@ -213,28 +214,28 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center mb-16">
               <h2 className="text-3xl font-bold text-[var(--foreground)] sm:text-4xl">
-                Cách <span className="gradient-text">hoạt động</span>
+                {t('landing.howTitleLine1')} <span className="gradient-text">{t('landing.howTitleGradient')}</span>
               </h2>
               <p className="mt-4 text-[var(--text-secondary)] text-lg">
-                Chỉ 3 bước đơn giản để bắt đầu dự án
+                {t('landing.howSubtitle')}
               </p>
             </div>
 
             <div className="grid gap-8 lg:grid-cols-3">
               <StepCard
                 step={1}
-                title="Đăng ký & Tạo yêu cầu"
-                description="Tạo tài khoản miễn phí, mô tả ngắn gọn nhu cầu dự án của bạn. Hệ thống sẽ tự động hỏi thêm chi tiết."
+                title={t('landing.step1Title')}
+                description={t('landing.step1Desc')}
               />
               <StepCard
                 step={2}
-                title="Trao đổi với đội ngũ"
-                description="Chat trực tiếp, gửi tài liệu tham khảo. Đội ngũ sẽ phân tích và đưa ra giải pháp phù hợp nhất."
+                title={t('landing.step2Title')}
+                description={t('landing.step2Desc')}
               />
               <StepCard
                 step={3}
-                title="Theo dõi & Nhận kết quả"
-                description="Theo dõi tiến độ real-time, nhận cập nhật tự động. Dự án hoàn thành đúng hạn, đúng yêu cầu."
+                title={t('landing.step3Title')}
+                description={t('landing.step3Desc')}
               />
             </div>
           </div>
@@ -244,10 +245,10 @@ export default function LandingPage() {
         <section className="py-16 bg-[var(--surface-1)]/50">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
-              <StatItem value="500+" label="Yêu cầu đã xử lý" />
-              <StatItem value="99%" label="Khách hàng hài lòng" />
-              <StatItem value="24h" label="Thời gian phản hồi" />
-              <StatItem value="100+" label="Dự án hoàn thành" />
+              <StatItem value={t('landing.stat1Value')} label={t('landing.stat1Label')} />
+              <StatItem value={t('landing.stat2Value')} label={t('landing.stat2Label')} />
+              <StatItem value={t('landing.stat3Value')} label={t('landing.stat3Label')} />
+              <StatItem value={t('landing.stat4Value')} label={t('landing.stat4Label')} />
             </div>
           </div>
         </section>
@@ -262,10 +263,10 @@ export default function LandingPage() {
 
               <div className="relative px-8 py-16 sm:px-16 sm:py-20 text-center">
                 <h2 className="text-3xl font-bold text-white sm:text-4xl">
-                  Sẵn sàng bắt đầu dự án?
+                  {t('landing.ctaTitle')}
                 </h2>
                 <p className="mt-4 text-lg text-white/80 max-w-xl mx-auto">
-                  Đăng ký miễn phí ngay hôm nay và trải nghiệm cách quản lý yêu cầu chuyên nghiệp nhất.
+                  {t('landing.ctaSubtitle')}
                 </p>
                 <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                   {isAuthenticated ? (
@@ -273,7 +274,7 @@ export default function LandingPage() {
                       href="/requests/new"
                       className="rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-[var(--accent-indigo)] hover:bg-white/90 transition-all shadow-lg inline-flex items-center gap-2"
                     >
-                      Tạo yêu cầu mới
+                      {t('landing.createRequest')}
                       <ChevronRightIcon className="h-4 w-4" />
                     </Link>
                   ) : (
@@ -282,14 +283,14 @@ export default function LandingPage() {
                         href="/register"
                         className="rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-[var(--accent-indigo)] hover:bg-white/90 transition-all shadow-lg inline-flex items-center gap-2"
                       >
-                        Đăng ký miễn phí
+                        {t('landing.registerFree')}
                         <ChevronRightIcon className="h-4 w-4" />
                       </Link>
                       <Link
                         href="/login"
                         className="rounded-xl border border-white/30 px-8 py-3.5 text-base font-medium text-white hover:bg-white/10 transition-all"
                       >
-                        Đăng nhập
+                        {t('nav.login')}
                       </Link>
                     </>
                   )}
@@ -323,17 +324,15 @@ function MockMessage({
   return (
     <div className={`flex ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
-          align === 'right'
+        className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${align === 'right'
             ? 'bg-gradient-to-br from-[var(--accent-violet)] to-[var(--accent-indigo)] text-white'
             : isStaff
-            ? 'bg-blue-500/10 border border-blue-500/20 text-[var(--foreground)]'
-            : 'bg-[var(--surface-2)] text-[var(--foreground)]'
-        }`}
+              ? 'bg-blue-500/10 border border-blue-500/20 text-[var(--foreground)]'
+              : 'bg-[var(--surface-2)] text-[var(--foreground)]'
+          }`}
       >
-        <p className={`text-[10px] font-medium mb-0.5 ${
-          align === 'right' ? 'text-white/70' : isStaff ? 'text-blue-400' : 'text-[var(--text-muted)]'
-        }`}>
+        <p className={`text-[10px] font-medium mb-0.5 ${align === 'right' ? 'text-white/70' : isStaff ? 'text-blue-400' : 'text-[var(--text-muted)]'
+          }`}>
           {name}
         </p>
         <p className="text-sm leading-relaxed">{text}</p>

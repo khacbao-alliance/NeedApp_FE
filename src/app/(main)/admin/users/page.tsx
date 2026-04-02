@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useAuth } from '@/hooks/useAuth';
 import { userService, type CreateUserRequest, type UpdateUserRequest } from '@/services/users';
 import { Button } from '@/components/ui/Button';
@@ -36,6 +38,8 @@ const roleColors: Record<UserRole, string> = {
 
 export default function AdminUsersPage() {
   const { role } = useAuth();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const [data, setData] = useState<PaginatedResponse<UserDetailDto> | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -74,8 +78,8 @@ export default function AdminUsersPage() {
     return (
       <EmptyState
         icon={<UserGroupIcon className="h-8 w-8" />}
-        title="Không có quyền truy cập"
-        description="Chỉ Admin mới có thể quản lý người dùng"
+        title={t('admin.users.noPermission')}
+        description={t('admin.users.noPermissionDesc')}
       />
     );
   }
@@ -115,14 +119,14 @@ export default function AdminUsersPage() {
       fetchUsers();
     } catch (err) {
       if (err instanceof ApiRequestError) setError(err.message);
-      else setError('Có lỗi xảy ra');
+      else setError(t('admin.users.error'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc muốn xóa người dùng này?')) return;
+    if (!confirm(t('admin.users.deleteConfirm'))) return;
     try {
       await userService.delete(id);
       fetchUsers();
@@ -135,14 +139,14 @@ export default function AdminUsersPage() {
     <div className="space-y-6 animate-fade-in" id="admin-users-page">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Người dùng</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">{t('admin.users.title')}</h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Quản lý tất cả người dùng trong hệ thống
+            {t('admin.users.subtitle')}
           </p>
         </div>
         <Button variant="gradient" onClick={openCreate}>
           <PlusIcon className="h-4 w-4" />
-          Thêm người dùng
+          {t('admin.users.addUser')}
         </Button>
       </div>
 
@@ -152,7 +156,7 @@ export default function AdminUsersPage() {
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             type="text"
-            placeholder="Tìm theo email hoặc tên..."
+            placeholder={t('admin.users.searchPlaceholder')}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] py-2.5 pl-10 pr-4 text-sm text-[var(--foreground)] placeholder-[var(--text-muted)] outline-none focus:border-[var(--accent-indigo)]"
@@ -163,7 +167,7 @@ export default function AdminUsersPage() {
           onChange={(e) => { setRoleFilter(e.target.value as UserRole | ''); setPage(1); }}
           className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-[var(--foreground)] outline-none"
         >
-          <option value="">Tất cả roles</option>
+          <option value="">{t('admin.users.allRoles')}</option>
           {roleOptions.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
@@ -175,11 +179,11 @@ export default function AdminUsersPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--surface-1)]">
-              <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">Người dùng</th>
-              <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">Email</th>
-              <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">Role</th>
-              <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">Ngày tạo</th>
-              <th className="px-4 py-3 text-right font-medium text-[var(--text-secondary)]">Thao tác</th>
+              <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">{t('admin.users.colUser')}</th>
+              <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">{t('admin.users.colEmail')}</th>
+              <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">{t('admin.users.colRole')}</th>
+              <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">{t('admin.users.colDate')}</th>
+              <th className="px-4 py-3 text-right font-medium text-[var(--text-secondary)]">{t('admin.users.colActions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -194,7 +198,7 @@ export default function AdminUsersPage() {
             ) : !data?.items.length ? (
               <tr>
                 <td colSpan={5}>
-                  <EmptyState title="Không có người dùng" className="py-8" />
+                  <EmptyState title={t('admin.users.noUsers')} className="py-8" />
                 </td>
               </tr>
             ) : (
@@ -215,7 +219,7 @@ export default function AdminUsersPage() {
                       {u.role}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-[var(--text-muted)]">{formatDate(u.createdAt)}</td>
+                  <td className="px-4 py-3 text-[var(--text-muted)]">{formatDate(u.createdAt, language)}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button
@@ -243,7 +247,7 @@ export default function AdminUsersPage() {
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between text-sm">
           <p className="text-[var(--text-muted)]">
-            Hiển thị {data.items.length} / {data.totalCount} người dùng
+            {t('admin.users.showing', { count: data.items.length, total: data.totalCount })}
           </p>
           <div className="flex gap-1">
             {Array.from({ length: data.totalPages }, (_, i) => i + 1).map((p) => (
@@ -267,7 +271,7 @@ export default function AdminUsersPage() {
       <Modal
         open={showModal}
         onClose={() => setShowModal(false)}
-        title={editingUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng mới'}
+        title={editingUser ? t('admin.users.editTitle') : t('admin.users.createTitle')}
       >
         <div className="space-y-4">
           {!editingUser && (
@@ -284,7 +288,7 @@ export default function AdminUsersPage() {
             <PasswordInput
               id="user-password"
               label="Mật khẩu"
-              placeholder="Tối thiểu 6 ký tự"
+              placeholder={t('admin.users.passwordHint')}
               value={form.password}
               onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
               required
@@ -293,7 +297,7 @@ export default function AdminUsersPage() {
           )}
           <Input
             id="user-name"
-            label="Tên"
+            label={t('admin.users.nameLabel')}
             value={form.name}
             onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
           />
@@ -313,10 +317,10 @@ export default function AdminUsersPage() {
 
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="ghost" onClick={() => setShowModal(false)}>
-              Hủy
+              {t('common.cancel')}
             </Button>
             <Button variant="gradient" onClick={handleSave} loading={saving}>
-              {editingUser ? 'Cập nhật' : 'Tạo'}
+              {editingUser ? t('common.update') : t('common.create')}
             </Button>
           </div>
         </div>

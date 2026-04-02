@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { fileService } from '@/services/files';
 import { Avatar } from '@/components/ui/Avatar';
@@ -16,16 +17,17 @@ import {
   PhoneIcon,
 } from '@heroicons/react/24/outline';
 
-const roleLabels = {
-  Admin: 'Quản trị viên',
-  Staff: 'Nhân viên',
-  Client: 'Khách hàng',
-};
-
 export default function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const roleLabels = {
+    Admin: t('profile.roleAdmin'),
+    Staff: t('profile.roleStaff'),
+    Client: t('profile.roleClient'),
+  };
 
   if (!user) return null;
 
@@ -81,16 +83,15 @@ export default function ProfilePage() {
           </div>
           <div className="pb-2">
             <h1 className="text-xl font-bold text-[var(--foreground)]">
-              {user.name || 'Chưa đặt tên'}
+              {user.name || t('profile.unnamed')}
             </h1>
             <span
-              className={`mt-1 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${
-                user.role === 'Admin'
+              className={`mt-1 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${user.role === 'Admin'
                   ? 'bg-red-500/15 text-red-400'
                   : user.role === 'Staff'
-                  ? 'bg-blue-500/15 text-blue-400'
-                  : 'bg-emerald-500/15 text-emerald-400'
-              }`}
+                    ? 'bg-blue-500/15 text-blue-400'
+                    : 'bg-emerald-500/15 text-emerald-400'
+                }`}
             >
               <ShieldCheckIcon className="h-3.5 w-3.5" />
               {roleLabels[user.role]}
@@ -107,8 +108,8 @@ export default function ProfilePage() {
           />
           <InfoRow
             icon={<BuildingOffice2Icon className="h-5 w-5" />}
-            label="Hồ sơ doanh nghiệp"
-            value={user.hasClient ? 'Đã thiết lập' : 'Chưa thiết lập'}
+            label={t('profile.businessProfile')}
+            value={user.hasClient ? t('profile.setup') : t('profile.notSetup')}
             valueClass={user.hasClient ? 'text-emerald-400' : 'text-amber-400'}
           />
         </div>
@@ -118,40 +119,40 @@ export default function ProfilePage() {
           <div className="mt-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)] mb-3">
               <BuildingOffice2Icon className="h-4 w-4 text-[var(--accent-violet)]" />
-              Thông tin doanh nghiệp
+              {t('profile.businessInfo')}
             </h2>
             <div className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/50 p-4">
               <InfoRow
                 icon={<BuildingOffice2Icon className="h-5 w-5" />}
-                label="Tên công ty"
+                label={t('profile.companyName')}
                 value={user.client.name}
               />
               {user.client.description && (
                 <InfoRow
                   icon={<DocumentTextIcon className="h-5 w-5" />}
-                  label="Mô tả"
+                  label={t('profile.description')}
                   value={user.client.description}
                 />
               )}
               {user.client.contactEmail && (
                 <InfoRow
                   icon={<EnvelopeIcon className="h-5 w-5" />}
-                  label="Email liên hệ"
+                  label={t('profile.contactEmail')}
                   value={user.client.contactEmail}
                 />
               )}
               {user.client.contactPhone && (
                 <InfoRow
                   icon={<PhoneIcon className="h-5 w-5" />}
-                  label="Số điện thoại"
+                  label={t('profile.phone')}
                   value={user.client.contactPhone}
                 />
               )}
               {user.client.role && (
                 <InfoRow
                   icon={<ShieldCheckIcon className="h-5 w-5" />}
-                  label="Vai trò"
-                  value={user.client.role === 'Owner' ? 'Chủ sở hữu' : 'Thành viên'}
+                  label={t('profile.role')}
+                  value={user.client.role === 'Owner' ? t('profile.owner') : t('profile.member')}
                   valueClass={user.client.role === 'Owner' ? 'text-[var(--accent-violet)]' : undefined}
                 />
               )}
@@ -167,7 +168,7 @@ export default function ProfilePage() {
             className="w-full"
           >
             <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
-            Đăng xuất
+            {t('profile.logout')}
           </Button>
         </div>
       </div>

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/hooks/useTheme";
+import { LanguageProvider } from "@/hooks/useLanguage";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -22,7 +24,29 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${inter.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('needapp-theme');
+                  if (!theme) {
+                    theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+                  }
+                  document.documentElement.setAttribute('data-theme', theme);
+                  document.documentElement.style.colorScheme = theme;
+                  var lang = localStorage.getItem('needapp-lang') || 'vi';
+                  document.documentElement.setAttribute('lang', lang);
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+        <ThemeProvider>
+          <LanguageProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

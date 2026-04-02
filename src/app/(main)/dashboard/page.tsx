@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { requestService } from '@/services/requestsApi';
 import { userService } from '@/services/users';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
@@ -46,6 +48,7 @@ export default function DashboardPage() {
    ADMIN DASHBOARD
    ═══════════════════════════════════════════════════════ */
 function AdminDashboard({ userName }: { userName?: string | null }) {
+  const { t } = useTranslation();
   const [requests, setRequests] = useState<RequestDto[]>([]);
   const [users, setUsers] = useState<PaginatedResponse<UserDetailDto> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,29 +87,29 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
             <span className="text-xs font-semibold uppercase tracking-wider text-red-400">Admin Panel</span>
           </div>
           <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
-            Xin chào, <span className="gradient-text">{userName || 'Admin'}</span>! 👋
+            {t('dashboard.greeting')}, <span className="gradient-text">{userName || 'Admin'}</span>! 👋
           </h1>
           <p className="mt-1 text-[var(--text-muted)]">
-            Tổng quan hệ thống và quản lý toàn bộ hoạt động.
+            {t('dashboard.adminSubtitle')}
           </p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label="Tổng yêu cầu" value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" />
-        <StatCard icon={<InboxIcon className="h-5 w-5" />} label="Đang tiếp nhận" value={stats.intake} color="text-amber-400" bg="bg-amber-500/10" />
-        <StatCard icon={<ClockIcon className="h-5 w-5" />} label="Chờ xử lý" value={stats.pending} color="text-blue-400" bg="bg-blue-500/10" />
-        <StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label="Đang xử lý" value={stats.inProgress} color="text-purple-400" bg="bg-purple-500/10" />
-        <StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label="Hoàn thành" value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" />
-        <StatCard icon={<UserGroupIcon className="h-5 w-5" />} label="Người dùng" value={stats.totalUsers} color="text-cyan-400" bg="bg-cyan-500/10" />
+        <StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" />
+        <StatCard icon={<InboxIcon className="h-5 w-5" />} label={t('dashboard.intake')} value={stats.intake} color="text-amber-400" bg="bg-amber-500/10" />
+        <StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.pending')} value={stats.pending} color="text-blue-400" bg="bg-blue-500/10" />
+        <StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label={t('dashboard.inProgress')} value={stats.inProgress} color="text-purple-400" bg="bg-purple-500/10" />
+        <StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label={t('dashboard.done')} value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" />
+        <StatCard icon={<UserGroupIcon className="h-5 w-5" />} label={t('dashboard.totalUsers')} value={stats.totalUsers} color="text-cyan-400" bg="bg-cyan-500/10" />
       </div>
 
       {/* Quick Actions Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <QuickActionCard href="/admin/users" icon={<UserGroupIcon className="h-6 w-6" />} title="Quản lý người dùng" description="Tạo, sửa, xóa tài khoản người dùng" color="text-cyan-400" bg="bg-cyan-500/10" />
-        <QuickActionCard href="/admin/intake-questions" icon={<ChatBubbleLeftRightIcon className="h-6 w-6" />} title="Câu hỏi tiếp nhận" description="Quản lý bộ câu hỏi tự động" color="text-amber-400" bg="bg-amber-500/10" />
-        <QuickActionCard href="/requests" icon={<DocumentTextIcon className="h-6 w-6" />} title="Tất cả yêu cầu" description="Xem và quản lý toàn bộ yêu cầu" color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" />
+        <QuickActionCard href="/admin/users" icon={<UserGroupIcon className="h-6 w-6" />} title={t('dashboard.manageUsers')} description={t('dashboard.manageUsersDesc')} color="text-cyan-400" bg="bg-cyan-500/10" />
+        <QuickActionCard href="/admin/intake-questions" icon={<ChatBubbleLeftRightIcon className="h-6 w-6" />} title={t('dashboard.intakeQuestions')} description={t('dashboard.intakeQuestionsDesc')} color="text-amber-400" bg="bg-amber-500/10" />
+        <QuickActionCard href="/requests" icon={<DocumentTextIcon className="h-6 w-6" />} title={t('dashboard.allRequests')} description={t('dashboard.allRequestsDesc')} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -115,10 +118,10 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)]">
               <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
-              Yêu cầu ưu tiên cao
+              {t('dashboard.highPriority')}
             </h2>
             <Link href="/requests" className="text-sm font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
-              Xem tất cả →
+              {t('dashboard.viewAll')} →
             </Link>
           </div>
           {loading ? (
@@ -126,7 +129,7 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
           ) : urgentRequests.length === 0 ? (
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-6 text-center">
               <CheckCircleIcon className="mx-auto h-8 w-8 text-emerald-400" />
-              <p className="mt-2 text-sm text-[var(--text-muted)]">Không có yêu cầu ưu tiên cao</p>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">{t('dashboard.noHighPriority')}</p>
             </div>
           ) : (
             <RequestList requests={urgentRequests} />
@@ -138,16 +141,16 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)]">
               <UserGroupIcon className="h-5 w-5 text-cyan-400" />
-              Người dùng mới
+              {t('dashboard.recentUsers')}
             </h2>
             <Link href="/admin/users" className="text-sm font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
-              Xem tất cả →
+              {t('dashboard.viewAll')} →
             </Link>
           </div>
           {loading ? (
             <LoadingSkeleton count={3} />
           ) : !users?.items.length ? (
-            <EmptyState title="Chưa có người dùng" />
+            <EmptyState title={t('dashboard.noUsers')} />
           ) : (
             <div className="space-y-2">
               {users.items.map((u) => (
@@ -172,6 +175,7 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
    STAFF DASHBOARD
    ═══════════════════════════════════════════════════════ */
 function StaffDashboard({ userName }: { userName?: string | null }) {
+  const { t } = useTranslation();
   const [requests, setRequests] = useState<RequestDto[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -181,7 +185,7 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
       .then((res) => {
         if (res?.items) setRequests(res.items);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -206,16 +210,16 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
           <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">Staff Workspace</span>
         </div>
         <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
-          Xin chào, <span className="gradient-text">{userName || 'bạn'}</span>! 👋
+          {t('dashboard.greeting')}, <span className="gradient-text">{userName || 'bạn'}</span>! 👋
         </h1>
-        <p className="mt-1 text-[var(--text-muted)]">Theo dõi công việc và xử lý yêu cầu từ khách hàng.</p>
+        <p className="mt-1 text-[var(--text-muted)]">{t('dashboard.staffSubtitle')}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label="Tổng yêu cầu" value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" />
-        <StatCard icon={<ClockIcon className="h-5 w-5" />} label="Cần xử lý" value={stats.pending + stats.intake} color="text-amber-400" bg="bg-amber-500/10" highlight={stats.pending + stats.intake > 0} />
-        <StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label="Đang xử lý" value={stats.inProgress} color="text-blue-400" bg="bg-blue-500/10" />
-        <StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label="Hoàn thành" value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" />
+        <StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" />
+        <StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.myRequests')} value={stats.pending + stats.intake} color="text-amber-400" bg="bg-amber-500/10" highlight={stats.pending + stats.intake > 0} />
+        <StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label={t('dashboard.inProgress')} value={stats.inProgress} color="text-blue-400" bg="bg-blue-500/10" />
+        <StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label={t('dashboard.done')} value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" />
       </div>
 
       {actionNeeded.length > 0 && (
@@ -225,11 +229,11 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
               <ExclamationTriangleIcon className="h-6 w-6 text-amber-400" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-[var(--foreground)]">{actionNeeded.length} yêu cầu cần xử lý</h3>
-              <p className="mt-0.5 text-sm text-[var(--text-muted)]">Có yêu cầu đang chờ phản hồi hoặc thiếu thông tin từ khách hàng</p>
+              <h3 className="font-semibold text-[var(--foreground)]">{actionNeeded.length} {t('dashboard.myRequests')}</h3>
+              <p className="mt-0.5 text-sm text-[var(--text-muted)]">{t('dashboard.pendingFeedback')}</p>
             </div>
             <Link href="/requests">
-              <Button variant="gradient" size="sm">Xem ngay</Button>
+              <Button variant="gradient" size="sm">{t('dashboard.viewAll')}</Button>
             </Link>
           </div>
         </div>
@@ -240,10 +244,10 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)]">
               <ClockIcon className="h-5 w-5 text-amber-400" />
-              Cần xử lý
+              {t('dashboard.myRequests')}
             </h2>
             <Link href="/requests" className="text-sm font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
-              Xem tất cả →
+              {t('dashboard.viewAll')} →
             </Link>
           </div>
           {loading ? (
@@ -251,7 +255,7 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
           ) : actionNeeded.length === 0 ? (
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-6 text-center">
               <CheckCircleIcon className="mx-auto h-8 w-8 text-emerald-400" />
-              <p className="mt-2 text-sm text-[var(--text-muted)]">Tất cả yêu cầu đã được xử lý! 🎉</p>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">{t('dashboard.noRequestsYet')} 🎉</p>
             </div>
           ) : (
             <RequestList requests={actionNeeded.slice(0, 5)} />
@@ -262,7 +266,7 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
           <div className="mb-4">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)]">
               <ArrowTrendingUpIcon className="h-5 w-5 text-blue-400" />
-              Đang xử lý
+              {t('dashboard.inProgress')}
             </h2>
           </div>
           {loading ? (
@@ -270,8 +274,8 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
           ) : inProgressList.length === 0 ? (
             <EmptyState
               icon={<DocumentTextIcon className="h-8 w-8" />}
-              title="Chưa có yêu cầu đang xử lý"
-              description="Nhận yêu cầu mới từ danh sách chờ xử lý"
+              title={t('dashboard.noRequestsYet')}
+              description={t('dashboard.pickFromQueue')}
             />
           ) : (
             <RequestList requests={inProgressList} />
@@ -317,6 +321,7 @@ function QuickActionCard({ href, icon, title, description, color, bg }: {
 }
 
 function RequestList({ requests }: { requests: RequestDto[] }) {
+  const { language } = useLanguage();
   return (
     <div className="space-y-2">
       {requests.map((req) => (
@@ -326,7 +331,7 @@ function RequestList({ requests }: { requests: RequestDto[] }) {
             <div className="mt-1 flex items-center gap-2 text-xs text-[var(--text-muted)]">
               {req.client && <span className="font-medium text-[var(--text-secondary)]">{req.client.name}</span>}
               {req.client && <span>·</span>}
-              <span>{formatDate(req.createdAt)}</span>
+              <span>{formatDate(req.createdAt, language)}</span>
               {req.assignedUser && (
                 <>
                   <span>·</span>

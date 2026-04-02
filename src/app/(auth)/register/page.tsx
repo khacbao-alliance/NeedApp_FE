@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
@@ -11,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { ApiRequestError } from '@/services/requests';
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const { register } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({
@@ -38,7 +40,7 @@ export default function RegisterPage() {
     setFieldErrors({});
 
     if (form.password !== form.confirmPassword) {
-      setFieldErrors({ confirmPassword: ['Mật khẩu xác nhận không khớp.'] });
+      setFieldErrors({ confirmPassword: [t('auth.register.passwordMismatch')] });
       return;
     }
 
@@ -55,7 +57,7 @@ export default function RegisterPage() {
         setError(err.message);
         if (err.errors) setFieldErrors(err.errors);
       } else {
-        setError('Đăng ký thất bại. Vui lòng thử lại.');
+        setError(t('auth.register.failed'));
       }
     } finally {
       setLoading(false);
@@ -76,7 +78,7 @@ export default function RegisterPage() {
             priority
           />
           <p className="mt-3 text-sm text-[var(--text-muted)]">
-            Tạo tài khoản mới
+            {t('auth.register.subtitle')}
           </p>
         </div>
 
@@ -84,7 +86,7 @@ export default function RegisterPage() {
           <Input
             id="register-name"
             name="name"
-            label="Họ và tên"
+            label={t('auth.register.name')}
             placeholder="Nguyễn Văn A"
             value={form.name}
             onChange={handleChange}
@@ -105,8 +107,8 @@ export default function RegisterPage() {
           <PasswordInput
             id="register-password"
             name="password"
-            label="Mật khẩu"
-            placeholder="Tối thiểu 6 ký tự"
+            label={t('auth.register.password')}
+            placeholder={t('auth.register.passwordHint')}
             value={form.password}
             onChange={handleChange}
             minLength={6}
@@ -117,8 +119,8 @@ export default function RegisterPage() {
           <PasswordInput
             id="register-confirm-password"
             name="confirmPassword"
-            label="Xác nhận mật khẩu"
-            placeholder="Nhập lại mật khẩu"
+            label={t('auth.register.confirmPassword')}
+            placeholder={t('auth.register.confirmHint')}
             value={form.confirmPassword}
             onChange={handleChange}
             required
@@ -133,15 +135,15 @@ export default function RegisterPage() {
           )}
 
           <Button type="submit" loading={loading} variant="gradient" className="w-full mt-2" id="register-submit">
-            Đăng ký
+            {t('auth.register.submit')}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-[var(--text-muted)]">
-            Đã có tài khoản?{' '}
+            {t('auth.register.hasAccount')}{' '}
             <Link href="/login" className="font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
-              Đăng nhập
+              {t('nav.login')}
             </Link>
           </p>
         </div>

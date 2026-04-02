@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +21,7 @@ import {
 type Step = 'email' | 'otp' | 'password' | 'done';
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
@@ -60,7 +62,7 @@ export default function ForgotPasswordPage() {
       if (err instanceof ApiRequestError) {
         setError(err.message);
       } else {
-        setError('Không thể gửi yêu cầu. Vui lòng thử lại.');
+        setError(t('auth.forgotPassword.cannotSend'));
       }
     } finally {
       setLoading(false);
@@ -72,7 +74,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     const otpCode = otp.join('');
     if (otpCode.length < 6) {
-      setError('Vui lòng nhập đủ 6 số OTP');
+      setError(t('auth.forgotPassword.otpRequired'));
       return;
     }
     setError('');
@@ -83,11 +85,11 @@ export default function ForgotPasswordPage() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 6) {
-      setError('Mật khẩu mới phải có ít nhất 6 ký tự');
+      setError(t('auth.forgotPassword.minLength'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
+      setError(t('auth.forgotPassword.mismatch'));
       return;
     }
     setError('');
@@ -108,7 +110,7 @@ export default function ForgotPasswordPage() {
         }
         setError(err.message);
       } else {
-        setError('Đặt lại mật khẩu thất bại. Vui lòng thử lại.');
+        setError(t('auth.forgotPassword.resetFailed'));
       }
     } finally {
       setLoading(false);
@@ -126,7 +128,7 @@ export default function ForgotPasswordPage() {
       setOtp(['', '', '', '', '', '']);
       otpRefs.current[0]?.focus();
     } catch {
-      setError('Không thể gửi lại mã. Vui lòng thử lại.');
+      setError(t('auth.forgotPassword.cannotResend'));
     } finally {
       setLoading(false);
     }
@@ -163,9 +165,9 @@ export default function ForgotPasswordPage() {
 
   // ── Step indicator ──
   const steps = [
-    { key: 'email', label: 'Email' },
-    { key: 'otp', label: 'Xác minh' },
-    { key: 'password', label: 'Mật khẩu' },
+    { key: 'email', label: t('auth.forgotPassword.stepEmail') },
+    { key: 'otp', label: t('auth.forgotPassword.stepOtp') },
+    { key: 'password', label: t('auth.forgotPassword.stepPassword') },
   ];
   const currentIdx = steps.findIndex((s) => s.key === step);
 
@@ -189,19 +191,17 @@ export default function ForgotPasswordPage() {
           <div className="mb-6 flex items-center justify-center gap-1.5">
             {steps.map((s, i) => (
               <div key={s.key} className="flex items-center gap-1.5">
-                <div className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-all duration-300 ${
-                  i < currentIdx
+                <div className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-all duration-300 ${i < currentIdx
                     ? 'bg-emerald-500/20 text-emerald-400'
                     : i === currentIdx
                       ? 'bg-[var(--accent-indigo)]/20 text-[var(--accent-violet)] ring-2 ring-[var(--accent-indigo)]/30'
                       : 'bg-[var(--surface-3)] text-[var(--text-muted)]'
-                }`}>
+                  }`}>
                   {i < currentIdx ? '✓' : i + 1}
                 </div>
                 {i < steps.length - 1 && (
-                  <div className={`h-px w-8 transition-colors duration-300 ${
-                    i < currentIdx ? 'bg-emerald-500/40' : 'bg-[var(--border)]'
-                  }`} />
+                  <div className={`h-px w-8 transition-colors duration-300 ${i < currentIdx ? 'bg-emerald-500/40' : 'bg-[var(--border)]'
+                    }`} />
                 )}
               </div>
             ))}
@@ -215,9 +215,9 @@ export default function ForgotPasswordPage() {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent-indigo)]/15">
                 <EnvelopeIcon className="h-6 w-6 text-[var(--accent-violet)]" />
               </div>
-              <h1 className="text-lg font-bold text-[var(--foreground)]">Quên mật khẩu?</h1>
+              <h1 className="text-lg font-bold text-[var(--foreground)]">{t('auth.forgotPassword.emailTitle')}</h1>
               <p className="mt-1 text-sm text-[var(--text-muted)]">
-                Nhập email để nhận mã OTP đặt lại mật khẩu.
+                {t('auth.forgotPassword.emailSubtitle')}
               </p>
             </div>
 
@@ -240,7 +240,7 @@ export default function ForgotPasswordPage() {
               )}
 
               <Button type="submit" loading={loading} variant="gradient" className="w-full mt-1" id="forgot-submit">
-                Gửi mã OTP
+                {t('auth.forgotPassword.sendOtp')}
               </Button>
             </form>
 
@@ -250,7 +250,7 @@ export default function ForgotPasswordPage() {
                 className="inline-flex items-center gap-1 text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
               >
                 <ArrowLeftIcon className="h-3.5 w-3.5" />
-                Quay lại đăng nhập
+                {t('auth.forgotPassword.backToLogin')}
               </Link>
             </div>
           </>
@@ -263,9 +263,9 @@ export default function ForgotPasswordPage() {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15">
                 <ShieldCheckIcon className="h-6 w-6 text-emerald-400" />
               </div>
-              <h1 className="text-lg font-bold text-[var(--foreground)]">Nhập mã xác nhận</h1>
+              <h1 className="text-lg font-bold text-[var(--foreground)]">{t('auth.forgotPassword.otpTitle')}</h1>
               <p className="mt-1 text-sm text-[var(--text-muted)]">
-                Đã gửi mã 6 số đến{' '}
+                {t('auth.forgotPassword.otpSentTo')}{' '}
                 <span className="font-medium text-[var(--foreground)]">{email}</span>
               </p>
             </div>
@@ -300,7 +300,7 @@ export default function ForgotPasswordPage() {
               <div className="text-center">
                 {countdown > 0 ? (
                   <span className="text-xs text-[var(--text-muted)]">
-                    Gửi lại mã sau <span className="tabular-nums font-medium text-[var(--foreground)]">{countdown}s</span>
+                    {t('auth.forgotPassword.resendAfter')} <span className="tabular-nums font-medium text-[var(--foreground)]">{countdown}s</span>
                   </span>
                 ) : (
                   <button
@@ -309,7 +309,7 @@ export default function ForgotPasswordPage() {
                     disabled={loading}
                     className="text-xs font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors disabled:opacity-50"
                   >
-                    Gửi lại mã OTP
+                    {t('auth.forgotPassword.resendOtp')}
                   </button>
                 )}
               </div>
@@ -327,7 +327,7 @@ export default function ForgotPasswordPage() {
                 disabled={otp.join('').length < 6}
                 id="otp-submit"
               >
-                Xác nhận
+                {t('common.confirm')}
               </Button>
             </form>
 
@@ -337,7 +337,7 @@ export default function ForgotPasswordPage() {
                 className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
               >
                 <ArrowLeftIcon className="h-3 w-3" />
-                Đổi email khác
+                {t('auth.forgotPassword.changeEmail')}
               </button>
             </div>
           </>
@@ -350,17 +350,17 @@ export default function ForgotPasswordPage() {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent-indigo)]/15">
                 <LockClosedIcon className="h-6 w-6 text-[var(--accent-violet)]" />
               </div>
-              <h1 className="text-lg font-bold text-[var(--foreground)]">Tạo mật khẩu mới</h1>
+              <h1 className="text-lg font-bold text-[var(--foreground)]">{t('auth.forgotPassword.newPasswordTitle')}</h1>
               <p className="mt-1 text-sm text-[var(--text-muted)]">
-                Mật khẩu mới phải có ít nhất 6 ký tự.
+                {t('auth.forgotPassword.newPasswordSubtitle')}
               </p>
             </div>
 
             <form onSubmit={handleResetPassword} className="flex flex-col gap-4" id="new-password-form">
               <PasswordInput
                 id="new-password"
-                label="Mật khẩu mới"
-                placeholder="Ít nhất 6 ký tự"
+                label={t('auth.forgotPassword.newPassword')}
+                placeholder={t('auth.forgotPassword.newPasswordHint')}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -369,8 +369,8 @@ export default function ForgotPasswordPage() {
 
               <PasswordInput
                 id="confirm-password"
-                label="Xác nhận mật khẩu"
-                placeholder="Nhập lại mật khẩu mới"
+                label={t('auth.forgotPassword.confirmPassword')}
+                placeholder={t('auth.forgotPassword.confirmHint')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -379,13 +379,11 @@ export default function ForgotPasswordPage() {
 
               {/* Password match indicator */}
               {confirmPassword && (
-                <div className={`flex items-center gap-1.5 text-xs ${
-                  newPassword === confirmPassword ? 'text-emerald-400' : 'text-red-400'
-                }`}>
-                  <div className={`h-1.5 w-1.5 rounded-full ${
-                    newPassword === confirmPassword ? 'bg-emerald-400' : 'bg-red-400'
-                  }`} />
-                  {newPassword === confirmPassword ? 'Mật khẩu khớp' : 'Mật khẩu không khớp'}
+                <div className={`flex items-center gap-1.5 text-xs ${newPassword === confirmPassword ? 'text-emerald-400' : 'text-red-400'
+                  }`}>
+                  <div className={`h-1.5 w-1.5 rounded-full ${newPassword === confirmPassword ? 'bg-emerald-400' : 'bg-red-400'
+                    }`} />
+                  {newPassword === confirmPassword ? t('auth.forgotPassword.passwordMatch') : t('auth.forgotPassword.passwordNotMatch')}
                 </div>
               )}
 
@@ -396,7 +394,7 @@ export default function ForgotPasswordPage() {
               )}
 
               <Button type="submit" loading={loading} variant="gradient" className="w-full mt-1" id="reset-submit">
-                Đặt lại mật khẩu
+                {t('auth.forgotPassword.resetBtn')}
               </Button>
             </form>
 
@@ -406,7 +404,7 @@ export default function ForgotPasswordPage() {
                 className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
               >
                 <ArrowLeftIcon className="h-3 w-3" />
-                Quay lại nhập OTP
+                {t('auth.forgotPassword.backToOtp')}
               </button>
             </div>
           </>
@@ -418,9 +416,9 @@ export default function ForgotPasswordPage() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15">
               <CheckCircleIcon className="h-7 w-7 text-emerald-400" />
             </div>
-            <h1 className="text-lg font-bold text-[var(--foreground)]">Đặt lại thành công!</h1>
+            <h1 className="text-lg font-bold text-[var(--foreground)]">{t('auth.forgotPassword.successTitle')}</h1>
             <p className="mt-2 text-sm text-[var(--text-muted)]">
-              Mật khẩu đã được cập nhật.<br />Bạn có thể đăng nhập với mật khẩu mới.
+              {t('auth.forgotPassword.successMessage')}
             </p>
             <Button
               onClick={() => router.push('/login')}
@@ -428,7 +426,7 @@ export default function ForgotPasswordPage() {
               className="w-full mt-6"
               id="goto-login"
             >
-              Đăng nhập ngay
+              {t('auth.forgotPassword.goToLogin')}
             </Button>
           </div>
         )}

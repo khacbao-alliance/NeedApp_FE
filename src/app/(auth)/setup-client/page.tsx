@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { clientService } from '@/services/clients';
 import { Input } from '@/components/ui/Input';
@@ -12,6 +13,7 @@ import { ApiRequestError } from '@/services/requests';
 import { BuildingOffice2Icon } from '@heroicons/react/24/outline';
 
 export default function SetupClientPage() {
+  const { t } = useTranslation();
   const { updateUser } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({
@@ -50,7 +52,7 @@ export default function SetupClientPage() {
         setError(err.message);
         if (err.errors) setFieldErrors(err.errors);
       } else {
-        setError('Có lỗi xảy ra. Vui lòng thử lại.');
+        setError(t('auth.setupClient.error'));
       }
     } finally {
       setLoading(false);
@@ -66,10 +68,10 @@ export default function SetupClientPage() {
             <BuildingOffice2Icon className="h-8 w-8 text-[var(--accent-violet)]" />
           </div>
           <h1 className="text-xl font-bold text-[var(--foreground)]">
-            Thiết lập hồ sơ doanh nghiệp
+            {t('auth.setupClient.title')}
           </h1>
           <p className="mt-2 text-sm text-[var(--text-muted)]">
-            Hoàn thành thông tin để bắt đầu tạo yêu cầu
+            {t('auth.setupClient.subtitle')}
           </p>
         </div>
 
@@ -77,8 +79,8 @@ export default function SetupClientPage() {
           <Input
             id="client-name"
             name="name"
-            label="Tên công ty / Tổ chức"
-            placeholder="VD: Công ty TNHH ABC"
+            label={t('auth.setupClient.companyName')}
+            placeholder={t('auth.setupClient.companyNameHint')}
             value={form.name}
             onChange={handleChange}
             required
@@ -88,8 +90,8 @@ export default function SetupClientPage() {
           <Textarea
             id="client-description"
             name="description"
-            label="Mô tả"
-            placeholder="Mô tả ngắn về công ty / tổ chức của bạn"
+            label={t('auth.setupClient.description')}
+            placeholder={t('auth.setupClient.descriptionHint')}
             value={form.description}
             onChange={handleChange}
             rows={3}
@@ -100,7 +102,7 @@ export default function SetupClientPage() {
             id="client-email"
             name="contactEmail"
             type="email"
-            label="Email liên hệ"
+            label={t('auth.setupClient.contactEmail')}
             placeholder="contact@company.com"
             value={form.contactEmail}
             onChange={handleChange}
@@ -110,7 +112,7 @@ export default function SetupClientPage() {
           <Input
             id="client-phone"
             name="contactPhone"
-            label="Số điện thoại"
+            label={t('auth.setupClient.phone')}
             placeholder="0901234567"
             value={form.contactPhone}
             onChange={handleChange}
@@ -124,7 +126,7 @@ export default function SetupClientPage() {
           )}
 
           <Button type="submit" loading={loading} variant="gradient" className="w-full mt-2" id="setup-client-submit">
-            Hoàn tất thiết lập
+            {t('auth.setupClient.submit')}
           </Button>
         </form>
       </div>

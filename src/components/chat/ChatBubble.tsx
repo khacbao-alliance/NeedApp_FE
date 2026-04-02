@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/Avatar';
 import type { MessageDto, IntakeQuestionMetadata, MissingInfoMetadata } from '@/types';
@@ -17,6 +19,8 @@ interface ChatBubbleProps {
 }
 
 export function ChatBubble({ message, isOwnMessage }: ChatBubbleProps) {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const { type, content, sender, files, createdAt, metadata } = message;
 
   // System messages
@@ -41,11 +45,11 @@ export function ChatBubble({ message, isOwnMessage }: ChatBubbleProps) {
             <div className="mb-2 flex items-center gap-2">
               <QuestionMarkCircleIcon className="h-4 w-4 text-[var(--accent-violet)]" />
               <span className="text-xs font-semibold text-[var(--accent-violet)]">
-                Câu hỏi tiếp nhận
+                {t('chat.intakeQuestion')}
                 {meta && ` (${meta.orderIndex + 1}/${meta.totalQuestions})`}
               </span>
               {meta?.isRequired && (
-                <span className="text-xs text-red-400">*Bắt buộc</span>
+                <span className="text-xs text-red-400">{t('chat.requiredMark')}</span>
               )}
             </div>
             <p className="text-sm text-[var(--foreground)]">{content}</p>
@@ -56,7 +60,7 @@ export function ChatBubble({ message, isOwnMessage }: ChatBubbleProps) {
             )}
           </div>
           <p className="mt-1 px-1 text-[10px] text-[var(--text-muted)]">
-            {formatDate(createdAt)}
+            {formatDate(createdAt, language)}
           </p>
         </div>
       </div>
@@ -85,7 +89,7 @@ export function ChatBubble({ message, isOwnMessage }: ChatBubbleProps) {
                 <div className="flex items-center gap-2">
                   <ExclamationTriangleIcon className="h-4 w-4 text-amber-400" />
                   <span className="text-xs font-semibold text-amber-400">
-                    Yêu cầu bổ sung thông tin
+                    {t('chat.missingInfo.title')}
                   </span>
                 </div>
                 {totalQ > 0 && (
@@ -137,7 +141,7 @@ export function ChatBubble({ message, isOwnMessage }: ChatBubbleProps) {
             </div>
           </div>
           <p className="mt-1 px-1 text-[10px] text-[var(--text-muted)]">
-            {sender?.name} · {formatDate(createdAt)}
+            {sender?.name} · {formatDate(createdAt, language)}
           </p>
         </div>
       </div>
@@ -177,7 +181,7 @@ export function ChatBubble({ message, isOwnMessage }: ChatBubbleProps) {
             )}
             {type === 'IntakeAnswer' && !isOwnMessage && (
               <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent-violet)] opacity-70">
-                Trả lời
+                {t('chat.answer')}
               </p>
             )}
             {content && (
@@ -198,7 +202,7 @@ export function ChatBubble({ message, isOwnMessage }: ChatBubbleProps) {
             isOwnMessage && 'text-right'
           )}
         >
-          {formatDate(createdAt)}
+          {formatDate(createdAt, language)}
         </p>
       </div>
     </div>

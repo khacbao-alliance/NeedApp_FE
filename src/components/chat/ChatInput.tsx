@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import {
   PaperAirplaneIcon,
@@ -21,14 +22,23 @@ export function ChatInput({
   onSend,
   onFileUpload,
   onTyping,
-  placeholder = 'Nhập tin nhắn...',
+  placeholder,
   disabled = false,
   isIntake = false,
 }: ChatInputProps) {
+  const { t } = useTranslation();
+  const effectivePlaceholder = placeholder ?? t('chat.messagePlaceholder');
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Refocus textarea when re-enabled after sending
+  useEffect(() => {
+    if (!disabled) {
+      textareaRef.current?.focus();
+    }
+  }, [disabled]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,10 +55,11 @@ export function ChatInput({
       setContent('');
     }
 
-    // Reset textarea height
+    // Reset textarea height and refocus after re-render
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
+    setTimeout(() => textareaRef.current?.focus(), 0);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -131,9 +142,10 @@ export function ChatInput({
             value={content}
             onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
-            placeholder={placeholder}
+            placeholder={effectivePlaceholder}
             disabled={disabled}
             rows={1}
+            autoFocus
             className={cn(
               'w-full resize-none rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200',
               'bg-[var(--surface-2)] border-[var(--border)] text-[var(--foreground)] placeholder-[var(--text-muted)]',

@@ -2,14 +2,16 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { requestService, type GetRequestsParams } from '@/services/requestsApi';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Avatar } from '@/components/ui/Avatar';
 import type { RequestDto, RequestStatus, PaginatedResponse } from '@/types';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getTimeUrgency } from '@/lib/utils';
 import {
   PlusIcon,
   DocumentTextIcon,
@@ -17,19 +19,22 @@ import {
   ChatBubbleLeftRightIcon,
   ArrowPathIcon,
   HandRaisedIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 
-const statusFilters: { value: RequestStatus | 'all'; label: string }[] = [
-  { value: 'all', label: 'Tất cả' },
-  { value: 'Intake', label: 'Tiếp nhận' },
-  { value: 'Pending', label: 'Chờ xử lý' },
-  { value: 'MissingInfo', label: 'Thiếu TT' },
-  { value: 'InProgress', label: 'Đang xử lý' },
-  { value: 'Done', label: 'Hoàn thành' },
-];
-
 export default function RequestsPage() {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+
+  const statusFilters: { value: RequestStatus | 'all'; label: string }[] = [
+    { value: 'all', label: t('requests.list.all') },
+    { value: 'Intake', label: t('status.intake') },
+    { value: 'Pending', label: t('status.pending') },
+    { value: 'MissingInfo', label: t('status.missingInfo') },
+    { value: 'InProgress', label: t('status.inProgress') },
+    { value: 'Done', label: t('status.done') },
+  ];
   const isClient = role === 'Client';
   const [data, setData] = useState<PaginatedResponse<RequestDto> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,7 +65,10 @@ export default function RequestsPage() {
     fetchRequests();
   }, [fetchRequests]);
 
-  const requests = data?.items ?? [];
+  const allRequests = data?.items ?? [];
+  const requests = role === 'Staff'
+    ? allRequests.filter(req => !req.assignedUser || req.assignedUser.id === user?.id)
+    : allRequests;
 
   const handleSelfAssign = async (id: string) => {
     setSelfAssigning(id);
@@ -79,16 +87,16 @@ export default function RequestsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Yêu cầu</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">{t('requests.list.title')}</h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {isClient ? 'Quản lý yêu cầu của bạn' : 'Quản lý tất cả yêu cầu trong hệ thống'}
+            {isClient ? t('requests.list.subtitleClient') : t('requests.list.subtitleStaff')}
           </p>
         </div>
         {isClient && (
           <Link href="/requests/new">
             <Button variant="gradient">
               <PlusIcon className="h-4 w-4" />
-              Tạo mới
+              {t('requests.list.createNew')}
             </Button>
           </Link>
         )}
@@ -100,7 +108,7 @@ export default function RequestsPage() {
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             type="text"
-            placeholder="Tìm kiếm yêu cầu..."
+            placeholder={t('requests.list.searchPlaceholder')}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] py-2.5 pl-10 pr-4 text-sm text-[var(--foreground)] placeholder-[var(--text-muted)] outline-none transition-all focus:border-[var(--accent-indigo)] focus:ring-1 focus:ring-[var(--accent-indigo)]/50"
@@ -112,11 +120,10 @@ export default function RequestsPage() {
             <button
               key={f.value}
               onClick={() => { setStatusFilter(f.value); setPage(1); }}
-              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                statusFilter === f.value
+              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${statusFilter === f.value
                   ? 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)]'
                   : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-              }`}
+                }`}
             >
               {f.label}
             </button>
@@ -134,18 +141,18 @@ export default function RequestsPage() {
       ) : requests.length === 0 ? (
         <EmptyState
           icon={<DocumentTextIcon className="h-8 w-8" />}
-          title={search || statusFilter !== 'all' ? 'Không tìm thấy kết quả' : 'Chưa có yêu cầu nào'}
+          title={search || statusFilter !== 'all' ? t('requests.list.noResults') : t('requests.list.empty')}
           description={
             search || statusFilter !== 'all'
-              ? 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm'
-              : 'Tạo yêu cầu đầu tiên để bắt đầu'
+              ? t('requests.list.noResultsDesc')
+              : t('requests.list.emptyDesc')
           }
           action={
             !search && statusFilter === 'all' && isClient ? (
               <Link href="/requests/new">
                 <Button variant="gradient">
                   <PlusIcon className="h-4 w-4" />
-                  Tạo yêu cầu
+                  {t('requests.list.createRequest')}
                 </Button>
               </Link>
             ) : undefined
@@ -153,11 +160,19 @@ export default function RequestsPage() {
         />
       ) : (
         <div className="space-y-3">
-          {requests.map((req, i) => (
+          {requests.map((req, i) => {
+            const urgency = getTimeUrgency(req.createdAt, req.status);
+            return (
             <Link
               key={req.id}
               href={`/requests/${req.id}`}
-              className="group flex items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4 transition-all duration-200 hover:bg-[var(--surface-hover)] hover:border-[var(--glass-border)]"
+              className={`group flex items-center gap-4 rounded-xl border p-4 transition-all duration-200 hover:bg-(--surface-hover) bg-(--surface-1) ${
+                urgency === 'urgent'
+                  ? 'border-red-500/50 hover:border-red-500/70'
+                  : urgency === 'warning'
+                  ? 'border-amber-500/40 hover:border-amber-500/60'
+                  : 'border-(--border) hover:border-(--glass-border)'
+              }`}
               style={{ animationDelay: `${i * 50}ms` }}
             >
               {/* Creator Avatar */}
@@ -189,7 +204,19 @@ export default function RequestsPage() {
                       <span>·</span>
                     </>
                   )}
-                  <span>{formatDate(req.createdAt)}</span>
+                  <span className={`inline-flex items-center gap-1 font-medium ${
+                    urgency === 'urgent'
+                      ? 'text-red-400'
+                      : urgency === 'warning'
+                      ? 'text-amber-400'
+                      : ''
+                  }`}>
+                    {urgency === 'urgent' && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
+                    )}
+                    <ClockIcon className="h-3 w-3" />
+                    {formatDate(req.createdAt, language)}
+                  </span>
                   {!isClient && req.assignedUser && (
                     <>
                       <span>·</span>
@@ -199,7 +226,7 @@ export default function RequestsPage() {
                   {!isClient && !req.assignedUser && (
                     <>
                       <span>·</span>
-                      <span className="text-amber-400">Chưa assign</span>
+                      <span className="text-amber-400">{t('requests.list.notAssigned')}</span>
                     </>
                   )}
                 </div>
@@ -223,14 +250,14 @@ export default function RequestsPage() {
                     ) : (
                       <HandRaisedIcon className="h-3 w-3" />
                     )}
-                    Nhận xử lý
+                    {t('requests.list.selfAssign')}
                   </button>
                 )}
                 <PriorityBadge priority={req.priority} />
                 <StatusBadge status={req.status} />
               </div>
             </Link>
-          ))}
+          );})}
         </div>
       )}
 
@@ -238,18 +265,17 @@ export default function RequestsPage() {
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between text-sm">
           <p className="text-[var(--text-muted)]">
-            Trang {data.page} / {data.totalPages} · {data.totalCount} yêu cầu
+            {t('requests.list.paging', { page: data.page, total: data.totalPages, count: data.totalCount })}
           </p>
           <div className="flex gap-1">
             {Array.from({ length: data.totalPages }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${
-                  page === p
+                className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${page === p
                     ? 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)]'
                     : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)]'
-                }`}
+                  }`}
               >
                 {p}
               </button>

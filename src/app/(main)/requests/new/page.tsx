@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { requestService } from '@/services/requestsApi';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -12,15 +13,16 @@ import type { RequestPriority } from '@/types';
 import { ArrowLeftIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
-const priorityOptions = [
-  { value: 'Low', label: '🟢 Thấp' },
-  { value: 'Medium', label: '🔵 Trung bình' },
-  { value: 'High', label: '🟠 Cao' },
-  { value: 'Urgent', label: '🔴 Khẩn cấp' },
-];
-
 export default function NewRequestPage() {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const priorityOptions = [
+    { value: 'Low', label: '🟢 ' + t('requests.new.priorityLow') },
+    { value: 'Medium', label: '🔵 ' + t('requests.new.priorityMedium') },
+    { value: 'High', label: '🟠 ' + t('requests.new.priorityHigh') },
+    { value: 'Urgent', label: '🔴 ' + t('requests.new.priorityUrgent') },
+  ];
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -46,7 +48,7 @@ export default function NewRequestPage() {
       if (err instanceof ApiRequestError) {
         setError(err.message);
       } else {
-        setError('Không thể tạo yêu cầu. Vui lòng thử lại.');
+        setError(t('requests.new.error'));
       }
     } finally {
       setLoading(false);
@@ -62,11 +64,11 @@ export default function NewRequestPage() {
           className="inline-flex items-center gap-1 text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors mb-4"
         >
           <ArrowLeftIcon className="h-4 w-4" />
-          Quay lại
+          {t('requests.new.back')}
         </Link>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">Tạo yêu cầu mới</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">{t('requests.new.title')}</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Mô tả yêu cầu của bạn. Hệ thống sẽ tự động hỏi thêm thông tin nếu cần.
+          {t('requests.new.subtitle')}
         </p>
       </div>
 
@@ -74,8 +76,8 @@ export default function NewRequestPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-5" id="new-request-form">
           <Input
             id="request-title"
-            label="Tiêu đề yêu cầu"
-            placeholder="VD: Thiết kế website bán hàng"
+            label={t('requests.new.titleLabel')}
+            placeholder={t('requests.new.titleHint')}
             value={form.title}
             onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
             required
@@ -83,8 +85,8 @@ export default function NewRequestPage() {
 
           <Textarea
             id="request-description"
-            label="Mô tả chi tiết"
-            placeholder="Mô tả ngắn gọn về yêu cầu của bạn..."
+            label={t('requests.new.descriptionLabel')}
+            placeholder={t('requests.new.descriptionHint')}
             value={form.description}
             onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
             rows={4}
@@ -92,7 +94,7 @@ export default function NewRequestPage() {
 
           <Select
             id="request-priority"
-            label="Mức ưu tiên"
+            label={t('requests.new.priorityLabel')}
             options={priorityOptions}
             value={form.priority}
             onChange={(e) =>
@@ -112,12 +114,12 @@ export default function NewRequestPage() {
           <div className="flex justify-end gap-3 pt-2">
             <Link href="/requests">
               <Button variant="ghost" type="button">
-                Hủy
+                {t('common.cancel')}
               </Button>
             </Link>
             <Button type="submit" loading={loading} variant="gradient" id="submit-request">
               <PaperAirplaneIcon className="h-4 w-4" />
-              Gửi yêu cầu
+              {t('requests.new.submit')}
             </Button>
           </div>
         </form>

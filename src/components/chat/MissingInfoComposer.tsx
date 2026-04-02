@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ExclamationTriangleIcon,
   PlusCircleIcon,
@@ -15,6 +16,7 @@ interface MissingInfoComposerProps {
 }
 
 export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerProps) {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [questions, setQuestions] = useState<string[]>(['']);
   const [sending, setSending] = useState(false);
@@ -53,7 +55,7 @@ export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerPro
   const handleSubmit = async () => {
     const validQuestions = questions.map((q) => q.trim()).filter(Boolean);
     if (validQuestions.length === 0) {
-      setError('Cần ít nhất 1 câu hỏi');
+      setError(t('chat.missingInfo.needOneQuestion'));
       return;
     }
     setError('');
@@ -61,7 +63,7 @@ export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerPro
     try {
       await onSend(content.trim(), validQuestions);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Không thể gửi yêu cầu bổ sung';
+      const message = err instanceof Error ? err.message : t('chat.missingInfo.cannotSend');
       setError(message);
     } finally {
       setSending(false);
@@ -94,10 +96,10 @@ export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerPro
             <ExclamationTriangleIcon className="h-3.5 w-3.5 text-amber-400" />
           </div>
           <span className="text-xs font-semibold text-[var(--foreground)]">
-            Yêu cầu bổ sung thông tin
+            {t('chat.missingInfo.title')}
           </span>
           <span className="text-[10px] text-[var(--text-muted)]">
-            — Client sẽ nhận được danh sách câu hỏi
+            {t('chat.missingInfo.clientReceive')}
           </span>
         </div>
         <button
@@ -112,12 +114,12 @@ export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerPro
         {/* Message input */}
         <div>
           <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
-            Lời nhắn <span className="normal-case font-normal">(không bắt buộc)</span>
+            {t('chat.missingInfo.messageLabel')} <span className="normal-case font-normal">{t('chat.missingInfo.messageOptional')}</span>
           </label>
           <input
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="VD: Chúng tôi cần thêm một số thông tin để xử lý yêu cầu..."
+            placeholder={t('chat.missingInfo.messagePlaceholder')}
             className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)] placeholder-[var(--text-muted)] outline-none transition-colors focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20"
           />
         </div>
@@ -126,11 +128,11 @@ export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerPro
         <div>
           <label className="mb-1.5 flex items-center justify-between">
             <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
-              Danh sách câu hỏi
+              {t('chat.missingInfo.questionListLabel')}
             </span>
             {validCount > 0 && (
               <span className="text-[10px] text-amber-400">
-                {validCount} câu hỏi
+                {t('chat.missingInfo.questionCount', { count: validCount })}
               </span>
             )}
           </label>
@@ -146,7 +148,7 @@ export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerPro
                   value={q}
                   onChange={(e) => updateQuestion(i, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, i)}
-                  placeholder={i === 0 ? 'VD: Logo công ty có sẵn chưa?' : `Câu hỏi ${i + 1}...`}
+                  placeholder={i === 0 ? t('chat.missingInfo.questionPlaceholder') : t('chat.missingInfo.questionNPlaceholder', { n: i + 1 })}
                   className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--foreground)] placeholder-[var(--text-muted)] outline-none transition-colors focus:border-amber-500/40 focus:ring-1 focus:ring-amber-500/15"
                 />
                 {questions.length > 1 && (
@@ -167,7 +169,7 @@ export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerPro
             className="mt-1.5 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-amber-400/70 transition-colors hover:text-amber-400 hover:bg-amber-500/10"
           >
             <PlusCircleIcon className="h-3.5 w-3.5" />
-            Thêm câu hỏi
+            {t('chat.missingInfo.addQuestion')}
           </button>
         </div>
 
@@ -181,14 +183,14 @@ export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerPro
         {/* Footer actions */}
         <div className="flex items-center justify-between pt-1">
           <p className="text-[10px] text-[var(--text-muted)]">
-            Enter để thêm câu hỏi • Backspace để xóa
+            {t('chat.missingInfo.hint')}
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={onCancel}
               className="rounded-lg px-3 py-1.5 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
             >
-              Hủy
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleSubmit}
@@ -200,7 +202,7 @@ export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerPro
               ) : (
                 <PaperAirplaneIcon className="h-3.5 w-3.5" />
               )}
-              Gửi ({validCount})
+              {t('chat.missingInfo.sendBtn', { count: validCount })}
             </button>
           </div>
         </div>
