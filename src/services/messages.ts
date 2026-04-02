@@ -1,0 +1,29 @@
+import { api } from './requests';
+import type {
+  MessageDto,
+  MessageListResponse,
+  SendMessageRequest,
+  SendMissingInfoRequest,
+} from '@/types';
+
+export const messageService = {
+  list: (requestId: string, cursor?: string, limit = 20) => {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (cursor) params.set('cursor', cursor);
+    return api.get<MessageListResponse>(
+      `/requests/${requestId}/messages?${params.toString()}`
+    );
+  },
+
+  send: (requestId: string, data: SendMessageRequest) =>
+    api.post<MessageDto>(`/requests/${requestId}/messages`, data),
+
+  sendMissingInfo: (requestId: string, data: SendMissingInfoRequest) =>
+    api.post<MessageDto>(
+      `/requests/${requestId}/messages/missing-info`,
+      data
+    ),
+
+  delete: (requestId: string, messageId: string) =>
+    api.delete<void>(`/requests/${requestId}/messages/${messageId}`),
+};

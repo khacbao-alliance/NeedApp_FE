@@ -1,56 +1,87 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import {
   HomeIcon,
-  BellIcon,
-  ChatBubbleLeftIcon,
-  UserIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
+  DocumentTextIcon,
+  UserGroupIcon,
+  QuestionMarkCircleIcon,
+  UserCircleIcon,
+  ArrowRightStartOnRectangleIcon,
+} from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeSolid,
-  BellIcon as BellSolid,
-  ChatBubbleLeftIcon as ChatSolid,
-  UserIcon as UserSolid,
-} from "@heroicons/react/24/solid";
-import { useAuth } from "@/hooks/useAuth";
-import { Avatar } from "@/components/ui/Avatar";
-import { cn } from "@/lib/utils";
+  DocumentTextIcon as DocSolid,
+  UserGroupIcon as UserGroupSolid,
+  UserCircleIcon as UserSolid,
+} from '@heroicons/react/24/solid';
+import { useAuth } from '@/hooks/useAuth';
+import { Avatar } from '@/components/ui/Avatar';
+import { cn } from '@/lib/utils';
 
-const navItems = [
-  { href: "/feed", label: "Trang chủ", Icon: HomeIcon, ActiveIcon: HomeSolid },
-  { href: "/notifications", label: "Thông báo", Icon: BellIcon, ActiveIcon: BellSolid },
-  { href: "/messages", label: "Tin nhắn", Icon: ChatBubbleLeftIcon, ActiveIcon: ChatSolid },
+interface NavItem {
+  href: string;
+  label: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  ActiveIcon: React.ComponentType<{ className?: string }>;
+  roles?: ('Admin' | 'Staff' | 'Client')[];
+}
+
+const navItems: NavItem[] = [
+  { href: '/dashboard', label: 'Tổng quan', Icon: HomeIcon, ActiveIcon: HomeSolid },
+  { href: '/requests', label: 'Yêu cầu', Icon: DocumentTextIcon, ActiveIcon: DocSolid },
+  { href: '/admin/users', label: 'Người dùng', Icon: UserGroupIcon, ActiveIcon: UserGroupSolid, roles: ['Admin'] },
+  {
+    href: '/admin/intake-questions',
+    label: 'Câu hỏi tiếp nhận',
+    Icon: QuestionMarkCircleIcon,
+    ActiveIcon: QuestionMarkCircleIcon,
+    roles: ['Admin'],
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, role } = useAuth();
+
+  const visibleItems = navItems.filter(
+    (item) => !item.roles || (role && item.roles.includes(role))
+  );
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 flex-col border-r border-gray-200 bg-white px-4 py-6 dark:border-gray-800 dark:bg-gray-950">
-      <Link href="/feed" className="mb-6 flex items-center gap-2 px-2">
-        <span className="text-2xl font-bold text-blue-600">NeedApp</span>
+    <aside className="glass sticky top-0 flex h-screen w-64 flex-col px-4 py-6 border-r border-[var(--border)]">
+      {/* Logo */}
+      <Link href="/dashboard" className="mb-8 flex items-center px-2">
+        <Image
+          src="/NeedAPP_logo.png"
+          alt="NeedApp"
+          width={140}
+          height={40}
+          priority
+          className="h-auto w-auto"
+        />
       </Link>
 
-      <nav className="flex flex-col gap-1">
-        {navItems.map(({ href, label, Icon, ActiveIcon }) => {
-          const isActive = pathname.startsWith(href);
+      {/* Navigation */}
+      <nav className="flex flex-1 flex-col gap-1">
+        {visibleItems.map(({ href, label, Icon, ActiveIcon }) => {
+          const isActive =
+            pathname === href || pathname.startsWith(href + '/');
           const Ico = isActive ? ActiveIcon : Icon;
           return (
             <Link
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
                 isActive
-                  ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
-                  : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                  ? 'bg-[var(--accent-indigo)]/10 text-[var(--accent-violet)]'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]'
               )}
             >
-              <Ico className="h-5 w-5" />
+              <Ico className="h-5 w-5 flex-shrink-0" />
               {label}
             </Link>
           );
@@ -58,39 +89,41 @@ export function Sidebar() {
 
         {user && (
           <Link
-            href={`/profile/${user.id}`}
+            href="/profile"
             className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-              pathname.startsWith("/profile")
-                ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
-                : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+              pathname.startsWith('/profile')
+                ? 'bg-[var(--accent-indigo)]/10 text-[var(--accent-violet)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]'
             )}
           >
-            <UserIcon className="h-5 w-5" />
+            <UserCircleIcon className="h-5 w-5 flex-shrink-0" />
             Hồ sơ
           </Link>
         )}
       </nav>
 
-      <div className="mt-auto">
-        {user ? (
-          <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
-            <Avatar src={user.avatar} name={user.name} size="sm" />
+      {/* User Info */}
+      {user && (
+        <div className="mt-auto rounded-xl bg-[var(--surface-2)] p-3">
+          <div className="flex items-center gap-3">
+            <Avatar src={user.avatarUrl ?? undefined} name={user.name || user.email} size="sm" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
-                {user.name}
+              <p className="truncate text-sm font-medium text-[var(--foreground)]">
+                {user.name || 'User'}
               </p>
-              <p className="truncate text-xs text-gray-500">@{user.username}</p>
+              <p className="truncate text-xs text-[var(--text-muted)]">{user.email}</p>
             </div>
             <button
               onClick={logout}
-              className="text-xs text-gray-400 hover:text-red-500"
+              className="rounded-lg p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-3)] hover:text-red-400"
+              title="Đăng xuất"
             >
-              Thoát
+              <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
             </button>
           </div>
-        ) : null}
-      </div>
+        </div>
+      )}
     </aside>
   );
 }

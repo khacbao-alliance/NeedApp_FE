@@ -1,107 +1,151 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { authService } from "@/services/auth";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
+import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { Input } from '@/components/ui/Input';
+import { PasswordInput } from '@/components/ui/PasswordInput';
+import { Button } from '@/components/ui/Button';
+import { ApiRequestError } from '@/services/requests';
 
 export default function RegisterPage() {
+  const { register } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({
-    name: "",
-    username: "",
-    email: "",
-    password: "",
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[e.target.name];
+      return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
+    setFieldErrors({});
+
+    if (form.password !== form.confirmPassword) {
+      setFieldErrors({ confirmPassword: ['Mật khẩu xác nhận không khớp.'] });
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await authService.register(form);
-      localStorage.setItem("token", res.data.token);
-      router.push("/feed");
+      await register({
+        email: form.email,
+        password: form.password,
+        name: form.name || undefined,
+      });
+      router.push('/setup-client');
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Đăng ký thất bại");
+      if (err instanceof ApiRequestError) {
+        setError(err.message);
+        if (err.errors) setFieldErrors(err.errors);
+      } else {
+        setError('Đăng ký thất bại. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm dark:bg-gray-900">
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-blue-600">NeedApp</h1>
-        <p className="mt-1 text-sm text-gray-500">Tạo tài khoản mới</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Input
-          id="name"
-          name="name"
-          label="Họ và tên"
-          placeholder="Nguyễn Văn A"
-          value={form.name}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          id="username"
-          name="username"
-          label="Tên người dùng"
-          placeholder="nguyenvana"
-          value={form.username}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          label="Email"
-          placeholder="you@example.com"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          label="Mật khẩu"
-          placeholder="Tối thiểu 8 ký tự"
-          value={form.password}
-          onChange={handleChange}
-          minLength={8}
-          required
-        />
-
-        {error && (
-          <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950">
-            {error}
+    <div className="mx-auto w-full max-w-sm animate-slide-up" id="register-page">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-8">
+        {/* Logo */}
+        <div className="mb-8 text-center">
+          <Image
+            src="/NeedAPP_logo.png"
+            alt="NeedApp"
+            width={160}
+            height={160}
+            className="mx-auto h-auto w-auto"
+            priority
+          />
+          <p className="mt-3 text-sm text-[var(--text-muted)]">
+            Tạo tài khoản mới
           </p>
-        )}
+        </div>
 
-        <Button type="submit" loading={loading} className="w-full">
-          Đăng ký
-        </Button>
-      </form>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4" id="register-form">
+          <Input
+            id="register-name"
+            name="name"
+            label="Họ và tên"
+            placeholder="Nguyễn Văn A"
+            value={form.name}
+            onChange={handleChange}
+            error={fieldErrors['Name']?.[0]}
+          />
+          <Input
+            id="register-email"
+            name="email"
+            type="email"
+            label="Email"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={handleChange}
+            required
+            autoComplete="email"
+            error={fieldErrors['Email']?.[0]}
+          />
+          <PasswordInput
+            id="register-password"
+            name="password"
+            label="Mật khẩu"
+            placeholder="Tối thiểu 6 ký tự"
+            value={form.password}
+            onChange={handleChange}
+            minLength={6}
+            required
+            autoComplete="new-password"
+            error={fieldErrors['Password']?.[0]}
+          />
+          <PasswordInput
+            id="register-confirm-password"
+            name="confirmPassword"
+            label="Xác nhận mật khẩu"
+            placeholder="Nhập lại mật khẩu"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            required
+            autoComplete="new-password"
+            error={fieldErrors['confirmPassword']?.[0]}
+          />
 
-      <p className="mt-4 text-center text-sm text-gray-500">
-        Đã có tài khoản?{" "}
-        <Link href="/login" className="text-blue-600 hover:underline font-medium">
-          Đăng nhập
-        </Link>
-      </p>
+          {error && !Object.keys(fieldErrors).length && (
+            <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3">
+              <p className="text-sm text-red-400">{error}</p>
+            </div>
+          )}
+
+          <Button type="submit" loading={loading} variant="gradient" className="w-full mt-2" id="register-submit">
+            Đăng ký
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-[var(--text-muted)]">
+            Đã có tài khoản?{' '}
+            <Link href="/login" className="font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
+              Đăng nhập
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

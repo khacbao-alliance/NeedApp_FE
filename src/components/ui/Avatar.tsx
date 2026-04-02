@@ -1,38 +1,54 @@
-import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 interface AvatarProps {
   src?: string;
   name: string;
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
 const sizes = {
-  xs: { dim: 24, cls: "h-6 w-6 text-xs" },
-  sm: { dim: 32, cls: "h-8 w-8 text-sm" },
-  md: { dim: 40, cls: "h-10 w-10 text-base" },
-  lg: { dim: 48, cls: "h-12 w-12 text-lg" },
-  xl: { dim: 80, cls: "h-20 w-20 text-2xl" },
+  xs: 'h-6 w-6 text-[10px]',
+  sm: 'h-8 w-8 text-xs',
+  md: 'h-10 w-10 text-sm',
+  lg: 'h-12 w-12 text-base',
+  xl: 'h-20 w-20 text-xl',
 };
 
-export function Avatar({ src, name, size = "md", className }: AvatarProps) {
-  const { dim, cls } = sizes[size];
+const gradients = [
+  'from-violet-500 to-indigo-500',
+  'from-indigo-500 to-cyan-500',
+  'from-cyan-500 to-teal-500',
+  'from-pink-500 to-violet-500',
+  'from-amber-500 to-orange-500',
+];
+
+function getGradient(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return gradients[Math.abs(hash) % gradients.length];
+}
+
+export function Avatar({ src, name, size = 'md', className }: AvatarProps) {
   const initials = name
-    .split(" ")
+    .split(' ')
     .slice(0, 2)
     .map((w) => w[0])
-    .join("")
+    .join('')
     .toUpperCase();
 
   if (src) {
     return (
-      <Image
+      <img
         src={src}
         alt={name}
-        width={dim}
-        height={dim}
-        className={cn("rounded-full object-cover", cls, className)}
+        className={cn(
+          'rounded-full object-cover ring-2 ring-[var(--border)]',
+          sizes[size],
+          className
+        )}
       />
     );
   }
@@ -40,8 +56,9 @@ export function Avatar({ src, name, size = "md", className }: AvatarProps) {
   return (
     <div
       className={cn(
-        "flex items-center justify-center rounded-full bg-blue-600 font-semibold text-white",
-        cls,
+        'flex items-center justify-center rounded-full bg-gradient-to-br font-semibold text-white ring-2 ring-[var(--border)]',
+        getGradient(name),
+        sizes[size],
         className
       )}
     >
