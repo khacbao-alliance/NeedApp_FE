@@ -2,9 +2,6 @@
   command = "npm run build"
   publish = ".next"
 
-[build.environment]
-  NEXT_PUBLIC_API_URL = ""
-  NEXT_PUBLIC_GOOGLE_CLIENT_ID = ""
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
