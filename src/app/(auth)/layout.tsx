@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GoogleProvider } from "@/components/providers/GoogleProvider";
 
 export const metadata: Metadata = {
   title: "NeedApp — Đăng nhập",
@@ -10,6 +11,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
+    <GoogleProvider>
     <div className="flex min-h-screen items-center justify-center px-4 relative overflow-hidden">
       {/* Background gradient orbs */}
       <div className="pointer-events-none absolute inset-0">
@@ -19,5 +21,6 @@ export default function AuthLayout({
       </div>
       <div className="relative z-10 w-full">{children}</div>
     </div>
+    </GoogleProvider>
   );
 }
