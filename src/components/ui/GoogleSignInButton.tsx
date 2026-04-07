@@ -2,6 +2,31 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: { credential: string }) => void;
+          }) => void;
+          renderButton: (
+            element: HTMLElement,
+            config: {
+              theme?: string;
+              shape?: string;
+              size?: string;
+              text?: string;
+              width?: number;
+            },
+          ) => void;
+        };
+      };
+    };
+  }
+}
+
 interface GoogleSignInButtonProps {
   onSuccess: (idToken: string) => Promise<void>;
 }
