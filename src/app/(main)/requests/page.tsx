@@ -83,7 +83,7 @@ export default function RequestsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in" id="requests-page">
+    <div className="space-y-6 animate-fade-in min-h-[70vh]" id="requests-page">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

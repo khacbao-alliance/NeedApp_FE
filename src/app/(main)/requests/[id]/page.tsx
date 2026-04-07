@@ -15,6 +15,7 @@ import { ChatBubble } from '@/components/chat/ChatBubble';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { MissingInfoComposer } from '@/components/chat/MissingInfoComposer';
 import { RequestStatusActions, AssignStaffAction, SelfAssignAction } from '@/components/chat/RequestActions';
+import { ConversationSummaryDrawer } from '@/components/chat/ConversationSummaryDrawer';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
 import type { MessageDto, RequestDto, RequestStatus } from '@/types';
 import {
@@ -23,6 +24,7 @@ import {
   ExclamationTriangleIcon,
   SignalIcon,
   SignalSlashIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 
 export default function RequestChatPage() {
@@ -41,6 +43,7 @@ export default function RequestChatPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showMissingInfo, setShowMissingInfo] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -287,13 +290,22 @@ export default function RequestChatPage() {
           </div>
         </div>
 
-        {/* Staff/Admin Actions */}
-        {request && (
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <SelfAssignAction request={request} onUpdate={setRequest} />
-            <AssignStaffAction request={request} onUpdate={setRequest} />
-          </div>
-        )}
+        {/* Summary Button + Staff/Admin Actions */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Summary button — visible for all roles once request is loaded */}
+          {request && (
+            <button
+              onClick={() => setShowSummary(true)}
+              title="Xem tóm tắt cuộc hội thoại"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--accent-violet)] bg-violet-500/10 hover:bg-violet-500/20 transition-colors border border-violet-500/20"
+            >
+              <ChartBarIcon className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Tóm tắt</span>
+            </button>
+          )}
+          {request && <SelfAssignAction request={request} onUpdate={setRequest} />}
+          {request && <AssignStaffAction request={request} onUpdate={setRequest} />}
+        </div>
       </div>
 
       {/* Status Actions Bar (Staff/Admin only) */}
@@ -431,6 +443,13 @@ export default function RequestChatPage() {
             </div>
           )}
         </>
+      )}
+      {/* Conversation Summary Drawer */}
+      {showSummary && (
+        <ConversationSummaryDrawer
+          requestId={requestId}
+          onClose={() => setShowSummary(false)}
+        />
       )}
     </div>
   );

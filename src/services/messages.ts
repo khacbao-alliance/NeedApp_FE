@@ -4,6 +4,7 @@ import type {
   MessageListResponse,
   SendMessageRequest,
   SendMissingInfoRequest,
+  ConversationSummaryDto,
 } from '@/types';
 
 export const messageService = {
@@ -26,4 +27,7 @@ export const messageService = {
 
   delete: (requestId: string, messageId: string) =>
     api.delete<void>(`/requests/${requestId}/messages/${messageId}`),
+
+  getSummary: (requestId: string) =>
+    api.get<ConversationSummaryDto>(`/requests/${requestId}/messages/summary`),
 };
