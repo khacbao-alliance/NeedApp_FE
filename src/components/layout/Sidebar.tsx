@@ -10,18 +10,21 @@ import {
   QuestionMarkCircleIcon,
   UserCircleIcon,
   ArrowRightStartOnRectangleIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeSolid,
   DocumentTextIcon as DocSolid,
   UserGroupIcon as UserGroupSolid,
   UserCircleIcon as UserSolid,
+  BellIcon as BellSolid,
 } from '@heroicons/react/24/solid';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/ui/Avatar';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
+import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -35,6 +38,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/dashboard', labelKey: 'nav.dashboard', Icon: HomeIcon, ActiveIcon: HomeSolid },
   { href: '/requests', labelKey: 'nav.requests', Icon: DocumentTextIcon, ActiveIcon: DocSolid },
+  { href: '/notifications', labelKey: 'nav.notifications', Icon: BellIcon, ActiveIcon: BellSolid },
   { href: '/admin/users', labelKey: 'nav.users', Icon: UserGroupIcon, ActiveIcon: UserGroupSolid, roles: ['Admin'] },
   {
     href: '/admin/intake-questions',
@@ -49,6 +53,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user, logout, role } = useAuth();
   const { t } = useTranslation();
+  const { unreadCount } = useNotifications();
 
   const visibleItems = navItems.filter(
     (item) => !item.roles || (role && item.roles.includes(role))
@@ -58,18 +63,20 @@ export function Sidebar() {
     <aside className="glass sticky top-0 flex h-screen w-64 flex-col px-4 py-6 border-r border-[var(--border)]">
       {/* Logo & Theme Toggle */}
       <div className="mb-8 flex items-center justify-between px-2">
-        <Link href="/dashboard" className="flex items-center">
+        <Link href="/dashboard" className="flex items-center min-w-0">
           <Image
             src="/NeedAPP_logo.png"
             alt="NeedApp"
-            width={140}
-            height={40}
+            width={110}
+            height={32}
             priority
-            className="h-auto w-auto"
+            className="h-auto max-w-[110px]"
           />
         </Link>
-        <LanguageToggle size="sm" />
-        <ThemeToggle size="sm" />
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <LanguageToggle size="sm" />
+          <ThemeToggle size="sm" />
+        </div>
       </div>
 
       {/* Navigation */}
@@ -91,6 +98,11 @@ export function Sidebar() {
             >
               <Ico className="h-5 w-5 flex-shrink-0" />
               {t(labelKey)}
+              {href === '/notifications' && unreadCount > 0 && (
+                <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gradient-to-r from-[var(--accent-violet)] to-[var(--accent-indigo)] px-1.5 text-[10px] font-bold text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}

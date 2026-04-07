@@ -21,6 +21,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem('needapp-lang') as Language | null;
     if (stored === 'vi' || stored === 'en') {
       setLanguageState(stored);
+      i18n.changeLanguage(stored);
     }
   }, []);
 

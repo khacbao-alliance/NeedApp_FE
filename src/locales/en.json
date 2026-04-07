@@ -31,7 +31,8 @@
     "register": "Sign up",
     "dashboard": "Dashboard",
     "users": "Users",
-    "intakeQuestions": "Intake Questions"
+    "intakeQuestions": "Intake Questions",
+    "notifications": "Notifications"
   },
   "auth": {
     "login": {

@@ -31,7 +31,8 @@
     "register": "Đăng ký",
     "dashboard": "Tổng quan",
     "users": "Người dùng",
-    "intakeQuestions": "Câu hỏi tiếp nhận"
+    "intakeQuestions": "Câu hỏi tiếp nhận",
+    "notifications": "Thông báo"
   },
   "auth": {
     "login": {

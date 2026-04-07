@@ -7,6 +7,8 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { ClientNavbar } from '@/components/layout/ClientNavbar';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/hooks/useAuth';
+import { NotificationProvider } from '@/hooks/useNotifications';
+import { NotificationToast } from '@/components/notifications/NotificationToast';
 
 export default function MainLayout({
   children,
@@ -52,42 +54,50 @@ export default function MainLayout({
   if (role === 'Client') {
     if (!hasClient) return null;
     return (
-      <div className="flex flex-col h-screen overflow-hidden">
-        <ClientNavbar />
-        <main className={`flex-1 min-h-0 ${isChatPage ? 'overflow-hidden' : 'overflow-y-auto'}`}>
-          {isChatPage ? (
-            children
-          ) : (
-            <>
-              <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 lg:px-8">
-                {children}
-              </div>
-              <Footer />
-            </>
-          )}
-        </main>
-      </div>
+      <NotificationProvider>
+        <NotificationToast>
+          <div className="flex flex-col h-screen overflow-hidden">
+            <ClientNavbar />
+            <main className={`flex-1 min-h-0 ${isChatPage ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+              {isChatPage ? (
+                children
+              ) : (
+                <>
+                  <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 lg:px-8">
+                    {children}
+                  </div>
+                  <Footer />
+                </>
+              )}
+            </main>
+          </div>
+        </NotificationToast>
+      </NotificationProvider>
     );
   }
 
   // Admin/Staff → Sidebar layout
   return (
-    <div className="flex h-screen overflow-hidden">
-      <div className="hidden md:flex">
-        <Sidebar />
-      </div>
-
-      <main className={`flex-1 min-h-0 ${isChatPage ? 'overflow-hidden' : 'overflow-y-auto pb-20 md:pb-0'}`}>
-        {isChatPage ? (
-          children
-        ) : (
-          <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 lg:px-8">
-            {children}
+    <NotificationProvider>
+      <NotificationToast>
+        <div className="flex h-screen overflow-hidden">
+          <div className="hidden md:flex">
+            <Sidebar />
           </div>
-        )}
-      </main>
 
-      <BottomNav />
-    </div>
+          <main className={`flex-1 min-h-0 ${isChatPage ? 'overflow-hidden' : 'overflow-y-auto pb-20 md:pb-0'}`}>
+            {isChatPage ? (
+              children
+            ) : (
+              <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 lg:px-8">
+                {children}
+              </div>
+            )}
+          </main>
+
+          <BottomNav />
+        </div>
+      </NotificationToast>
+    </NotificationProvider>
   );
 }

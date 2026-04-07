@@ -326,3 +326,22 @@ export interface AttachmentSummaryDto {
   uploadedBy: string | null;
   uploadedAt: string;
 }
+
+// ── Notification ──────────────────────────────────────────
+export type NotificationType = 'NewMessage' | 'MissingInfo' | 'StatusChange' | 'Assignment' | 'NewRequest' | 'Invitation';
+
+export interface NotificationDto {
+  id: string;
+  type: NotificationType;
+  title: string | null;
+  content: string | null;
+  referenceId: string | null;
+  referenceType: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface UnreadCountDto {
+  count: number;
+}
+

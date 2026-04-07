@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { ClientNavbar } from '@/components/layout/ClientNavbar';
 import { Footer } from '@/components/layout/Footer';
+import { NotificationProvider } from '@/hooks/useNotifications';
+import { NotificationToast } from '@/components/notifications/NotificationToast';
 import {
   ChatBubbleLeftRightIcon,
   DocumentTextIcon,
@@ -34,7 +36,7 @@ export default function LandingPage() {
     return null;
   }
 
-  return (
+  const content = (
     <div className="min-h-screen flex flex-col">
       <ClientNavbar />
 
@@ -304,6 +306,19 @@ export default function LandingPage() {
       <Footer />
     </div>
   );
+
+  // Wrap with notification provider when authenticated
+  if (isAuthenticated) {
+    return (
+      <NotificationProvider>
+        <NotificationToast>
+          {content}
+        </NotificationToast>
+      </NotificationProvider>
+    );
+  }
+
+  return content;
 }
 
 /* ── Sub Components ──────────────────────────────── */

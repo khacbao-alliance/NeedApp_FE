@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/ui/Avatar';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { cn } from '@/lib/utils';
 import {
   Bars3Icon,
@@ -123,6 +124,8 @@ export function ClientNavbar() {
             <ThemeToggle size="sm" />
             <LanguageToggle size="sm" />
             {isAuthenticated ? (
+              <>
+                <NotificationBell />
               <div className="relative">
                 <button
                   onClick={(e) => {
@@ -167,6 +170,7 @@ export function ClientNavbar() {
                   </div>
                 )}
               </div>
+              </>
             ) : (
               <>
                 <Link
@@ -185,18 +189,21 @@ export function ClientNavbar() {
             )}
           </div>
 
-          {/* Mobile Hamburger */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? (
-              <XMarkIcon className="h-6 w-6" />
-            ) : (
-              <Bars3Icon className="h-6 w-6" />
-            )}
-          </button>
+          {/* Mobile Notification + Hamburger */}
+          <div className="flex md:hidden items-center gap-1">
+            {isAuthenticated && <NotificationBell />}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? (
+                <XMarkIcon className="h-6 w-6" />
+              ) : (
+                <Bars3Icon className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
