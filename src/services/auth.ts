@@ -38,4 +38,11 @@ export const authService = {
     setTokens(res.accessToken, res.refreshToken);
     return res;
   },
+
+  /** Helper — Google login and store tokens */
+  async googleLoginAndStore(idToken: string): Promise<AuthResponse> {
+    const res = await this.googleLogin(idToken);
+    setTokens(res.accessToken, res.refreshToken);
+    return res;
+  },
 };

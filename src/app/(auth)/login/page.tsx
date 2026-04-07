@@ -9,11 +9,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
+import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
 import { ApiRequestError } from '@/services/requests';
 
 export default function LoginPage() {
   const { t } = useTranslation();
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,6 +42,17 @@ export default function LoginPage() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async (idToken: string) => {
+    const res = await googleLogin(idToken);
+    if (!res.hasClient && res.role === 'Client') {
+      router.push('/setup-client');
+    } else if (res.role === 'Client') {
+      router.push('/');
+    } else {
+      router.push('/dashboard');
     }
   };
 
@@ -101,6 +113,16 @@ export default function LoginPage() {
             {t('auth.login.submit')}
           </Button>
         </form>
+
+        {/* Divider */}
+        <div className="my-5 flex items-center gap-3">
+          <div className="flex-1 border-t border-[var(--border)]" />
+          <span className="text-xs text-[var(--text-muted)]">hoặc</span>
+          <div className="flex-1 border-t border-[var(--border)]" />
+        </div>
+
+        {/* Google Sign-In */}
+        <GoogleSignInButton onSuccess={handleGoogleLogin} />
 
         <div className="mt-6 text-center">
           <p className="text-sm text-[var(--text-muted)]">

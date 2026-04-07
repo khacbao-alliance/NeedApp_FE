@@ -221,7 +221,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-3">
+            <div className="grid gap-8 lg:grid-cols-3 lg:items-stretch">
               <StepCard
                 step={1}
                 title={t('landing.step1Title')}
@@ -375,12 +375,12 @@ function StepCard({
   description: string;
 }) {
   return (
-    <div className="relative group">
+    <div className="relative group h-full">
       {/* Connector line (hidden on first) */}
       {step > 1 && (
         <div className="hidden lg:block absolute -left-4 top-10 w-8 border-t-2 border-dashed border-[var(--border)]" />
       )}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-6 transition-all duration-300 hover:border-[var(--glass-border)]">
+      <div className="h-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-6 transition-all duration-300 hover:border-[var(--glass-border)]">
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent-violet)] to-[var(--accent-indigo)] text-xl font-bold text-white shadow-lg shadow-[var(--accent-indigo)]/20">
           {step}
         </div>

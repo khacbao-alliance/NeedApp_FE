@@ -13,6 +13,7 @@ interface AuthContextType {
   role: UserRole | null;
   login: (email: string, password: string) => Promise<AuthResponse>;
   register: (data: { email: string; password: string; name?: string }) => Promise<AuthResponse>;
+  googleLogin: (idToken: string) => Promise<AuthResponse>;
   logout: () => void;
   updateUser: (user: Partial<UserDto>) => void;
 }
@@ -87,6 +88,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser((prev) => (prev ? { ...prev, ...updates } : null));
   }, []);
 
+  const googleLogin = useCallback(async (idToken: string) => {
+    const res = await authService.googleLoginAndStore(idToken);
+    // Fetch full profile so user.client is populated immediately
+    try {
+      const fullUser = await authService.me();
+      setUser(fullUser);
+    } catch {
+      setUser({
+        id: res.userId,
+        email: res.email,
+        name: res.name,
+        role: res.role,
+        hasClient: res.hasClient,
+        avatarUrl: res.avatarUrl,
+      });
+    }
+    return res;
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -97,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: user?.role ?? null,
         login,
         register,
+        googleLogin,
         logout,
         updateUser,
       }}

@@ -9,11 +9,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
+import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
 import { ApiRequestError } from '@/services/requests';
 
 export default function RegisterPage() {
   const { t } = useTranslation();
-  const { register } = useAuth();
+  const { register, googleLogin } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({
     name: '',
@@ -62,6 +63,12 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = async (idToken: string) => {
+    // Google register/login creates account if not exists
+    const res = await googleLogin(idToken);
+    router.push('/setup-client');
   };
 
   return (
@@ -138,6 +145,16 @@ export default function RegisterPage() {
             {t('auth.register.submit')}
           </Button>
         </form>
+
+        {/* Divider */}
+        <div className="my-5 flex items-center gap-3">
+          <div className="flex-1 border-t border-[var(--border)]" />
+          <span className="text-xs text-[var(--text-muted)]">hoặc</span>
+          <div className="flex-1 border-t border-[var(--border)]" />
+        </div>
+
+        {/* Google Sign-In */}
+        <GoogleSignInButton onSuccess={handleGoogleLogin} />
 
         <div className="mt-6 text-center">
           <p className="text-sm text-[var(--text-muted)]">
