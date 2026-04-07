@@ -113,14 +113,14 @@ export function ChatInput({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex items-end gap-2">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
         {/* File upload button */}
         {!isIntake && onFileUpload && (
           <>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex-shrink-0 rounded-xl p-2.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
+              className="flex-shrink-0 h-[40px] w-[40px] flex items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
               disabled={disabled}
             >
               <PaperClipIcon className="h-5 w-5" />
@@ -162,7 +162,7 @@ export function ChatInput({
           type="submit"
           disabled={disabled || (!content.trim() && selectedFiles.length === 0)}
           className={cn(
-            'flex-shrink-0 rounded-xl p-2.5 transition-all duration-200',
+            'flex-shrink-0 h-[40px] w-[40px] flex items-center justify-center rounded-xl transition-all duration-200',
             content.trim() || selectedFiles.length > 0
               ? 'btn-gradient text-white'
               : 'bg-[var(--surface-2)] text-[var(--text-muted)]'

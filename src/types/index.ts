@@ -5,6 +5,7 @@ export type RequestPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
 export type MessageType = 'Text' | 'File' | 'System' | 'MissingInfo' | 'IntakeQuestion' | 'IntakeAnswer';
 export type ClientRole = 'Owner' | 'Member';
 export type ParticipantRole = 'Creator' | 'Assignee' | 'Observer';
+export type InvitationStatus = 'Pending' | 'Accepted' | 'Declined';
 
 // ── Auth ───────────────────────────────────────────────
 export interface AuthResponse {
@@ -45,11 +46,55 @@ export interface ClientDto {
   createdAt?: string;
 }
 
+export interface ClientMemberDto {
+  userId: string;
+  name: string | null;
+  email: string | null;
+  role: ClientRole;
+  avatarUrl: string | null;
+  joinedAt: string; // ISO 8601
+}
+
+export interface AddMemberRequest {
+  email: string;
+  role?: ClientRole; // default: 'Member'
+}
+
 export interface CreateClientRequest {
   name: string;
   description?: string;
   contactEmail?: string;
   contactPhone?: string;
+}
+
+// ── Invitation ─────────────────────────────────────────
+export interface InvitationDto {
+  id: string;
+  clientName: string;
+  invitedByName: string | null;
+  role: ClientRole;
+  status: InvitationStatus;
+  createdAt: string;
+}
+
+export interface PendingInvitationDto {
+  id: string;
+  client: {
+    id: string;
+    name: string;
+    description: string | null;
+  };
+  invitedBy: {
+    name: string | null;
+    email: string | null;
+    avatarUrl: string | null;
+  };
+  role: ClientRole;
+  createdAt: string;
+}
+
+export interface RespondInvitationRequest {
+  accept: boolean;
 }
 
 // ── Request ────────────────────────────────────────────
@@ -210,4 +255,74 @@ export interface ApiError {
   message?: string;
   status: number;
   errors?: Record<string, string[]>;
+}
+
+// ── Conversation Summary ────────────────────────────────
+export interface ConversationSummaryDto {
+  requestId: string;
+  requestTitle: string;
+  requestStatus: RequestStatus;
+  overview: ConversationOverviewDto;
+  intakeSummary: IntakeSummaryDto | null;
+  missingInfoRequests: MissingInfoSummaryDto[];
+  conversationHighlights: ConversationHighlightDto[];
+  attachments: AttachmentSummaryDto[];
+  aiSummary: string | null;
+  generatedAt: string;
+}
+
+export interface ConversationOverviewDto {
+  totalMessages: number;
+  totalTextMessages: number;
+  totalSystemMessages: number;
+  totalFilesSent: number;
+  participants: ParticipantSummaryDto[];
+  firstMessageAt: string | null;
+  lastMessageAt: string | null;
+}
+
+export interface ParticipantSummaryDto {
+  id: string;
+  name: string | null;
+  role: UserRole | null;
+  messageCount: number;
+}
+
+export interface IntakeSummaryDto {
+  totalQuestions: number;
+  answeredQuestions: number;
+  questionsAndAnswers: IntakeQaDto[];
+}
+
+export interface IntakeQaDto {
+  question: string;
+  answer: string | null;
+}
+
+export interface MissingInfoSummaryDto {
+  requestedBy: string | null;
+  requestedAt: string;
+  content: string | null;
+  questions: string[];
+  isResolved: boolean;
+}
+
+export interface ConversationHighlightDto {
+  senderName: string | null;
+  senderRole: UserRole | null;
+  recentMessages: MessageHighlightDto[];
+}
+
+export interface MessageHighlightDto {
+  content: string | null;
+  sentAt: string;
+}
+
+export interface AttachmentSummaryDto {
+  id: string;
+  fileName: string;
+  contentType: string | null;
+  fileSize: number | null;
+  uploadedBy: string | null;
+  uploadedAt: string;
 }

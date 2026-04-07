@@ -16,6 +16,7 @@ import {
   DocumentTextIcon,
   PhoneIcon,
 } from '@heroicons/react/24/outline';
+import { ClientMembersPanel } from '@/components/profile/ClientMembersPanel';
 
 export default function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
@@ -30,6 +31,8 @@ export default function ProfilePage() {
   };
 
   if (!user) return null;
+
+  const isOwner = user.client?.role === 'Owner';
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -157,6 +160,17 @@ export default function ProfilePage() {
                 />
               )}
             </div>
+          </div>
+        )}
+
+        {/* Members Panel — only for Client users who belong to a client */}
+        {user.role === 'Client' && user.client && (
+          <div className="mt-6">
+            <ClientMembersPanel
+              clientId={user.client.id}
+              currentUserId={user.id}
+              isOwner={isOwner}
+            />
           </div>
         )}
 

@@ -40,27 +40,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authService.loginAndStore(email, password);
-    setUser({
-      id: res.userId,
-      email: res.email,
-      name: res.name,
-      role: res.role,
-      hasClient: res.hasClient,
-      avatarUrl: res.avatarUrl,
-    });
+    // Fetch full profile so user.client is populated immediately (no F5 needed)
+    try {
+      const fullUser = await authService.me();
+      setUser(fullUser);
+    } catch {
+      setUser({
+        id: res.userId,
+        email: res.email,
+        name: res.name,
+        role: res.role,
+        hasClient: res.hasClient,
+        avatarUrl: res.avatarUrl,
+      });
+    }
     return res;
   }, []);
 
   const register = useCallback(async (data: { email: string; password: string; name?: string }) => {
     const res = await authService.registerAndStore(data);
-    setUser({
-      id: res.userId,
-      email: res.email,
-      name: res.name,
-      role: res.role,
-      hasClient: res.hasClient,
-      avatarUrl: res.avatarUrl,
-    });
+    // Fetch full profile so user.client is populated immediately (no F5 needed)
+    try {
+      const fullUser = await authService.me();
+      setUser(fullUser);
+    } catch {
+      setUser({
+        id: res.userId,
+        email: res.email,
+        name: res.name,
+        role: res.role,
+        hasClient: res.hasClient,
+        avatarUrl: res.avatarUrl,
+      });
+    }
     return res;
   }, []);
 
