@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
@@ -16,9 +17,75 @@ import {
 interface ChatBubbleProps {
   message: MessageDto;
   isOwnMessage: boolean;
+  requestId?: string;
+  userId?: string;
+  onReaction?: (messageId: string, emoji: string) => void;
 }
 
-export function ChatBubble({ message, isOwnMessage }: ChatBubbleProps) {
+const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '✅'];
+
+function ReactionPills({ message, userId, onReaction }: {
+  message: MessageDto;
+  userId?: string;
+  onReaction?: (messageId: string, emoji: string) => void;
+}) {
+  if (!message.reactions?.length) return null;
+  return (
+    <div className="flex flex-wrap gap-1 mt-1">
+      {message.reactions.map((r) => (
+        <button
+          key={r.emoji}
+          onClick={() => onReaction?.(message.id, r.emoji)}
+          className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] transition-all border ${
+            userId && r.userIds.includes(userId)
+              ? 'bg-[var(--accent-violet)]/15 border-[var(--accent-violet)]/30 text-[var(--accent-violet)]'
+              : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--surface-3)]'
+          }`}
+        >
+          <span>{r.emoji}</span>
+          <span className="tabular-nums">{r.count}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ReactionPicker({ messageId, onReaction }: {
+  messageId: string;
+  onReaction?: (messageId: string, emoji: string) => void;
+}) {
+  const [show, setShow] = useState(false);
+  if (!onReaction) return null;
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShow(!show)}
+        className="opacity-0 group-hover:opacity-100 rounded-full p-1 text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)] transition-all text-xs"
+        title="React"
+      >
+        😊
+      </button>
+      {show && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setShow(false)} />
+          <div className="absolute bottom-full mb-1 z-20 flex gap-0.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-1.5 py-1 shadow-xl animate-fade-in">
+            {QUICK_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => { onReaction(messageId, emoji); setShow(false); }}
+                className="rounded-lg p-1 text-sm hover:bg-[var(--surface-2)] transition-colors hover:scale-125"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function ChatBubble({ message, isOwnMessage, requestId, userId, onReaction }: ChatBubbleProps) {
   const { t } = useTranslation();
   const { language } = useLanguage();
   const { type, content, sender, files, createdAt, metadata } = message;
@@ -157,7 +224,7 @@ export function ChatBubble({ message, isOwnMessage }: ChatBubbleProps) {
       )}
     >
       <div className={cn('max-w-[80%]', isOwnMessage ? 'items-end' : 'items-start')}>
-        <div className={cn('flex items-end gap-2', isOwnMessage && 'flex-row-reverse')}>
+        <div className={cn('flex items-end gap-2 group', isOwnMessage && 'flex-row-reverse')}>
           {!isOwnMessage && sender && (
             <Avatar
               src={sender.avatarUrl ?? undefined}
@@ -165,36 +232,40 @@ export function ChatBubble({ message, isOwnMessage }: ChatBubbleProps) {
               size="sm"
             />
           )}
-          <div
-            className={cn(
-              'rounded-2xl px-4 py-2.5',
-              isOwnMessage
-                ? 'rounded-br-md bg-[var(--accent-indigo)] text-white'
-                : 'rounded-bl-md bg-[var(--surface-2)] text-[var(--foreground)]',
-              type === 'IntakeAnswer' && !isOwnMessage && 'bg-[var(--accent-indigo)]/5 border border-[var(--accent-indigo)]/20'
-            )}
-          >
-            {!isOwnMessage && sender && (
-              <p className="mb-0.5 text-xs font-semibold text-[var(--accent-violet)]">
-                {sender.name}
-              </p>
-            )}
-            {type === 'IntakeAnswer' && !isOwnMessage && (
-              <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent-violet)] opacity-70">
-                {t('chat.answer')}
-              </p>
-            )}
-            {content && (
-              <p className="text-sm whitespace-pre-wrap">{content}</p>
-            )}
-            {files.length > 0 && (
-              <div className="mt-2 space-y-1.5">
-                {files.map((file) => (
-                  <FileAttachment key={file.id} file={file} isOwn={isOwnMessage} />
-                ))}
-              </div>
-            )}
+          <div>
+            <div
+              className={cn(
+                'rounded-2xl px-4 py-2.5',
+                isOwnMessage
+                  ? 'rounded-br-md bg-[var(--accent-indigo)] text-white'
+                  : 'rounded-bl-md bg-[var(--surface-2)] text-[var(--foreground)]',
+                type === 'IntakeAnswer' && !isOwnMessage && 'bg-[var(--accent-indigo)]/5 border border-[var(--accent-indigo)]/20'
+              )}
+            >
+              {!isOwnMessage && sender && (
+                <p className="mb-0.5 text-xs font-semibold text-[var(--accent-violet)]">
+                  {sender.name}
+                </p>
+              )}
+              {type === 'IntakeAnswer' && !isOwnMessage && (
+                <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent-violet)] opacity-70">
+                  {t('chat.answer')}
+                </p>
+              )}
+              {content && (
+                <p className="text-sm whitespace-pre-wrap">{content}</p>
+              )}
+              {files.length > 0 && (
+                <div className="mt-2 space-y-1.5">
+                  {files.map((file) => (
+                    <FileAttachment key={file.id} file={file} isOwn={isOwnMessage} />
+                  ))}
+                </div>
+              )}
+            </div>
+            <ReactionPills message={message} userId={userId} onReaction={onReaction} />
           </div>
+          <ReactionPicker messageId={message.id} onReaction={onReaction} />
         </div>
         <p
           className={cn(

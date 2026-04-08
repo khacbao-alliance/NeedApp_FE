@@ -1,9 +1,19 @@
 import { api } from './requests';
 import type { ClientDto, CreateClientRequest, ClientMemberDto, AddMemberRequest } from '@/types';
 
+export interface UpdateClientRequest {
+  name?: string;
+  description?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+}
+
 export const clientService = {
   create: (data: CreateClientRequest) =>
     api.post<ClientDto>('/clients', data),
+
+  update: (id: string, data: UpdateClientRequest) =>
+    api.put<ClientDto>(`/clients/${id}`, data),
 
   getById: (id: string) =>
     api.get<ClientDto>(`/clients/${id}`),
@@ -17,3 +27,4 @@ export const clientService = {
   removeMember: (clientId: string, userId: string) =>
     api.delete<void>(`/clients/${clientId}/members/${userId}`),
 };
+

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, createElement } from 'react';
 import type { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { useNotifications } from '@/hooks/useNotifications';
 import type { NotificationDto, NotificationType } from '@/types';
 
@@ -35,23 +36,34 @@ function playNotificationSound() {
   }
 }
 
-const typeEmoji: Record<NotificationType, string> = {
-  NewMessage: '💬',
-  MissingInfo: '⚠️',
-  StatusChange: '🔄',
-  Assignment: '👤',
-  NewRequest: '📋',
-  Invitation: '✉️',
+// Type-specific accent colors (matching the app's design palette)
+const typeConfig: Record<NotificationType, { icon: string; color: string; bg: string }> = {
+  NewMessage:   { icon: '💬', color: 'var(--accent-violet)',  bg: 'rgba(139, 92, 246, 0.12)' },
+  MissingInfo:  { icon: '⚠️', color: 'var(--status-missing)', bg: 'rgba(239, 68, 68, 0.12)' },
+  StatusChange: { icon: '🔄', color: 'var(--accent-cyan)',    bg: 'rgba(6, 182, 212, 0.12)' },
+  Assignment:   { icon: '👤', color: 'var(--accent-indigo)',  bg: 'rgba(99, 102, 241, 0.12)' },
+  NewRequest:   { icon: '📋', color: 'var(--status-pending)', bg: 'rgba(59, 130, 246, 0.12)' },
+  Invitation:   { icon: '✉️', color: 'var(--status-intake)',  bg: 'rgba(245, 158, 11, 0.12)' },
 };
 
 interface Toast {
   id: string;
   notification: NotificationDto;
   exiting?: boolean;
+  progress: number; // 0 → 100 for auto-dismiss progress bar
+}
+
+// Get the navigation path for a notification
+function getNotificationHref(notification: NotificationDto): string | null {
+  if (notification.referenceId && notification.referenceType === 'Request') {
+    return `/requests/${notification.referenceId}`;
+  }
+  return null;
 }
 
 export function NotificationToast({ children }: { children: ReactNode }) {
-  const { latestRealTimeNotification } = useNotifications();
+  const { latestRealTimeNotification, activeRequestId, markAsRead } = useNotifications();
+  const router = useRouter();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const processedRef = useRef<Set<string>>(new Set());
 
@@ -65,29 +77,63 @@ export function NotificationToast({ children }: { children: ReactNode }) {
     if (processedRef.current.has(id)) return;
     processedRef.current.add(id);
 
-    // Play sound
+    // Check if user is currently viewing this request's chat
+    const isViewingThisChat =
+      activeRequestId &&
+      latestRealTimeNotification.type === 'NewMessage' &&
+      latestRealTimeNotification.referenceId === activeRequestId;
+
+    // Always play sound for new notifications
     playNotificationSound();
 
-    // Add toast (limit visible count)
+    // Skip visual toast if user is already in this chat
+    // Also auto-mark as read so unread count stays accurate
+    if (isViewingThisChat) {
+      markAsRead(id);
+      return;
+    }
+
+    // Add toast with progress tracking
     setToasts(prev => {
-      const next = [{ id, notification: latestRealTimeNotification }, ...prev];
+      const next = [{ id, notification: latestRealTimeNotification, progress: 0 }, ...prev];
       return next.slice(0, MAX_VISIBLE_TOASTS);
     });
 
+    // Progress bar animation (update every 50ms)
+    const startTime = Date.now();
+    const progressInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / TOAST_DURATION) * 100, 100);
+      setToasts(prev => prev.map(t => t.id === id ? { ...t, progress } : t));
+      if (progress >= 100) clearInterval(progressInterval);
+    }, 50);
+
     // Auto-dismiss after duration
     setTimeout(() => {
+      clearInterval(progressInterval);
       setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
       setTimeout(() => {
         setToasts(prev => prev.filter(t => t.id !== id));
       }, 300);
     }, TOAST_DURATION);
-  }, [latestRealTimeNotification]);
+
+    return () => clearInterval(progressInterval);
+  }, [latestRealTimeNotification, activeRequestId, markAsRead]);
 
   const dismissToast = (id: string) => {
     setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 300);
+  };
+
+  const handleToastClick = (toast: Toast) => {
+    const href = getNotificationHref(toast.notification);
+    markAsRead(toast.id);
+    dismissToast(toast.id);
+    if (href) {
+      router.push(href);
+    }
   };
 
   return createElement(
@@ -98,56 +144,129 @@ export function NotificationToast({ children }: { children: ReactNode }) {
       createElement(
         'div',
         {
-          className: 'fixed top-20 right-4 z-[100] flex flex-col gap-2 pointer-events-none',
-          style: { maxWidth: '380px', width: '100%' },
+          className: 'fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none',
+          style: { maxWidth: '340px', width: '100%' },
           'aria-live': 'polite',
         },
-        toasts.map(toast =>
-          createElement(
+        toasts.map((toast, index) => {
+          const config = typeConfig[toast.notification.type] || typeConfig.NewMessage;
+          const href = getNotificationHref(toast.notification);
+
+          return createElement(
             'div',
             {
               key: toast.id,
               className: [
-                'pointer-events-auto flex items-start gap-3 rounded-2xl border border-[var(--border)]',
-                'bg-[var(--surface-1)]/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/20',
+                'pointer-events-auto relative overflow-hidden',
+                'rounded-xl',
                 toast.exiting ? 'animate-slide-out-right' : 'animate-slide-in-right',
-                'cursor-pointer hover:bg-[var(--surface-hover)] transition-colors',
+                href ? 'cursor-pointer' : 'cursor-default',
               ].join(' '),
-              onClick: () => dismissToast(toast.id),
+              style: {
+                background: 'var(--glass-bg)',
+                backdropFilter: 'blur(20px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                border: '1px solid var(--glass-border)',
+                boxShadow: `0 8px 32px -4px rgba(0,0,0,0.3), 0 0 0 1px rgba(139,92,246,0.06), inset 0 1px 0 rgba(255,255,255,0.04)`,
+                animationDelay: `${index * 60}ms`,
+              },
+              onClick: () => handleToastClick(toast),
             },
-            createElement(
-              'span',
-              { className: 'text-lg flex-shrink-0 mt-0.5' },
-              typeEmoji[toast.notification.type] || '🔔'
-            ),
+
+            // Accent top border (gradient line)
+            createElement('div', {
+              style: {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '2px',
+                background: `linear-gradient(90deg, ${config.color}, var(--accent-cyan))`,
+                opacity: 0.8,
+              },
+            }),
+
+            // Main content area
             createElement(
               'div',
-              { className: 'min-w-0 flex-1' },
+              { className: 'flex items-start gap-2.5 px-3 py-2.5' },
+
+              // Icon with colored background
               createElement(
-                'p',
-                { className: 'text-sm font-semibold text-[var(--foreground)] truncate' },
-                toast.notification.title
+                'div',
+                {
+                  className: 'flex-shrink-0 flex items-center justify-center rounded-lg',
+                  style: {
+                    width: '32px',
+                    height: '32px',
+                    background: config.bg,
+                    fontSize: '14px',
+                  },
+                },
+                config.icon
               ),
-              toast.notification.content &&
+
+              createElement(
+                'div',
+                { className: 'min-w-0 flex-1' },
                 createElement(
                   'p',
-                  { className: 'mt-0.5 text-xs text-[var(--text-muted)] line-clamp-2' },
-                  toast.notification.content
-                )
-            ),
-            createElement(
-              'button',
-              {
-                className: 'flex-shrink-0 rounded-lg p-1 text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-2)] transition-colors',
-                onClick: (e: { stopPropagation: () => void }) => {
-                  e.stopPropagation();
-                  dismissToast(toast.id);
+                  {
+                    className: 'text-xs font-semibold truncate',
+                    style: { color: 'var(--foreground)' },
+                  },
+                  toast.notification.title
+                ),
+                toast.notification.content &&
+                  createElement(
+                    'p',
+                    {
+                      className: 'mt-0.5 text-[11px] line-clamp-1',
+                      style: { color: 'var(--text-muted)' },
+                    },
+                    toast.notification.content
+                  )
+              ),
+
+              // Close button
+              createElement(
+                'button',
+                {
+                  className: 'flex-shrink-0 rounded p-0.5 text-xs transition-all duration-150',
+                  style: { color: 'var(--text-muted)' },
+                  onMouseEnter: (e: { currentTarget: HTMLElement }) => {
+                    e.currentTarget.style.color = 'var(--foreground)';
+                    e.currentTarget.style.background = 'var(--surface-hover)';
+                  },
+                  onMouseLeave: (e: { currentTarget: HTMLElement }) => {
+                    e.currentTarget.style.color = 'var(--text-muted)';
+                    e.currentTarget.style.background = 'transparent';
+                  },
+                  onClick: (e: { stopPropagation: () => void }) => {
+                    e.stopPropagation();
+                    dismissToast(toast.id);
+                  },
                 },
+                '✕'
+              )
+            ),
+
+            // Progress bar (auto-dismiss countdown)
+            createElement('div', {
+              style: {
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                height: '2px',
+                width: `${100 - toast.progress}%`,
+                background: `linear-gradient(90deg, ${config.color}, var(--accent-cyan))`,
+                transition: 'width 80ms linear',
+                opacity: 0.5,
+                borderRadius: '0 1px 0 0',
               },
-              '✕'
-            )
-          )
-        )
+            })
+          );
+        })
       )
   );
 }

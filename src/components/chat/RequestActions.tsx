@@ -47,6 +47,70 @@ const VARIANT_CLASSES: Record<string, string> = {
   danger: 'bg-red-500/15 text-red-400 hover:bg-red-500/25',
 };
 
+/* ─── Confirm Modal ─── */
+function ConfirmModal({
+  open,
+  title,
+  description,
+  icon,
+  confirmLabel,
+  variant = 'danger',
+  loading,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  confirmLabel: string;
+  variant?: 'danger' | 'success';
+  loading: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) return null;
+  const btnClass = variant === 'success'
+    ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+    : 'bg-red-500 hover:bg-red-600 text-white';
+  const iconBg = variant === 'success' ? 'bg-emerald-500/15' : 'bg-red-500/15';
+  const iconColor = variant === 'success' ? 'text-emerald-400' : 'text-red-400';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
+      {/* Modal */}
+      <div className="relative w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-2xl animate-fade-in">
+        <div className="flex flex-col items-center text-center">
+          <div className={`flex h-12 w-12 items-center justify-center rounded-full ${iconBg} mb-4`}>
+            <span className={iconColor}>{icon}</span>
+          </div>
+          <h3 className="text-base font-semibold text-[var(--foreground)]">{title}</h3>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">{description}</p>
+        </div>
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-3)] disabled:opacity-50"
+          >
+            Huỷ bỏ
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50 ${btnClass}`}
+          >
+            {loading && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Status Actions ─── */
 export function RequestStatusActions({
   request,
@@ -59,6 +123,7 @@ export function RequestStatusActions({
   const { role } = useAuth();
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState('');
+  const [confirmTarget, setConfirmTarget] = useState<RequestStatus | null>(null);
   const STATUS_TRANSITIONS = getStatusTransitions(t);
 
   // Only Staff/Admin can change status
@@ -67,7 +132,7 @@ export function RequestStatusActions({
   const actions = STATUS_TRANSITIONS[request.status] ?? [];
   if (actions.length === 0) return null;
 
-  const handleStatusChange = async (newStatus: RequestStatus) => {
+  const executeStatusChange = async (newStatus: RequestStatus) => {
     setUpdating(true);
     setError('');
     try {
@@ -79,30 +144,70 @@ export function RequestStatusActions({
       setTimeout(() => setError(''), 3000);
     } finally {
       setUpdating(false);
+      setConfirmTarget(null);
+    }
+  };
+
+  const handleStatusChange = (newStatus: RequestStatus) => {
+    if (newStatus === 'Done' || newStatus === 'Cancelled') {
+      setConfirmTarget(newStatus);
+    } else {
+      executeStatusChange(newStatus);
     }
   };
 
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      {actions.map((action) => (
-        <button
-          key={action.status}
-          onClick={() => handleStatusChange(action.status)}
-          disabled={updating}
-          className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${VARIANT_CLASSES[action.variant]} disabled:opacity-50`}
-        >
-          {updating ? (
-            <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            action.icon
-          )}
-          {action.label}
-        </button>
-      ))}
-      {error && (
-        <span className="text-[10px] text-red-400 animate-fade-in">{error}</span>
-      )}
-    </div>
+    <>
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {actions.map((action) => (
+          <button
+            key={action.status}
+            onClick={() => handleStatusChange(action.status)}
+            disabled={updating}
+            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${VARIANT_CLASSES[action.variant]} disabled:opacity-50`}
+          >
+            {updating ? (
+              <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              action.icon
+            )}
+            {action.label}
+          </button>
+        ))}
+        {error && (
+          <span className="text-[10px] text-red-400 animate-fade-in">{error}</span>
+        )}
+      </div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        open={confirmTarget !== null}
+        title={
+          confirmTarget === 'Done'
+            ? t('requestActions.confirmDoneTitle', 'Hoàn thành yêu cầu')
+            : t('requestActions.confirmCancelTitle', 'Huỷ yêu cầu')
+        }
+        description={
+          confirmTarget === 'Done'
+            ? t('requestActions.confirmDoneDesc', 'Yêu cầu sẽ được đánh dấu hoàn thành. Bạn vẫn có thể mở lại sau.')
+            : t('requestActions.confirmCancelDesc', 'Yêu cầu sẽ bị huỷ. Hành động này không thể hoàn tác.')
+        }
+        icon={
+          confirmTarget === 'Done'
+            ? <CheckCircleIcon className="h-6 w-6" />
+            : <XMarkIcon className="h-6 w-6" />
+        }
+        confirmLabel={
+          confirmTarget === 'Done'
+            ? t('requestActions.complete', 'Hoàn thành')
+            : t('requestActions.cancel', 'Huỷ yêu cầu')
+        }
+        variant={confirmTarget === 'Done' ? 'success' : 'danger'}
+        loading={updating}
+        onConfirm={() => confirmTarget && executeStatusChange(confirmTarget)}
+        onCancel={() => setConfirmTarget(null)}
+      />
+    </>
   );
 }
 

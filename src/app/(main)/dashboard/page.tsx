@@ -25,6 +25,7 @@ import {
   BoltIcon,
   ShieldCheckIcon,
   InboxIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline';
 
 export default function DashboardPage() {
@@ -70,11 +71,17 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
     pending: requests.filter((r) => r.status === 'Pending' || r.status === 'MissingInfo').length,
     inProgress: requests.filter((r) => r.status === 'InProgress').length,
     done: requests.filter((r) => r.status === 'Done').length,
+    unassigned: requests.filter((r) => !r.assignedUser && r.status !== 'Done' && r.status !== 'Cancelled' && r.status !== 'Intake').length,
     totalUsers: users?.totalCount ?? 0,
   };
 
   const urgentRequests = requests
     .filter((r) => r.priority === 'Urgent' || r.priority === 'High')
+    .filter((r) => r.status !== 'Done' && r.status !== 'Cancelled')
+    .slice(0, 5);
+
+  const unassignedRequests = requests
+    .filter((r) => !r.assignedUser && r.status !== 'Done' && r.status !== 'Cancelled' && r.status !== 'Intake')
     .slice(0, 5);
 
   return (
@@ -96,12 +103,13 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
         <StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" />
         <StatCard icon={<InboxIcon className="h-5 w-5" />} label={t('dashboard.intake')} value={stats.intake} color="text-amber-400" bg="bg-amber-500/10" />
         <StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.pending')} value={stats.pending} color="text-blue-400" bg="bg-blue-500/10" />
         <StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label={t('dashboard.inProgress')} value={stats.inProgress} color="text-purple-400" bg="bg-purple-500/10" />
         <StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label={t('dashboard.done')} value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" />
+        <StatCard icon={<ExclamationTriangleIcon className="h-5 w-5" />} label={t('dashboard.unassigned', 'Chưa phân công')} value={stats.unassigned} color="text-red-400" bg="bg-red-500/10" highlight={stats.unassigned > 0} />
         <StatCard icon={<UserGroupIcon className="h-5 w-5" />} label={t('dashboard.totalUsers')} value={stats.totalUsers} color="text-cyan-400" bg="bg-cyan-500/10" />
       </div>
 
@@ -136,36 +144,59 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
           )}
         </div>
 
-        {/* Recent Users */}
+        {/* Unassigned Requests — #9 actionable insight */}
         <div>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)]">
-              <UserGroupIcon className="h-5 w-5 text-cyan-400" />
-              {t('dashboard.recentUsers')}
+              <UserPlusIcon className="h-5 w-5 text-amber-400" />
+              {t('dashboard.unassigned', 'Chưa phân công')}
             </h2>
-            <Link href="/admin/users" className="text-sm font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
+            <Link href="/requests" className="text-sm font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
               {t('dashboard.viewAll')} →
             </Link>
           </div>
           {loading ? (
             <LoadingSkeleton count={3} />
-          ) : !users?.items.length ? (
-            <EmptyState title={t('dashboard.noUsers')} />
-          ) : (
-            <div className="space-y-2">
-              {users.items.map((u) => (
-                <div key={u.id} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-3 transition-all duration-200 hover:bg-[var(--surface-hover)]">
-                  <Avatar src={u.avatarUrl ?? undefined} name={u.name || u.email} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-[var(--foreground)]">{u.name || u.email}</p>
-                    <p className="truncate text-xs text-[var(--text-muted)]">{u.email}</p>
-                  </div>
-                  <RoleBadge role={u.role} />
-                </div>
-              ))}
+          ) : unassignedRequests.length === 0 ? (
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-6 text-center">
+              <CheckCircleIcon className="mx-auto h-8 w-8 text-emerald-400" />
+              <p className="mt-2 text-sm text-[var(--text-muted)]">{t('dashboard.allAssigned', 'Tất cả request đã được phân công')} ✅</p>
             </div>
+          ) : (
+            <RequestList requests={unassignedRequests} />
           )}
         </div>
+      </div>
+
+      {/* Recent Users */}
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)]">
+            <UserGroupIcon className="h-5 w-5 text-cyan-400" />
+            {t('dashboard.recentUsers')}
+          </h2>
+          <Link href="/admin/users" className="text-sm font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
+            {t('dashboard.viewAll')} →
+          </Link>
+        </div>
+        {loading ? (
+          <LoadingSkeleton count={3} />
+        ) : !users?.items.length ? (
+          <EmptyState title={t('dashboard.noUsers')} />
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {users.items.map((u) => (
+              <div key={u.id} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-3 transition-all duration-200 hover:bg-[var(--surface-hover)]">
+                <Avatar src={u.avatarUrl ?? undefined} name={u.name || u.email} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[var(--foreground)]">{u.name || u.email}</p>
+                  <p className="truncate text-xs text-[var(--text-muted)]">{u.email}</p>
+                </div>
+                <RoleBadge role={u.role} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

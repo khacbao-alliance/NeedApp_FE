@@ -13,5 +13,8 @@ export const notificationService = {
 
   markAllAsRead: () =>
     api.put<void>('/notifications/read-all', {}),
+
+  markAsReadByRequest: (requestId: string) =>
+    api.put<void>(`/notifications/read-by-request/${requestId}`, {}),
 };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +20,7 @@ import {
   ArrowPathIcon,
   HandRaisedIcon,
   ClockIcon,
+  BarsArrowDownIcon,
 } from '@heroicons/react/24/outline';
 
 export default function RequestsPage() {
@@ -66,9 +67,42 @@ export default function RequestsPage() {
   }, [fetchRequests]);
 
   const allRequests = data?.items ?? [];
-  const requests = role === 'Staff'
-    ? allRequests.filter(req => !req.assignedUser || req.assignedUser.id === user?.id)
-    : allRequests;
+
+  // Staff filter tabs
+  type StaffTab = 'all' | 'mine' | 'unassigned';
+  const [staffTab, setStaffTab] = useState<StaffTab>('all');
+  type SortKey = 'newest' | 'oldest' | 'priority';
+  const [sortKey, setSortKey] = useState<SortKey>('newest');
+
+  const PRIORITY_ORDER: Record<string, number> = { Urgent: 0, High: 1, Medium: 2, Low: 3 };
+
+  const requests = (() => {
+    let filtered = role === 'Staff'
+      ? allRequests.filter(req => {
+          if (staffTab === 'mine') return req.assignedUser?.id === user?.id;
+          if (staffTab === 'unassigned') return !req.assignedUser;
+          return !req.assignedUser || req.assignedUser.id === user?.id;
+        })
+      : allRequests;
+    if (sortKey === 'oldest') {
+      filtered = [...filtered].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    } else if (sortKey === 'priority') {
+      filtered = [...filtered].sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 9) - (PRIORITY_ORDER[b.priority] ?? 9));
+    }
+    // 'newest' is the default order from API
+    return filtered;
+  })();
+
+  // #8 — Auto-refresh every 30s
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      fetchRequests();
+    }, 30000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [fetchRequests]);
 
   const handleSelfAssign = async (id: string) => {
     setSelfAssigning(id);
@@ -102,8 +136,31 @@ export default function RequestsPage() {
         )}
       </div>
 
-      {/* Search & Filter */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      {/* Staff scope tabs — separate row */}
+      {role === 'Staff' && (
+        <div className="flex items-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-1 w-fit">
+          {[
+            { value: 'all' as StaffTab, label: t('requests.list.staffAll', 'Tất cả') },
+            { value: 'mine' as StaffTab, label: t('requests.list.staffMine', 'Của tôi') },
+            { value: 'unassigned' as StaffTab, label: t('requests.list.staffUnassigned', 'Chưa nhận') },
+          ].map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setStaffTab(tab.value)}
+              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                staffTab === tab.value
+                  ? 'bg-[var(--accent-violet)] text-white shadow-sm'
+                  : 'text-[var(--text-muted)] hover:text-[var(--foreground)]'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Search & Status Filter */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
@@ -115,20 +172,33 @@ export default function RequestsPage() {
             id="search-requests"
           />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {statusFilters.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => { setStatusFilter(f.value); setPage(1); }}
-              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${statusFilter === f.value
-                  ? 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)]'
-                  : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                }`}
-            >
-              {f.label}
-            </button>
-          ))}
+        {/* Sort */}
+        <div className="relative flex-shrink-0">
+          <BarsArrowDownIcon className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+            className="appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface-2)] py-1.5 pl-8 pr-6 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all focus:border-[var(--accent-indigo)] cursor-pointer"
+          >
+            <option value="newest">{t('requests.list.sortNewest', 'Mới nhất')}</option>
+            <option value="oldest">{t('requests.list.sortOldest', 'Cũ nhất')}</option>
+            <option value="priority">{t('requests.list.sortPriority', 'Ưu tiên')}</option>
+          </select>
         </div>
+      </div>
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {statusFilters.map((f) => (
+          <button
+            key={f.value}
+            onClick={() => { setStatusFilter(f.value); setPage(1); }}
+            className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${statusFilter === f.value
+                ? 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)]'
+                : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       {/* List */}
@@ -268,18 +338,35 @@ export default function RequestsPage() {
             {t('requests.list.paging', { page: data.page, total: data.totalPages, count: data.totalCount })}
           </p>
           <div className="flex gap-1">
-            {Array.from({ length: data.totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPage(p)}
-                className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${page === p
-                    ? 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)]'
-                    : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)]'
-                  }`}
-              >
-                {p}
-              </button>
-            ))}
+            {(() => {
+              const total = data.totalPages;
+              const pages: (number | 'ellipsis-start' | 'ellipsis-end')[] = [];
+              if (total <= 7) {
+                for (let i = 1; i <= total; i++) pages.push(i);
+              } else {
+                pages.push(1);
+                if (page > 3) pages.push('ellipsis-start');
+                for (let i = Math.max(2, page - 1); i <= Math.min(total - 1, page + 1); i++) pages.push(i);
+                if (page < total - 2) pages.push('ellipsis-end');
+                pages.push(total);
+              }
+              return pages.map((p) =>
+                typeof p === 'string' ? (
+                  <span key={p} className="flex h-8 w-8 items-center justify-center text-xs text-[var(--text-muted)]">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${page === p
+                        ? 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)]'
+                        : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)]'
+                      }`}
+                  >
+                    {p}
+                  </button>
+                )
+              );
+            })()}
           </div>
         </div>
       )}

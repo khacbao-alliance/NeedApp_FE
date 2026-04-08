@@ -263,21 +263,39 @@
   },
   "profile": {
     "unnamed": "Chưa đặt tên",
+    "personalInfo": "Thông tin cá nhân",
+    "displayName": "Tên hiển thị",
+    "namePlaceholder": "Nhập tên của bạn",
     "businessProfile": "Hồ sơ doanh nghiệp",
     "setup": "Đã thiết lập",
     "notSetup": "Chưa thiết lập",
     "businessInfo": "Thông tin doanh nghiệp",
     "companyName": "Tên công ty",
+    "companyNamePlaceholder": "VD: Công ty TNHH ABC",
     "description": "Mô tả",
+    "descriptionPlaceholder": "Mô tả ngắn về công ty của bạn",
     "contactEmail": "Email liên hệ",
     "phone": "Số điện thoại",
     "role": "Vai trò",
     "owner": "Chủ sở hữu",
     "member": "Thành viên",
+    "ownerCanEdit": "Chủ sở hữu có thể chỉnh sửa",
     "logout": "Đăng xuất",
     "roleAdmin": "Quản trị viên",
     "roleStaff": "Nhân viên",
     "roleClient": "Khách hàng"
+  },
+  "confirm": {
+    "logout": {
+      "title": "Đăng xuất?",
+      "description": "Bạn sẽ bị đăng xuất khỏi tài khoản.",
+      "confirm": "Đăng xuất"
+    },
+    "deleteUser": {
+      "title": "Xóa người dùng?",
+      "description": "Hành động này không thể hoàn tác. Người dùng sẽ bị xóa vĩnh viễn.",
+      "confirm": "Xóa"
+    }
   },
   "admin": {
     "users": {

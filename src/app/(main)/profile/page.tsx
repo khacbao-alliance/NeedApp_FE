@@ -4,9 +4,12 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { fileService } from '@/services/files';
+import { userService } from '@/services/users';
+import { clientService } from '@/services/clients';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { ApiRequestError } from '@/services/requests';
 import {
   CameraIcon,
   EnvelopeIcon,
@@ -15,16 +18,162 @@ import {
   ArrowRightStartOnRectangleIcon,
   DocumentTextIcon,
   PhoneIcon,
+  PencilSquareIcon,
+  CheckIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { ClientMembersPanel } from '@/components/profile/ClientMembersPanel';
+
+// ─── Reusable editable field ──────────────────────────────────────────────────
+
+function EditableInfoRow({
+  icon,
+  label,
+  value,
+  placeholder,
+  onSave,
+  valueClass,
+  readonly,
+  type = 'text',
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  placeholder?: string;
+  onSave?: (newValue: string) => Promise<void>;
+  valueClass?: string;
+  readonly?: boolean;
+  type?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleEdit = () => {
+    setDraft(value);
+    setError('');
+    setEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!onSave) return;
+    setSaving(true);
+    setError('');
+    try {
+      await onSave(draft.trim());
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : 'Error saving');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditing(false);
+    setDraft(value);
+    setError('');
+  };
+
+  return (
+    <div className="rounded-xl bg-[var(--surface-2)] p-4 transition-all">
+      <div className="flex items-center gap-3">
+        <span className="flex-shrink-0 text-[var(--text-muted)]">{icon}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-[var(--text-muted)]">{label}</p>
+          {editing ? (
+            <input
+              type={type}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder={placeholder}
+              autoFocus
+              className="mt-1 w-full rounded-lg border border-[var(--accent-indigo)] bg-[var(--surface-3)] px-2 py-1 text-sm text-[var(--foreground)] outline-none focus:ring-1 focus:ring-[var(--accent-violet)] transition-all"
+            />
+          ) : (
+            <p className={`text-sm font-medium ${valueClass || 'text-[var(--foreground)]'}`}>
+              {value || <span className="text-[var(--text-muted)] italic">{placeholder || '—'}</span>}
+            </p>
+          )}
+          {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
+        </div>
+
+        {!readonly && onSave && (
+          <div className="flex-shrink-0 flex items-center gap-1">
+            {editing ? (
+              <>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="rounded-lg p-1.5 text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-50"
+                  title="Save"
+                >
+                  {saving ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+                  ) : (
+                    <CheckIcon className="h-4 w-4" />
+                  )}
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={saving}
+                  className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface-3)] transition-colors"
+                  title="Cancel"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleEdit}
+                className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--foreground)] transition-colors"
+                title="Edit"
+              >
+                <PencilSquareIcon className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Static info row ──────────────────────────────────────────────────────────
+
+function InfoRow({
+  icon,
+  label,
+  value,
+  valueClass,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  valueClass?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl bg-[var(--surface-2)] p-4">
+      <span className="text-[var(--text-muted)]">{icon}</span>
+      <div>
+        <p className="text-xs text-[var(--text-muted)]">{label}</p>
+        <p className={`text-sm font-medium ${valueClass || 'text-[var(--foreground)]'}`}>{value}</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
   const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const roleLabels = {
+  const roleLabels: Record<string, string> = {
     Admin: t('profile.roleAdmin'),
     Staff: t('profile.roleStaff'),
     Client: t('profile.roleClient'),
@@ -34,6 +183,7 @@ export default function ProfilePage() {
 
   const isOwner = user.client?.role === 'Owner';
 
+  // ── Avatar upload ──
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -49,6 +199,28 @@ export default function ProfilePage() {
     e.target.value = '';
   };
 
+  // ── Save name ──
+  const handleSaveName = async (newName: string) => {
+    const updated = await userService.updateProfile({ name: newName });
+    updateUser({ name: updated.name });
+  };
+
+  // ── Save client fields ──
+  const makeClientSaver = (field: 'name' | 'description' | 'contactEmail' | 'contactPhone') =>
+    async (newValue: string) => {
+      if (!user.client) return;
+      const updated = await clientService.update(user.client.id, { [field]: newValue });
+      updateUser({
+        client: {
+          ...user.client,
+          name: updated.name,
+          description: updated.description,
+          contactEmail: updated.contactEmail,
+          contactPhone: updated.contactPhone,
+        },
+      });
+    };
+
   return (
     <div className="mx-auto max-w-2xl animate-fade-in" id="profile-page">
       {/* Cover gradient */}
@@ -56,7 +228,7 @@ export default function ProfilePage() {
 
       {/* Profile Card */}
       <div className="relative -mt-16 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-6 pt-0">
-        {/* Avatar */}
+        {/* Avatar + name header */}
         <div className="flex items-end gap-4 -mt-8">
           <div className="relative">
             <Avatar
@@ -89,12 +261,13 @@ export default function ProfilePage() {
               {user.name || t('profile.unnamed')}
             </h1>
             <span
-              className={`mt-1 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${user.role === 'Admin'
+              className={`mt-1 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${
+                user.role === 'Admin'
                   ? 'bg-red-500/15 text-red-400'
                   : user.role === 'Staff'
-                    ? 'bg-blue-500/15 text-blue-400'
-                    : 'bg-emerald-500/15 text-emerald-400'
-                }`}
+                  ? 'bg-blue-500/15 text-blue-400'
+                  : 'bg-emerald-500/15 text-emerald-400'
+              }`}
             >
               <ShieldCheckIcon className="h-3.5 w-3.5" />
               {roleLabels[user.role]}
@@ -102,55 +275,85 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Personal Info */}
-        <div className="mt-6 space-y-4">
-          <InfoRow
-            icon={<EnvelopeIcon className="h-5 w-5" />}
-            label="Email"
-            value={user.email}
-          />
-          <InfoRow
-            icon={<BuildingOffice2Icon className="h-5 w-5" />}
-            label={t('profile.businessProfile')}
-            value={user.hasClient ? t('profile.setup') : t('profile.notSetup')}
-            valueClass={user.hasClient ? 'text-emerald-400' : 'text-amber-400'}
-          />
+        {/* ── Personal Info Section ── */}
+        <div className="mt-6">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)] mb-3">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-500/15">
+              <ShieldCheckIcon className="h-3.5 w-3.5 text-[var(--accent-indigo)]" />
+            </span>
+            {t('profile.personalInfo')}
+          </h2>
+          <div className="space-y-3 group">
+            <InfoRow
+              icon={<EnvelopeIcon className="h-5 w-5" />}
+              label="Email"
+              value={user.email}
+            />
+            <EditableInfoRow
+              icon={<ShieldCheckIcon className="h-5 w-5" />}
+              label={t('profile.displayName')}
+              value={user.name || ''}
+              placeholder={t('profile.namePlaceholder')}
+              onSave={handleSaveName}
+            />
+            <InfoRow
+              icon={<BuildingOffice2Icon className="h-5 w-5" />}
+              label={t('profile.businessProfile')}
+              value={user.hasClient ? t('profile.setup') : t('profile.notSetup')}
+              valueClass={user.hasClient ? 'text-emerald-400' : 'text-amber-400'}
+            />
+          </div>
         </div>
 
-        {/* Client Info */}
+        {/* ── Client Info Section ── */}
         {user.client && (
           <div className="mt-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)] mb-3">
-              <BuildingOffice2Icon className="h-4 w-4 text-[var(--accent-violet)]" />
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-500/15">
+                <BuildingOffice2Icon className="h-3.5 w-3.5 text-[var(--accent-violet)]" />
+              </span>
               {t('profile.businessInfo')}
+              {isOwner && (
+                <span className="ml-auto text-[10px] font-normal text-[var(--text-muted)] bg-[var(--surface-2)] px-2 py-0.5 rounded-full">
+                  {t('profile.ownerCanEdit')}
+                </span>
+              )}
             </h2>
-            <div className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/50 p-4">
-              <InfoRow
+            <div className="space-y-3 group">
+              <EditableInfoRow
                 icon={<BuildingOffice2Icon className="h-5 w-5" />}
                 label={t('profile.companyName')}
                 value={user.client.name}
+                placeholder={t('profile.companyNamePlaceholder')}
+                onSave={isOwner ? makeClientSaver('name') : undefined}
+                readonly={!isOwner}
               />
-              {user.client.description && (
-                <InfoRow
-                  icon={<DocumentTextIcon className="h-5 w-5" />}
-                  label={t('profile.description')}
-                  value={user.client.description}
-                />
-              )}
-              {user.client.contactEmail && (
-                <InfoRow
-                  icon={<EnvelopeIcon className="h-5 w-5" />}
-                  label={t('profile.contactEmail')}
-                  value={user.client.contactEmail}
-                />
-              )}
-              {user.client.contactPhone && (
-                <InfoRow
-                  icon={<PhoneIcon className="h-5 w-5" />}
-                  label={t('profile.phone')}
-                  value={user.client.contactPhone}
-                />
-              )}
+              <EditableInfoRow
+                icon={<DocumentTextIcon className="h-5 w-5" />}
+                label={t('profile.description')}
+                value={user.client.description || ''}
+                placeholder={t('profile.descriptionPlaceholder')}
+                onSave={isOwner ? makeClientSaver('description') : undefined}
+                readonly={!isOwner}
+              />
+              <EditableInfoRow
+                icon={<EnvelopeIcon className="h-5 w-5" />}
+                label={t('profile.contactEmail')}
+                value={user.client.contactEmail || ''}
+                placeholder="contact@company.com"
+                type="email"
+                onSave={isOwner ? makeClientSaver('contactEmail') : undefined}
+                readonly={!isOwner}
+              />
+              <EditableInfoRow
+                icon={<PhoneIcon className="h-5 w-5" />}
+                label={t('profile.phone')}
+                value={user.client.contactPhone || ''}
+                placeholder="+84 XXX XXX XXX"
+                type="tel"
+                onSave={isOwner ? makeClientSaver('contactPhone') : undefined}
+                readonly={!isOwner}
+              />
               {user.client.role && (
                 <InfoRow
                   icon={<ShieldCheckIcon className="h-5 w-5" />}
@@ -163,7 +366,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Members Panel — only for Client users who belong to a client */}
+        {/* Members Panel */}
         {user.role === 'Client' && user.client && (
           <div className="mt-6">
             <ClientMembersPanel
@@ -178,7 +381,7 @@ export default function ProfilePage() {
         <div className="mt-8 border-t border-[var(--border)] pt-6">
           <Button
             variant="danger"
-            onClick={logout}
+            onClick={() => setShowLogoutConfirm(true)}
             className="w-full"
           >
             <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
@@ -186,30 +389,16 @@ export default function ProfilePage() {
           </Button>
         </div>
       </div>
-    </div>
-  );
-}
 
-function InfoRow({
-  icon,
-  label,
-  value,
-  valueClass,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  valueClass?: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl bg-[var(--surface-2)] p-4">
-      <span className="text-[var(--text-muted)]">{icon}</span>
-      <div>
-        <p className="text-xs text-[var(--text-muted)]">{label}</p>
-        <p className={`text-sm font-medium ${valueClass || 'text-[var(--foreground)]'}`}>
-          {value}
-        </p>
-      </div>
+      <ConfirmModal
+        open={showLogoutConfirm}
+        onConfirm={logout}
+        onCancel={() => setShowLogoutConfirm(false)}
+        title={t('confirm.logout.title')}
+        description={t('confirm.logout.description')}
+        confirmLabel={t('confirm.logout.confirm')}
+        variant="warning"
+      />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/ui/Avatar';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { cn } from '@/lib/utils';
 import {
@@ -28,6 +29,7 @@ export function ClientNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Track scroll for glass effect
   useEffect(() => {
@@ -45,9 +47,13 @@ export function ClientNavbar() {
   // Close dropdowns on outside click
   useEffect(() => {
     if (!profileOpen) return;
-    const handler = () => setProfileOpen(false);
-    document.addEventListener('click', handler);
-    return () => document.removeEventListener('click', handler);
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const el = document.getElementById('profile-dropdown-container');
+      if (el && !el.contains(target)) setProfileOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, [profileOpen]);
 
   const isLanding = pathname === '/';
@@ -126,7 +132,7 @@ export function ClientNavbar() {
             {isAuthenticated ? (
               <>
                 <NotificationBell />
-              <div className="relative">
+              <div className="relative" id="profile-dropdown-container">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -161,7 +167,10 @@ export function ClientNavbar() {
                       {t('nav.profile')}
                     </Link>
                     <button
-                      onClick={logout}
+                      onClick={() => {
+                        setProfileOpen(false);
+                        setShowLogoutConfirm(true);
+                      }}
                       className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                     >
                       <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
@@ -239,7 +248,10 @@ export function ClientNavbar() {
                   </Link>
                   <div className="border-t border-[var(--border)] mt-2 pt-2">
                     <button
-                      onClick={logout}
+                      onClick={() => {
+                        setMobileOpen(false);
+                        setShowLogoutConfirm(true);
+                      }}
                       className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-500/10"
                     >
                       <ArrowRightStartOnRectangleIcon className="h-5 w-5" />
@@ -287,6 +299,16 @@ export function ClientNavbar() {
 
       {/* Spacer to prevent content from hiding behind fixed navbar */}
       <div className="h-16" />
+
+      <ConfirmModal
+        open={showLogoutConfirm}
+        onConfirm={logout}
+        onCancel={() => setShowLogoutConfirm(false)}
+        title={t('confirm.logout.title')}
+        description={t('confirm.logout.description')}
+        confirmLabel={t('confirm.logout.confirm')}
+        variant="warning"
+      />
     </>
   );
 }

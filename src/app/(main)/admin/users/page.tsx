@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Select } from '@/components/ui/Select';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -52,6 +53,8 @@ export default function AdminUsersPage() {
   const [form, setForm] = useState({ email: '', password: '', name: '', role: 'Staff' as UserRole });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -126,12 +129,15 @@ export default function AdminUsersPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t('admin.users.deleteConfirm'))) return;
+    setDeleting(true);
     try {
       await userService.delete(id);
+      setDeleteConfirmId(null);
       fetchUsers();
     } catch {
       // ignore
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -229,7 +235,7 @@ export default function AdminUsersPage() {
                         <PencilSquareIcon className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(u.id)}
+                        onClick={() => setDeleteConfirmId(u.id)}
                         className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-400"
                       >
                         <TrashIcon className="h-4 w-4" />
@@ -325,6 +331,17 @@ export default function AdminUsersPage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={!!deleteConfirmId}
+        onConfirm={() => deleteConfirmId && handleDelete(deleteConfirmId)}
+        onCancel={() => setDeleteConfirmId(null)}
+        title={t('confirm.deleteUser.title')}
+        description={t('confirm.deleteUser.description')}
+        confirmLabel={t('confirm.deleteUser.confirm')}
+        variant="danger"
+        loading={deleting}
+      />
     </div>
   );
 }

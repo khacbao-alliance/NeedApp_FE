@@ -30,4 +30,13 @@ export const messageService = {
 
   getSummary: (requestId: string) =>
     api.get<ConversationSummaryDto>(`/requests/${requestId}/messages/summary`),
+
+  toggleReaction: (requestId: string, messageId: string, emoji: string) =>
+    api.post<{ added: boolean; emoji: string; count: number }>(
+      `/requests/${requestId}/messages/${messageId}/reactions`,
+      { emoji }
+    ),
+
+  markRead: (requestId: string) =>
+    api.post<void>(`/requests/${requestId}/messages/read`, {}),
 };

@@ -11,13 +11,16 @@ import { requestService } from '@/services/requestsApi';
 import { useAuth } from '@/hooks/useAuth';
 import { usePolling } from '@/hooks/usePolling';
 import { useChatSignalR } from '@/hooks/useChatSignalR';
+import { useNotifications } from '@/hooks/useNotifications';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { MissingInfoComposer } from '@/components/chat/MissingInfoComposer';
 import { RequestStatusActions, AssignStaffAction, SelfAssignAction } from '@/components/chat/RequestActions';
 import { ConversationSummaryDrawer } from '@/components/chat/ConversationSummaryDrawer';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
+import { Avatar } from '@/components/ui/Avatar';
 import type { MessageDto, RequestDto, RequestStatus } from '@/types';
+import { formatDate } from '@/lib/utils';
 import {
   ArrowLeftIcon,
   ArrowPathIcon,
@@ -25,6 +28,8 @@ import {
   SignalIcon,
   SignalSlashIcon,
   ChartBarIcon,
+  ClockIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 
 export default function RequestChatPage() {
@@ -34,6 +39,7 @@ export default function RequestChatPage() {
   const requestId = params.id as string;
   const { t } = useTranslation();
   const { language } = useLanguage();
+  const { setActiveRequestId } = useNotifications();
 
   const [request, setRequest] = useState<RequestDto | null>(null);
   const [messages, setMessages] = useState<MessageDto[]>([]);
@@ -44,6 +50,9 @@ export default function RequestChatPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showMissingInfo, setShowMissingInfo] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [newMsgCount, setNewMsgCount] = useState(0);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -82,8 +91,22 @@ export default function RequestChatPage() {
     requestService
       .getById(requestId)
       .then(setRequest)
-      .catch(() => {});
+      .catch((err: unknown) => {
+        // If 403 or 404, user doesn't have access
+        const status = (err as { status?: number })?.status;
+        if (status === 403 || status === 404) {
+          setAccessDenied(true);
+        }
+      });
   }, [requestId]);
+
+  // ── Register active request for notification suppression + mark read ──
+  useEffect(() => {
+    setActiveRequestId(requestId);
+    // Mark all messages as read when entering chat
+    messageService.markRead(requestId).catch(() => {});
+    return () => setActiveRequestId(null);
+  }, [requestId, setActiveRequestId]);
 
   // ── Fetch messages (initial load) ──
   const fetchMessages = useCallback(async () => {
@@ -92,8 +115,11 @@ export default function RequestChatPage() {
       setMessages(res.items);
       setNextCursor(res.nextCursor);
       setHasMore(res.hasMore);
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 403 || status === 404) {
+        setAccessDenied(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -138,8 +164,10 @@ export default function RequestChatPage() {
     const container = chatContainerRef.current;
     if (!container) return;
     const handleScroll = () => {
-      wasNearBottomRef.current =
-        container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+      const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+      wasNearBottomRef.current = nearBottom;
+      setShowScrollBtn(!nearBottom);
+      if (nearBottom) setNewMsgCount(0);
     };
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
@@ -155,6 +183,9 @@ export default function RequestChatPage() {
     }
     if (wasNearBottomRef.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // User is scrolled up — increment new message count
+      setNewMsgCount((c) => c + 1);
     }
   }, [messages]);
 
@@ -236,6 +267,30 @@ export default function RequestChatPage() {
     ? (intakeMeta.orderIndex / intakeMeta.totalQuestions) * 100
     : 0;
 
+  // ── Access denied UI ──
+  if (accessDenied) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 p-8">
+        <div className="rounded-full bg-red-500/10 p-4">
+          <ExclamationTriangleIcon className="h-8 w-8 text-red-400" />
+        </div>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">
+          {t('errors.accessDenied', 'Không có quyền truy cập')}
+        </h2>
+        <p className="text-sm text-[var(--text-muted)] text-center max-w-sm">
+          {t('errors.accessDeniedDesc', 'Bạn không có quyền xem nội dung yêu cầu này. Vui lòng liên hệ quản trị viên nếu bạn cho rằng đây là lỗi.')}
+        </p>
+        <Link
+          href="/requests"
+          className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[var(--accent-violet)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          {t('common.backToRequests', 'Quay lại danh sách')}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full overflow-hidden" id="chat-page">
       {/* Header */}
@@ -263,16 +318,27 @@ export default function RequestChatPage() {
                 <StatusBadge status={request.status} />
                 <PriorityBadge priority={request.priority} />
                 {request.client && (
-                  <span className="text-[10px] text-[var(--text-muted)]">
+                  <span className="hidden sm:inline text-[10px] text-[var(--text-muted)]">
                     {request.client.name}
                   </span>
                 )}
+                {/* Creation time — hidden on mobile */}
+                <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] text-[var(--text-muted)]">
+                  <ClockIcon className="h-3 w-3" />
+                  {formatDate(request.createdAt, language)}
+                </span>
+                {/* Staff info — hidden on mobile */}
                 {request.assignedUser && (
-                  <span className="text-[10px] text-[var(--accent-violet)]">
-                    → {request.assignedUser.name}
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-[var(--accent-violet)]">
+                    <Avatar
+                      src={request.assignedUser.avatarUrl ?? undefined}
+                      name={request.assignedUser.name || 'Staff'}
+                      size="xs"
+                    />
+                    {request.assignedUser.name}
                   </span>
                 )}
-                {/* SignalR connection status (only show after intake) */}
+                {/* SignalR connection status */}
                 {!isIntake && (
                   <span className={`inline-flex items-center gap-0.5 text-[10px] ${
                     isConnected ? 'text-emerald-400' : 'text-amber-400'
@@ -282,7 +348,7 @@ export default function RequestChatPage() {
                     ) : (
                       <SignalSlashIcon className="h-3 w-3" />
                     )}
-                    {isConnected ? t('chat.live') : t('chat.connecting')}
+                    <span className="hidden sm:inline">{isConnected ? t('chat.live') : t('chat.connecting')}</span>
                   </span>
                 )}
               </>
@@ -333,6 +399,16 @@ export default function RequestChatPage() {
         </div>
       )}
 
+      {/* #7 — Missing Info Banner (Client sees a prompt to provide info) */}
+      {request?.status === 'MissingInfo' && role === 'Client' && (
+        <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2.5 flex items-center gap-2">
+          <ExclamationTriangleIcon className="h-4 w-4 text-amber-400 flex-shrink-0" />
+          <p className="text-xs text-amber-300">
+            {t('chat.missingInfoBanner', 'Vui lòng bổ sung thông tin được yêu cầu bên dưới để tiếp tục xử lí.')}
+          </p>
+        </div>
+      )}
+
       {/* Messages */}
       <div
         ref={chatContainerRef}
@@ -370,6 +446,28 @@ export default function RequestChatPage() {
               key={msg.id}
               message={msg}
               isOwnMessage={msg.sender?.id === user?.id}
+              requestId={requestId}
+              userId={user?.id}
+              onReaction={async (messageId, emoji) => {
+                try {
+                  const res = await messageService.toggleReaction(requestId, messageId, emoji);
+                  // Optimistic update
+                  setMessages((prev) => prev.map((m) => {
+                    if (m.id !== messageId) return m;
+                    const currentReactions = m.reactions || [];
+                    if (res.added) {
+                      const existing = currentReactions.find((r) => r.emoji === emoji);
+                      if (existing) {
+                        return { ...m, reactions: currentReactions.map((r) => r.emoji === emoji ? { ...r, count: res.count, userIds: [...r.userIds, user?.id || ''] } : r) };
+                      }
+                      return { ...m, reactions: [...currentReactions, { emoji, count: 1, userIds: [user?.id || ''] }] };
+                    } else {
+                      const updated = currentReactions.map((r) => r.emoji === emoji ? { ...r, count: res.count, userIds: r.userIds.filter((id) => id !== user?.id) } : r).filter((r) => r.count > 0);
+                      return { ...m, reactions: updated.length > 0 ? updated : null };
+                    }
+                  }));
+                } catch { /* ignore */ }
+              }}
             />
           ))
         )}
@@ -389,6 +487,24 @@ export default function RequestChatPage() {
         )}
 
         <div ref={messagesEndRef} />
+
+        {/* Scroll to bottom FAB */}
+        {showScrollBtn && (
+          <button
+            onClick={() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+              setNewMsgCount(0);
+            }}
+            className="absolute bottom-4 right-4 z-10 flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-xs font-medium text-[var(--foreground)] shadow-xl transition-all hover:bg-[var(--surface-2)] animate-fade-in"
+          >
+            <ChevronDownIcon className="h-4 w-4" />
+            {newMsgCount > 0 && (
+              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gradient-to-r from-[var(--accent-violet)] to-[var(--accent-indigo)] px-1.5 text-[10px] font-bold text-white">
+                {newMsgCount}
+              </span>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Input */}
@@ -435,7 +551,7 @@ export default function RequestChatPage() {
             <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-1.5 flex justify-end">
               <button
                 onClick={() => setShowMissingInfo(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[10px] font-medium text-amber-400/60 transition-all hover:text-amber-400 hover:bg-amber-500/10"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 px-3 py-1.5 text-xs font-medium text-amber-400 transition-all hover:bg-amber-500/10 hover:border-amber-500/30"
               >
                 <ExclamationTriangleIcon className="h-3.5 w-3.5" />
                 {t('chat.missingInfoToggle')}

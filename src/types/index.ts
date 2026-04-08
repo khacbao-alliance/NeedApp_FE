@@ -146,6 +146,13 @@ export interface MessageDto {
   replyToId: string | null;
   files: FileAttachmentDto[];
   createdAt: string;
+  reactions?: ReactionSummaryDto[] | null;
+}
+
+export interface ReactionSummaryDto {
+  emoji: string;
+  count: number;
+  userIds: string[];
 }
 
 export interface MessageSenderDto {

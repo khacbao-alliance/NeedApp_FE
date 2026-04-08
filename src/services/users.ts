@@ -1,5 +1,5 @@
 import { api } from './requests';
-import type { UserDetailDto, PaginatedResponse, UserRole } from '@/types';
+import type { UserDetailDto, UserDto, PaginatedResponse, UserRole } from '@/types';
 
 export interface CreateUserRequest {
   email: string;
@@ -11,6 +11,10 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   name?: string;
   role?: UserRole;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
 }
 
 export const userService = {
@@ -34,4 +38,8 @@ export const userService = {
 
   delete: (id: string) =>
     api.delete<void>(`/users/${id}`),
+
+  updateProfile: (data: UpdateProfileRequest) =>
+    api.patch<UserDto>('/auth/me', data),
 };
+

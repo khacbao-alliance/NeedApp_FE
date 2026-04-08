@@ -263,21 +263,39 @@
   },
   "profile": {
     "unnamed": "No name set",
+    "personalInfo": "Personal information",
+    "displayName": "Display name",
+    "namePlaceholder": "Enter your name",
     "businessProfile": "Business profile",
     "setup": "Set up",
     "notSetup": "Not set up",
     "businessInfo": "Business information",
     "companyName": "Company name",
+    "companyNamePlaceholder": "e.g. ABC Company",
     "description": "Description",
+    "descriptionPlaceholder": "Brief description of your company",
     "contactEmail": "Contact email",
     "phone": "Phone number",
     "role": "Role",
     "owner": "Owner",
     "member": "Member",
+    "ownerCanEdit": "Owner can edit",
     "logout": "Log out",
     "roleAdmin": "Administrator",
     "roleStaff": "Staff",
     "roleClient": "Client"
+  },
+  "confirm": {
+    "logout": {
+      "title": "Log out?",
+      "description": "You will be signed out of your account.",
+      "confirm": "Log out"
+    },
+    "deleteUser": {
+      "title": "Delete user?",
+      "description": "This action cannot be undone. The user will be permanently removed.",
+      "confirm": "Delete"
+    }
   },
   "admin": {
     "users": {

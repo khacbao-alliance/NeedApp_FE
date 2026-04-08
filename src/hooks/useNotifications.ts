@@ -11,7 +11,18 @@ import type { HubConnection } from '@microsoft/signalr';
 import { getAccessToken } from '@/services/requests';
 import { notificationService } from '@/services/notifications';
 import { useAuth } from '@/hooks/useAuth';
-import type { NotificationDto } from '@/types';
+import type { NotificationDto, NotificationType } from '@/types';
+
+const NOTIFICATION_TYPE_MAP: NotificationType[] = [
+  'NewMessage', 'MissingInfo', 'StatusChange', 'Assignment', 'NewRequest', 'Invitation',
+];
+
+function normalizeNotification(raw: Record<string, unknown>): NotificationDto {
+  const type = typeof raw.type === 'number'
+    ? (NOTIFICATION_TYPE_MAP[raw.type] ?? raw.type)
+    : raw.type;
+  return { ...raw, type } as NotificationDto;
+}
 
 interface NotificationContextType {
   notifications: NotificationDto[];
@@ -19,6 +30,8 @@ interface NotificationContextType {
   isConnected: boolean;
   isLoading: boolean;
   latestRealTimeNotification: NotificationDto | null;
+  activeRequestId: string | null;
+  setActiveRequestId: (id: string | null) => void;
   fetchMore: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
@@ -31,10 +44,12 @@ const NotificationContext = createContext<NotificationContextType>({
   isConnected: false,
   isLoading: false,
   latestRealTimeNotification: null,
-  fetchMore: async () => {},
-  markAsRead: async () => {},
-  markAllAsRead: async () => {},
-  refresh: async () => {},
+  activeRequestId: null,
+  setActiveRequestId: () => { },
+  fetchMore: async () => { },
+  markAsRead: async () => { },
+  markAllAsRead: async () => { },
+  refresh: async () => { },
 });
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
@@ -45,6 +60,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [latestRealTimeNotification, setLatestRealTimeNotification] = useState<NotificationDto | null>(null);
+  const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
   const connectionRef = useRef<HubConnection | null>(null);
   const mountedRef = useRef(true);
 
@@ -94,6 +110,28 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     } catch { /* silent */ }
   }, []);
 
+  // When user enters a chat page, mark all notifications for that request as read
+  const handleSetActiveRequestId = useCallback(async (id: string | null) => {
+    setActiveRequestId(id);
+    if (!id) return;
+    try {
+      await notificationService.markAsReadByRequest(id);
+      // Update local state: mark matching notifications as read
+      setNotifications(prev => {
+        let changed = 0;
+        const updated = prev.map(n => {
+          if (n.referenceId === id && !n.isRead) {
+            changed++;
+            return { ...n, isRead: true };
+          }
+          return n;
+        });
+        if (changed > 0) setUnreadCount(prev => Math.max(0, prev - changed));
+        return updated;
+      });
+    } catch { /* silent */ }
+  }, []);
+
   useEffect(() => {
     mountedRef.current = true;
     if (!isAuthenticated) return;
@@ -117,8 +155,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     connectionRef.current = connection;
 
-    connection.on('NewNotification', (notification: NotificationDto) => {
+    connection.on('NewNotification', (raw: NotificationDto) => {
       if (mountedRef.current) {
+        // SignalR sends raw data with numeric enums — normalize to string enums
+        const notification = normalizeNotification(raw as unknown as Record<string, unknown>);
         setNotifications(prev => [notification, ...prev]);
         setLatestRealTimeNotification(notification);
       }
@@ -142,7 +182,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     return () => {
       mountedRef.current = false;
       connectionRef.current = null;
-      connection.stop().catch(() => {});
+      connection.stop().catch(() => { });
     };
   }, [isAuthenticated, fetchNotifications]);
 
@@ -156,6 +196,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         isConnected,
         isLoading,
         latestRealTimeNotification,
+        activeRequestId,
+        setActiveRequestId: handleSetActiveRequestId,
         fetchMore,
         markAsRead,
         markAllAsRead,
