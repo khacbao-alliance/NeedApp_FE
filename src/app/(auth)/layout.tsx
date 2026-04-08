@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "NeedApp — Đăng nhập",
+  title: "NeedApp — Login",
 };
 
 export default function AuthLayout({

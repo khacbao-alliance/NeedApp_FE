@@ -1,11 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { BellIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { useNotifications } from '@/hooks/useNotifications';
 import { NotificationItem } from '@/components/notifications/NotificationItem';
 
 export default function NotificationsPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const {
     notifications,
@@ -32,10 +34,10 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Thông báo</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">{t('notifications.title')}</h1>
           {unreadCount > 0 && (
             <p className="mt-1 text-sm text-[var(--text-muted)]">
-              {unreadCount} thông báo chưa đọc
+              {t('notifications.unread', { count: unreadCount })}
             </p>
           )}
         </div>
@@ -45,7 +47,7 @@ export default function NotificationsPage() {
             className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--accent-indigo)] hover:bg-[var(--accent-indigo)]/10 transition-colors"
           >
             <CheckIcon className="h-4 w-4" />
-            Đánh dấu tất cả đã đọc
+            {t('notifications.markAllRead')}
           </button>
         )}
       </div>
@@ -57,9 +59,9 @@ export default function NotificationsPage() {
             <div className="mb-4 rounded-2xl bg-[var(--surface-2)] p-4">
               <BellIcon className="h-10 w-10 text-[var(--text-muted)]" />
             </div>
-            <h3 className="text-base font-medium text-[var(--foreground)]">Chưa có thông báo</h3>
+            <h3 className="text-base font-medium text-[var(--foreground)]">{t('notifications.empty')}</h3>
             <p className="mt-1 text-sm text-[var(--text-muted)]">
-              Bạn sẽ nhận thông báo khi có hoạt động mới
+              {t('notifications.emptyDesc')}
             </p>
           </div>
         ) : (
@@ -82,7 +84,7 @@ export default function NotificationsPage() {
                   disabled={isLoading}
                   className="text-sm font-medium text-[var(--accent-indigo)] hover:underline disabled:opacity-50"
                 >
-                  {isLoading ? 'Đang tải...' : 'Tải thêm'}
+                  {isLoading ? t('common.loading') : t('notifications.loadMore')}
                 </button>
               </div>
             )}

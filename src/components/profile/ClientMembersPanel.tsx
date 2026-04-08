@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useClientMembers } from '@/hooks/useClientMembers';
 import { Modal } from '@/components/ui/Modal';
 import { Avatar } from '@/components/ui/Avatar';
@@ -19,8 +20,8 @@ import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('vi-VN', {
+function formatDate(iso: string, language: string): string {
+  return new Date(iso).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -30,18 +31,19 @@ function formatDate(iso: string): string {
 // ─── Role Badge ───────────────────────────────────────────────────────────────
 
 function RoleBadge({ role }: { role: ClientRole }) {
+  const { t } = useTranslation();
   if (role === 'Owner') {
     return (
       <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/20">
         <StarIconSolid className="h-3 w-3" />
-        Owner
+        {t('profile.owner')}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-[var(--surface-3)] text-[var(--text-muted)] border border-[var(--border)]">
       <UserIcon className="h-3 w-3" />
-      Member
+      {t('profile.member')}
     </span>
   );
 }
@@ -61,6 +63,7 @@ function MemberRow({
   onRemove: (member: ClientMemberDto) => void;
   removing: boolean;
 }) {
+  const { t, i18n } = useTranslation();
   return (
     <div className="flex items-center gap-3 rounded-xl bg-[var(--surface-2)] p-3 group transition-colors hover:bg-[var(--surface-3)]">
       <Avatar
@@ -71,12 +74,12 @@ function MemberRow({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-semibold text-[var(--foreground)] truncate">
-            {member.name ?? 'Chưa có tên'}
+            {member.name ?? t('members.noName')}
           </span>
           <RoleBadge role={member.role} />
           {isCurrentUser && (
             <span className="text-[10px] text-[var(--accent-violet)] font-medium rounded-full px-1.5 py-0.5 bg-violet-500/10">
-              You
+              {t('members.you')}
             </span>
           )}
         </div>
@@ -89,17 +92,16 @@ function MemberRow({
           )}
           <span className="flex items-center gap-1 text-[11px] text-[var(--text-muted)]">
             <CalendarDaysIcon className="h-3 w-3 flex-shrink-0" />
-            {formatDate(member.joinedAt)}
+            {formatDate(member.joinedAt, i18n.language)}
           </span>
         </div>
       </div>
 
-      {/* Remove button — only for Owner, not on themselves */}
       {isOwner && !isCurrentUser && (
         <button
           onClick={() => onRemove(member)}
           disabled={removing}
-          title="Xóa thành viên"
+          title={t('members.removeTitle')}
           className="opacity-0 group-hover:opacity-100 flex-shrink-0 rounded-lg p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-30"
         >
           {removing ? (
@@ -124,6 +126,7 @@ function InviteMemberModal({
   onClose: () => void;
   onInvite: (email: string, role: ClientRole) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<ClientRole>('Member');
   const [isLoading, setIsLoading] = useState(false);
@@ -144,16 +147,13 @@ function InviteMemberModal({
       await onInvite(email.trim(), role);
       handleClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Có lỗi xảy ra';
-      // Friendly error messages
+      const msg = err instanceof Error ? err.message : t('common.error');
       if (msg.includes('No user found with email')) {
-        setError(
-          'Email này chưa có tài khoản NeedApp. Hãy yêu cầu họ đăng ký tài khoản trước, sau đó mời lại.'
-        );
+        setError(t('members.errorNoAccount'));
       } else if (msg.includes('already belongs to another client')) {
-        setError('Người dùng này đã là thành viên của một công ty khác trong NeedApp.');
+        setError(t('members.errorOtherClient'));
       } else if (msg.includes('already a member')) {
-        setError('Người dùng này đã là thành viên của công ty bạn rồi.');
+        setError(t('members.errorAlreadyMember'));
       } else {
         setError(msg);
       }
@@ -163,7 +163,7 @@ function InviteMemberModal({
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title="Mời thành viên mới" size="sm">
+    <Modal open={open} onClose={handleClose} title={t('members.inviteTitle')} size="sm">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email */}
         <div>
@@ -187,15 +187,15 @@ function InviteMemberModal({
         {/* Role */}
         <div>
           <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
-            Vai trò
+            {t('members.inviteRole')}
           </label>
           <select
             value={role}
             onChange={(e) => setRole(e.target.value as ClientRole)}
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none focus:border-[var(--accent-violet)] focus:ring-1 focus:ring-[var(--accent-violet)] transition-colors"
           >
-            <option value="Member">Member</option>
-            <option value="Owner">Owner</option>
+            <option value="Member">{t('profile.member')}</option>
+            <option value="Owner">{t('profile.owner')}</option>
           </select>
         </div>
 
@@ -203,7 +203,7 @@ function InviteMemberModal({
         <div className="flex items-start gap-2 rounded-xl bg-amber-500/5 border border-amber-500/20 px-3 py-2.5">
           <ExclamationTriangleIcon className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
           <p className="text-[11px] text-amber-400/80 leading-relaxed">
-            Người dùng phải đã có tài khoản NeedApp trước khi được mời.
+            {t('members.inviteNote')}
           </p>
         </div>
 
@@ -221,7 +221,7 @@ function InviteMemberModal({
             onClick={handleClose}
             className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
           >
-            Hủy
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -233,7 +233,7 @@ function InviteMemberModal({
             ) : (
               <UserPlusIcon className="h-4 w-4" />
             )}
-            {isLoading ? 'Đang mời...' : 'Mời ngay'}
+            {isLoading ? t('members.inviting') : t('members.inviteBtn')}
           </button>
         </div>
       </form>
@@ -254,26 +254,27 @@ function ConfirmRemoveModal({
   onCancel: () => void;
   isLoading: boolean;
 }) {
+  const { t } = useTranslation();
   return (
-    <Modal open={!!member} onClose={onCancel} title="Xóa thành viên" size="sm">
+    <Modal open={!!member} onClose={onCancel} title={t('members.removeTitle')} size="sm">
       {member && (
         <div className="space-y-4">
           <p className="text-sm text-[var(--text-secondary)]">
-            Bạn có chắc muốn xóa{' '}
+            {t('members.removeConfirmBefore')}{' '}
             <span className="font-semibold text-[var(--foreground)]">
               {member.name ?? member.email}
             </span>{' '}
-            khỏi nhóm?
+            {t('members.removeConfirmAfter')}
           </p>
           <p className="text-xs text-[var(--text-muted)]">
-            Người dùng sẽ không còn thấy các requests của công ty bạn.
+            {t('members.removeWarning')}
           </p>
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={onCancel}
               className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
             >
-              Hủy
+              {t('common.cancel')}
             </button>
             <button
               onClick={onConfirm}
@@ -285,7 +286,7 @@ function ConfirmRemoveModal({
               ) : (
                 <TrashIcon className="h-4 w-4" />
               )}
-              {isLoading ? 'Đang xóa...' : 'Xóa'}
+              {isLoading ? t('members.removing') : t('common.delete')}
             </button>
           </div>
         </div>
@@ -307,6 +308,7 @@ export function ClientMembersPanel({
   currentUserId,
   isOwner,
 }: ClientMembersPanelProps) {
+  const { t } = useTranslation();
   const { members, isLoading, error, refetch, invite, remove } = useClientMembers(clientId);
   const [showInvite, setShowInvite] = useState(false);
   const [pendingRemove, setPendingRemove] = useState<ClientMemberDto | null>(null);
@@ -337,7 +339,7 @@ export function ClientMembersPanel({
           <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-500/15">
             <StarIcon className="h-3.5 w-3.5 text-[var(--accent-violet)]" />
           </span>
-          Thành viên
+          {t('members.title')}
           {!isLoading && (
             <span className="text-xs text-[var(--text-muted)] font-normal">
               ({members.length})
@@ -349,7 +351,7 @@ export function ClientMembersPanel({
             onClick={refetch}
             disabled={isLoading}
             className="rounded-lg p-1.5 text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-2)] transition-colors disabled:opacity-40"
-            title="Làm mới"
+            title={t('members.refresh')}
           >
             <ArrowPathIcon className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
@@ -359,7 +361,7 @@ export function ClientMembersPanel({
               className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent-violet)] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
             >
               <UserPlusIcon className="h-3.5 w-3.5" />
-              Mời thành viên
+              {t('members.invite')}
             </button>
           )}
         </div>
@@ -379,12 +381,12 @@ export function ClientMembersPanel({
             onClick={refetch}
             className="mt-2 text-xs text-red-400 hover:underline"
           >
-            Thử lại
+            {t('members.tryAgain')}
           </button>
         </div>
       ) : members.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--border)] px-4 py-8 text-center">
-          <p className="text-sm text-[var(--text-muted)]">Chưa có thành viên nào</p>
+          <p className="text-sm text-[var(--text-muted)]">{t('members.noMembers')}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -400,20 +402,18 @@ export function ClientMembersPanel({
           ))}
           {!isOwner && (
             <p className="text-center text-[11px] text-[var(--text-muted)] pt-1">
-              Chỉ Owner mới có thể mời hoặc xóa thành viên.
+              {t('members.ownerOnly')}
             </p>
           )}
         </div>
       )}
 
-      {/* Invite Modal */}
       <InviteMemberModal
         open={showInvite}
         onClose={() => setShowInvite(false)}
         onInvite={handleInvite}
       />
 
-      {/* Confirm Remove Modal */}
       <ConfirmRemoveModal
         member={pendingRemove}
         onConfirm={handleConfirmRemove}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import {
   ChatBubbleLeftEllipsisIcon,
   ExclamationTriangleIcon,
@@ -26,21 +27,22 @@ const typeConfig: Record<NotificationType, { icon: typeof ChatBubbleLeftEllipsis
   Invitation: { icon: EnvelopeIcon, color: 'text-pink-400 bg-pink-500/10' },
 };
 
-function timeAgo(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (seconds < 60) return 'Vừa xong';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} phút trước`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} giờ trước`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)} ngày trước`;
-  return date.toLocaleDateString('vi-VN');
-}
-
 export function NotificationItem({ notification, onClick, compact }: NotificationItemProps) {
+  const { t, i18n } = useTranslation();
   const config = typeConfig[notification.type] || typeConfig.NewMessage;
   const Icon = config.icon;
+
+  function timeAgo(dateStr: string): string {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (seconds < 60) return t('time.justNow');
+    if (seconds < 3600) return t('time.minutesAgo', { count: Math.floor(seconds / 60) });
+    if (seconds < 86400) return t('time.hoursAgo', { count: Math.floor(seconds / 3600) });
+    if (seconds < 604800) return t('time.daysAgo', { count: Math.floor(seconds / 86400) });
+    return date.toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US');
+  }
 
   return (
     <button

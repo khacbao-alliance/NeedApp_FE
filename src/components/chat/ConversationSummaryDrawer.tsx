@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useConversationSummary } from '@/hooks/useConversationSummary';
 import type {
   ConversationSummaryDto,
@@ -26,9 +27,9 @@ import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, language: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString('vi-VN', {
+  return d.toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -37,10 +38,14 @@ function formatDate(iso: string): string {
   });
 }
 
-function formatDateShort(iso: string | null): string {
+function formatDateShort(iso: string | null, language: string): string {
   if (!iso) return '—';
   const d = new Date(iso);
-  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return d.toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }
 
 function formatFileSize(bytes: number | null): string {
@@ -58,13 +63,6 @@ function fileIcon(contentType: string | null): string {
   if (contentType.includes('sheet') || contentType.includes('excel')) return '📊';
   if (contentType.includes('zip') || contentType.includes('rar')) return '🗜️';
   return '📄';
-}
-
-function roleLabel(role: string | null): string {
-  if (role === 'Admin') return 'Admin';
-  if (role === 'Staff') return 'Staff';
-  if (role === 'Client') return 'Khách hàng';
-  return role ?? '—';
 }
 
 function roleBadgeClass(role: string | null): string {
@@ -95,20 +93,31 @@ function SectionHeader({ icon, title, badge }: { icon: React.ReactNode; title: s
 
 // ── Overview ──
 function OverviewSection({ overview }: { overview: ConversationOverviewDto }) {
+  const { t, i18n } = useTranslation();
+
+  const roleLabel = (role: string | null) => {
+    if (role === 'Admin') return 'Admin';
+    if (role === 'Staff') return 'Staff';
+    if (role === 'Client') return t('summary.roleClient');
+    return role ?? '—';
+  };
+
+  const stats = [
+    { label: t('summary.messages'), value: overview.totalMessages, icon: '💬' },
+    { label: t('summary.files'), value: overview.totalFilesSent, icon: '📎' },
+    { label: t('summary.system'), value: overview.totalSystemMessages, icon: '⚙️' },
+    { label: t('summary.participants'), value: overview.participants.length, icon: '👥' },
+  ];
+
   return (
     <SectionCard>
       <SectionHeader
         icon={<UserGroupIcon className="h-4 w-4" />}
-        title="Tổng quan"
+        title={t('summary.overview')}
       />
       <div className="p-4 space-y-3">
         <div className="grid grid-cols-2 gap-2">
-          {[
-            { label: 'Tin nhắn', value: overview.totalMessages, icon: '💬' },
-            { label: 'Files', value: overview.totalFilesSent, icon: '📎' },
-            { label: 'Hệ thống', value: overview.totalSystemMessages, icon: '⚙️' },
-            { label: 'Người tham gia', value: overview.participants.length, icon: '👥' },
-          ].map((item) => (
+          {stats.map((item) => (
             <div key={item.label} className="rounded-lg bg-[var(--surface-2)] px-3 py-2 flex items-center gap-2">
               <span className="text-base">{item.icon}</span>
               <div>
@@ -122,23 +131,23 @@ function OverviewSection({ overview }: { overview: ConversationOverviewDto }) {
         {(overview.firstMessageAt || overview.lastMessageAt) && (
           <div className="rounded-lg bg-[var(--surface-2)] px-3 py-2 flex items-center gap-2 text-xs text-[var(--text-muted)]">
             <ClockIcon className="h-3.5 w-3.5 flex-shrink-0" />
-            <span>{formatDateShort(overview.firstMessageAt)} → {formatDateShort(overview.lastMessageAt)}</span>
+            <span>{formatDateShort(overview.firstMessageAt, i18n.language)} → {formatDateShort(overview.lastMessageAt, i18n.language)}</span>
           </div>
         )}
 
         {overview.participants.length > 0 && (
           <div className="space-y-1.5">
-            <div className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">Participants</div>
+            <div className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">{t('summary.participants')}</div>
             {overview.participants.map((p) => (
               <div key={p.id} className="flex items-center gap-2">
                 <div className="h-6 w-6 rounded-full bg-[var(--surface-3)] flex items-center justify-center text-[10px] font-bold text-[var(--foreground)]">
                   {(p.name ?? '?').charAt(0).toUpperCase()}
                 </div>
-                <span className="text-xs text-[var(--foreground)] flex-1 truncate">{p.name ?? 'Unknown'}</span>
+                <span className="text-xs text-[var(--foreground)] flex-1 truncate">{p.name ?? t('summary.unknown')}</span>
                 <span className={`text-[10px] rounded-full px-1.5 py-0.5 font-medium ${roleBadgeClass(p.role)}`}>
                   {roleLabel(p.role)}
                 </span>
-                <span className="text-[10px] text-[var(--text-muted)]">{p.messageCount} tin</span>
+                <span className="text-[10px] text-[var(--text-muted)]">{t('summary.messagesCount', { count: p.messageCount })}</span>
               </div>
             ))}
           </div>
@@ -150,9 +159,9 @@ function OverviewSection({ overview }: { overview: ConversationOverviewDto }) {
 
 // ── AI Summary ──
 function AiSummarySection({ text }: { text: string }) {
+  const { t } = useTranslation();
   const paragraphs = text.split('\n').filter((l) => l.trim());
 
-  // Simple bold renderer: **text** → <strong>text</strong>
   function renderLine(line: string) {
     const parts = line.split(/\*\*(.*?)\*\*/g);
     return parts.map((part, i) =>
@@ -166,7 +175,7 @@ function AiSummarySection({ text }: { text: string }) {
     <SectionCard>
       <SectionHeader
         icon={<SparklesIcon className="h-4 w-4" />}
-        title="Tóm tắt AI"
+        title={t('summary.aiSummary')}
         badge={
           <span className="text-[10px] font-semibold rounded-full px-2 py-0.5 bg-violet-500/15 text-violet-400 border border-violet-500/20">
             Gemini
@@ -186,12 +195,13 @@ function AiSummarySection({ text }: { text: string }) {
 
 // ── Intake Q&A ──
 function IntakeSection({ data }: { data: IntakeSummaryDto }) {
+  const { t } = useTranslation();
   const allAnswered = data.answeredQuestions === data.totalQuestions;
   return (
     <SectionCard>
       <SectionHeader
         icon={<ClipboardDocumentListIcon className="h-4 w-4" />}
-        title="Câu hỏi Intake"
+        title={t('summary.intakeTitle')}
         badge={
           <span className={`text-[10px] font-semibold rounded-full px-2 py-0.5 ${allAnswered ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/15 text-amber-400 border border-amber-500/20'}`}>
             {data.answeredQuestions}/{data.totalQuestions}
@@ -207,7 +217,7 @@ function IntakeSection({ data }: { data: IntakeSummaryDto }) {
               <span className="flex-1">{qa.question}</span>
             </div>
             <div className={`text-xs leading-relaxed ${qa.answer ? 'text-[var(--foreground)]' : 'italic text-[var(--text-muted)]'}`}>
-              {qa.answer ?? '(Chưa trả lời)'}
+              {qa.answer ?? t('summary.unanswered')}
             </div>
           </div>
         ))}
@@ -218,11 +228,12 @@ function IntakeSection({ data }: { data: IntakeSummaryDto }) {
 
 // ── Missing Info ──
 function MissingInfoSection({ items }: { items: MissingInfoSummaryDto[] }) {
+  const { t, i18n } = useTranslation();
   return (
     <SectionCard>
       <SectionHeader
         icon={<ExclamationCircleIcon className="h-4 w-4 text-amber-400" />}
-        title="Yêu cầu bổ sung thông tin"
+        title={t('summary.missingInfo')}
         badge={
           <span className="text-[10px] rounded-full px-1.5 py-0.5 bg-amber-500/10 text-amber-400">
             {items.length}
@@ -235,14 +246,14 @@ function MissingInfoSection({ items }: { items: MissingInfoSummaryDto[] }) {
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <span className="text-xs font-medium text-[var(--foreground)]">{item.requestedBy ?? 'Staff'}</span>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] text-[var(--text-muted)]">{formatDate(item.requestedAt)}</span>
+                <span className="text-[10px] text-[var(--text-muted)]">{formatDate(item.requestedAt, i18n.language)}</span>
                 {item.isResolved ? (
                   <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-400">
                     <CheckCircleIcon className="h-3 w-3" />
-                    Đã giải quyết
+                    {t('summary.resolved')}
                   </span>
                 ) : (
-                  <span className="text-[10px] text-amber-400">⏳ Chờ phản hồi</span>
+                  <span className="text-[10px] text-amber-400">{t('summary.waiting')}</span>
                 )}
               </div>
             </div>
@@ -268,11 +279,20 @@ function MissingInfoSection({ items }: { items: MissingInfoSummaryDto[] }) {
 
 // ── Conversation Highlights ──
 function HighlightsSection({ highlights }: { highlights: ConversationHighlightDto[] }) {
+  const { t, i18n } = useTranslation();
+
+  const roleLabel = (role: string | null) => {
+    if (role === 'Admin') return 'Admin';
+    if (role === 'Staff') return 'Staff';
+    if (role === 'Client') return t('summary.roleClient');
+    return role ?? '—';
+  };
+
   return (
     <SectionCard>
       <SectionHeader
         icon={<ChatBubbleLeftRightIcon className="h-4 w-4" />}
-        title="Nội dung nổi bật"
+        title={t('summary.highlights')}
       />
       <div className="divide-y divide-[var(--border)]">
         {highlights.map((h, i) => (
@@ -281,7 +301,7 @@ function HighlightsSection({ highlights }: { highlights: ConversationHighlightDt
               <div className="h-6 w-6 rounded-full bg-[var(--surface-3)] flex items-center justify-center text-[10px] font-bold text-[var(--foreground)]">
                 {(h.senderName ?? '?').charAt(0).toUpperCase()}
               </div>
-              <span className="text-xs font-medium text-[var(--foreground)]">{h.senderName ?? 'Unknown'}</span>
+              <span className="text-xs font-medium text-[var(--foreground)]">{h.senderName ?? t('summary.unknown')}</span>
               <span className={`text-[10px] rounded-full px-1.5 py-0.5 font-medium ${roleBadgeClass(h.senderRole)}`}>
                 {roleLabel(h.senderRole)}
               </span>
@@ -294,7 +314,7 @@ function HighlightsSection({ highlights }: { highlights: ConversationHighlightDt
                     <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-2">
                       &ldquo;{m.content ?? ''}&rdquo;
                     </p>
-                    <span className="text-[10px] text-[var(--text-muted)]">{formatDate(m.sentAt)}</span>
+                    <span className="text-[10px] text-[var(--text-muted)]">{formatDate(m.sentAt, i18n.language)}</span>
                   </div>
                 </li>
               ))}
@@ -308,11 +328,12 @@ function HighlightsSection({ highlights }: { highlights: ConversationHighlightDt
 
 // ── Attachments ──
 function AttachmentsSection({ attachments }: { attachments: AttachmentSummaryDto[] }) {
+  const { t, i18n } = useTranslation();
   return (
     <SectionCard>
       <SectionHeader
         icon={<PaperClipIcon className="h-4 w-4" />}
-        title="Files đính kèm"
+        title={t('summary.attachments')}
         badge={
           <span className="text-[10px] rounded-full px-1.5 py-0.5 bg-[var(--surface-3)] text-[var(--text-muted)]">
             {attachments.length}
@@ -326,7 +347,7 @@ function AttachmentsSection({ attachments }: { attachments: AttachmentSummaryDto
             <div className="min-w-0 flex-1">
               <div className="text-xs font-medium text-[var(--foreground)] truncate">{a.fileName}</div>
               <div className="text-[10px] text-[var(--text-muted)]">
-                {formatFileSize(a.fileSize)} · {a.uploadedBy ?? 'Unknown'} · {formatDate(a.uploadedAt)}
+                {formatFileSize(a.fileSize)} · {a.uploadedBy ?? t('summary.unknown')} · {formatDate(a.uploadedAt, i18n.language)}
               </div>
             </div>
           </div>
@@ -340,7 +361,6 @@ function AttachmentsSection({ attachments }: { attachments: AttachmentSummaryDto
 function SummarySkeletonLoader() {
   return (
     <div className="space-y-3 animate-pulse">
-      {/* Overview skeleton */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] overflow-hidden">
         <div className="h-10 bg-[var(--surface-2)]" />
         <div className="p-4 space-y-2">
@@ -355,8 +375,6 @@ function SummarySkeletonLoader() {
           </div>
         </div>
       </div>
-
-      {/* AI Summary skeleton — larger */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] overflow-hidden">
         <div className="h-10 bg-[var(--surface-2)]" />
         <div className="p-4 space-y-2">
@@ -365,8 +383,6 @@ function SummarySkeletonLoader() {
           ))}
         </div>
       </div>
-
-      {/* Intake skeleton */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] overflow-hidden">
         <div className="h-10 bg-[var(--surface-2)]" />
         <div className="divide-y divide-[var(--border)]">
@@ -384,58 +400,51 @@ function SummarySkeletonLoader() {
 
 // ── Full Summary Content ──
 function SummaryContent({ summary }: { summary: ConversationSummaryDto }) {
+  const { t, i18n } = useTranslation();
   return (
     <div className="space-y-3">
-      {/* Header info */}
       <div className="rounded-xl border border-[var(--border)] bg-gradient-to-br from-violet-500/5 to-cyan-500/5 px-4 py-3">
         <div className="text-sm font-semibold text-[var(--foreground)] truncate">{summary.requestTitle}</div>
         <div className="mt-1 flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
           <span>ID: {summary.requestId.slice(0, 8)}…</span>
           <span className="text-[var(--accent-violet)]">·</span>
-          <span>Tạo lúc {formatDate(summary.generatedAt)}</span>
+          <span>{t('summary.createdAt', { date: formatDate(summary.generatedAt, i18n.language) })}</span>
         </div>
       </div>
 
-      {/* Overview */}
       <OverviewSection overview={summary.overview} />
 
-      {/* AI Summary */}
       {summary.aiSummary ? (
         <AiSummarySection text={summary.aiSummary} />
       ) : (
         <SectionCard>
-          <SectionHeader icon={<SparklesIcon className="h-4 w-4" />} title="Tóm tắt AI" />
+          <SectionHeader icon={<SparklesIcon className="h-4 w-4" />} title={t('summary.aiSummary')} />
           <div className="px-4 py-6 text-center text-xs text-[var(--text-muted)]">
-            🤖 Tóm tắt AI tạm thời không khả dụng
+            {t('summary.aiUnavailable')}
           </div>
         </SectionCard>
       )}
 
-      {/* Intake */}
       {summary.intakeSummary && (
         <IntakeSection data={summary.intakeSummary} />
       )}
 
-      {/* Missing Info */}
       {summary.missingInfoRequests.length > 0 && (
         <MissingInfoSection items={summary.missingInfoRequests} />
       )}
 
-      {/* Highlights */}
       {summary.conversationHighlights.length > 0 && (
         <HighlightsSection highlights={summary.conversationHighlights} />
       )}
 
-      {/* Attachments */}
       {summary.attachments.length > 0 && (
         <AttachmentsSection attachments={summary.attachments} />
       )}
 
-      {/* Empty state — no messages yet */}
       {summary.overview.totalMessages === 0 && (
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-10 text-center">
           <DocumentTextIcon className="h-8 w-8 mx-auto mb-2 text-[var(--text-muted)]" />
-          <p className="text-sm text-[var(--text-muted)]">Chưa có tin nhắn nào trong cuộc hội thoại này</p>
+          <p className="text-sm text-[var(--text-muted)]">{t('summary.noMessages')}</p>
         </div>
       )}
     </div>
@@ -450,15 +459,14 @@ interface ConversationSummaryDrawerProps {
 }
 
 export function ConversationSummaryDrawer({ requestId, onClose }: ConversationSummaryDrawerProps) {
+  const { t } = useTranslation();
   const { summary, isLoading, error, fetchSummary } = useConversationSummary(requestId);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-fetch on open
   useEffect(() => {
     fetchSummary();
   }, [fetchSummary]);
 
-  // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -467,7 +475,6 @@ export function ConversationSummaryDrawer({ requestId, onClose }: ConversationSu
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  // Close on outside click
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
       onClose();
@@ -475,32 +482,28 @@ export function ConversationSummaryDrawer({ requestId, onClose }: ConversationSu
   };
 
   return (
-    /* Backdrop */
     <div
       className="fixed inset-0 z-50 flex justify-end"
       style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
       onClick={handleBackdropClick}
     >
-      {/* Drawer panel */}
       <div
         ref={drawerRef}
         className="relative flex flex-col h-full w-full max-w-md bg-[var(--background)] border-l border-[var(--border)] shadow-2xl"
-        style={{
-          animation: 'slideInRight 0.22s cubic-bezier(0.16,1,0.3,1)',
-        }}
+        style={{ animation: 'slideInRight 0.22s cubic-bezier(0.16,1,0.3,1)' }}
       >
         {/* Drawer Header */}
         <div className="flex items-center gap-3 border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 flex-shrink-0">
           <SparklesIcon className="h-5 w-5 text-[var(--accent-violet)]" />
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-[var(--foreground)]">Tóm tắt cuộc hội thoại</h2>
-            <p className="text-[10px] text-[var(--text-muted)] mt-0.5">AI-powered · Gemini</p>
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">{t('summary.title')}</h2>
+            <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{t('summary.powered')}</p>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={fetchSummary}
               disabled={isLoading}
-              title="Làm mới"
+              title={t('summary.refresh')}
               className="rounded-lg p-1.5 text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-2)] transition-colors disabled:opacity-50"
             >
               <ArrowPathIcon className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -526,7 +529,7 @@ export function ConversationSummaryDrawer({ requestId, onClose }: ConversationSu
                 className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 text-xs text-red-400 transition-colors"
               >
                 <ArrowPathIcon className="h-3.5 w-3.5" />
-                Thử lại
+                {t('summary.retry')}
               </button>
             </div>
           ) : summary ? (

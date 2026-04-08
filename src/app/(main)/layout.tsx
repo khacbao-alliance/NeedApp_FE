@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRouter, usePathname } from 'next/navigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -15,6 +16,7 @@ export default function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const { isAuthenticated, isLoading, hasClient, role } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -39,7 +41,7 @@ export default function MainLayout({
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--accent-violet)] border-t-transparent" />
-          <p className="text-sm text-[var(--text-muted)]">Đang tải...</p>
+          <p className="text-sm text-[var(--text-muted)]">{t('common.loading')}</p>
         </div>
       </div>
     );

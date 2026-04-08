@@ -140,7 +140,7 @@ export function ClientNavbar() {
                     size="xs"
                   />
                   <span className="text-sm font-medium text-[var(--foreground)] max-w-[120px] truncate">
-                    {user?.name || 'User'}
+                    {user?.name || t('profile.unnamed')}
                   </span>
                 </button>
 
@@ -149,7 +149,7 @@ export function ClientNavbar() {
                   <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-1.5 shadow-2xl shadow-black/30 animate-fade-in">
                     <div className="border-b border-[var(--border)] px-3 py-2.5 mb-1">
                       <p className="text-sm font-medium text-[var(--foreground)] truncate">
-                        {user?.name || 'User'}
+                        {user?.name || t('profile.unnamed')}
                       </p>
                       <p className="text-xs text-[var(--text-muted)] truncate">{user?.email}</p>
                     </div>

@@ -130,7 +130,7 @@ export function Sidebar() {
             <Avatar src={user.avatarUrl ?? undefined} name={user.name || user.email} size="sm" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-[var(--foreground)]">
-                {user.name || 'User'}
+                {user.name || t('profile.unnamed')}
               </p>
               <p className="truncate text-xs text-[var(--text-muted)]">{user.email}</p>
             </div>

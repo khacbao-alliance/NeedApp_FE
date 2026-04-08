@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { BellIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { BellAlertIcon } from '@heroicons/react/24/solid';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -9,6 +10,7 @@ import { NotificationItem } from './NotificationItem';
 import { cn } from '@/lib/utils';
 
 export function NotificationBell() {
+  const { t } = useTranslation();
   const router = useRouter();
   const {
     notifications,
@@ -58,7 +60,7 @@ export function NotificationBell() {
             ? 'bg-[var(--accent-indigo)]/10 text-[var(--accent-violet)]'
             : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]'
         )}
-        aria-label="Notifications"
+        aria-label={t('notifications.title')}
         id="notification-bell"
       >
         {unreadCount > 0 ? (
@@ -81,10 +83,10 @@ export function NotificationBell() {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
             <h3 className="text-sm font-semibold text-[var(--foreground)]">
-              Thông báo
+              {t('notifications.title')}
               {unreadCount > 0 && (
                 <span className="ml-2 inline-flex items-center rounded-full bg-[var(--accent-violet)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent-violet)]">
-                  {unreadCount} mới
+                  {t('notifications.newBadge', { count: unreadCount })}
                 </span>
               )}
             </h3>
@@ -94,7 +96,7 @@ export function NotificationBell() {
                 className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-[var(--accent-indigo)] hover:bg-[var(--accent-indigo)]/10 transition-colors"
               >
                 <CheckIcon className="h-3.5 w-3.5" />
-                Đã đọc tất cả
+                {t('notifications.markAllDone')}
               </button>
             )}
           </div>
@@ -104,7 +106,7 @@ export function NotificationBell() {
             {recentNotifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <BellIcon className="mb-3 h-10 w-10 text-[var(--text-muted)]" />
-                <p className="text-sm text-[var(--text-muted)]">Chưa có thông báo</p>
+                <p className="text-sm text-[var(--text-muted)]">{t('notifications.empty')}</p>
               </div>
             ) : (
               recentNotifications.map((notification) => (
@@ -127,7 +129,7 @@ export function NotificationBell() {
                 }}
                 className="w-full rounded-lg py-1.5 text-center text-xs font-medium text-[var(--accent-indigo)] hover:bg-[var(--accent-indigo)]/5 transition-colors"
               >
-                Xem tất cả thông báo
+                {t('notifications.viewAll')}
               </button>
             </div>
           )}

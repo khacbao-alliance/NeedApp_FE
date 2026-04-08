@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import {
   HomeIcon,
   DocumentTextIcon,
@@ -15,18 +16,19 @@ import {
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/dashboard', Icon: HomeIcon, ActiveIcon: HomeSolid, label: 'Tổng quan' },
-  { href: '/requests', Icon: DocumentTextIcon, ActiveIcon: DocSolid, label: 'Yêu cầu' },
-  { href: '/profile', Icon: UserCircleIcon, ActiveIcon: UserSolid, label: 'Hồ sơ' },
+  { href: '/dashboard', Icon: HomeIcon, ActiveIcon: HomeSolid, labelKey: 'nav.dashboard' },
+  { href: '/requests', Icon: DocumentTextIcon, ActiveIcon: DocSolid, labelKey: 'nav.requests' },
+  { href: '/profile', Icon: UserCircleIcon, ActiveIcon: UserSolid, labelKey: 'nav.profile' },
 ];
 
 export function BottomNav() {
+  const { t } = useTranslation();
   const pathname = usePathname();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-[var(--border)] md:hidden">
       <div className="flex items-center justify-around py-2">
-        {navItems.map(({ href, Icon, ActiveIcon, label }) => {
+        {navItems.map(({ href, Icon, ActiveIcon, labelKey }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/');
           const Ico = isActive ? ActiveIcon : Icon;
           return (
@@ -41,7 +43,7 @@ export function BottomNav() {
               )}
             >
               <Ico className="h-6 w-6" />
-              <span className="text-[10px] font-medium">{label}</span>
+              <span className="text-[10px] font-medium">{t(labelKey)}</span>
             </Link>
           );
         })}
