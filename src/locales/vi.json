@@ -215,6 +215,13 @@
       "questionCount": "{{count}} câu hỏi",
       "questionPlaceholder": "VD: Logo công ty có sẵn chưa?",
       "questionNPlaceholder": "Câu hỏi {{n}}..."
+    },
+    "systemMsg": {
+      "statusChanged": "Trạng thái đã thay đổi từ \"{{from}}\" sang \"{{to}}\"",
+      "assigned": "Yêu cầu được giao cho \"{{name}}\"",
+      "unassigned": "\"{{name}}\" đã được gỡ khỏi yêu cầu này",
+      "created": "Yêu cầu \"{{title}}\" đã được tạo",
+      "intakeComplete": "Tất cả câu hỏi tiếp nhận đã được trả lời. Yêu cầu của bạn đang được xem xét."
     }
   },
   "requestActions": {
@@ -283,7 +290,16 @@
     "logout": "Đăng xuất",
     "roleAdmin": "Quản trị viên",
     "roleStaff": "Nhân viên",
-    "roleClient": "Khách hàng"
+    "roleClient": "Khách hàng",
+    "avatarUpdated": "Cập nhật ảnh đại diện thành công",
+    "avatarUpdateError": "Không thể cập nhật ảnh đại diện",
+    "avatarDeleted": "Đã xóa ảnh đại diện",
+    "avatarDeleteError": "Không thể xóa ảnh đại diện",
+    "deleteAvatarTitle": "Xóa ảnh đại diện?",
+    "deleteAvatarDesc": "Ảnh đại diện sẽ được thay bằng ảnh mặc định.",
+    "deleteAvatarConfirm": "Xóa",
+    "changeAvatar": "Đổi ảnh",
+    "removeAvatar": "Xóa ảnh"
   },
   "confirm": {
     "logout": {

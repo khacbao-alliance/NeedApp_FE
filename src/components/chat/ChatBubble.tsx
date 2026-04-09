@@ -90,13 +90,64 @@ export function ChatBubble({ message, isOwnMessage, requestId, userId, onReactio
   const { language } = useLanguage();
   const { type, content, sender, files, createdAt, metadata } = message;
 
+  // ── Translate system message content ──
+  const translateSystemMessage = (raw: string | null): string => {
+    if (!raw) return '';
+
+    // Status label mapping for i18n
+    const statusLabel = (status: string): string => {
+      const map: Record<string, string> = {
+        Draft: t('status.draft'),
+        Intake: t('status.intake'),
+        Pending: t('status.pending'),
+        MissingInfo: t('status.missingInfo'),
+        InProgress: t('status.inProgress'),
+        Done: t('status.done'),
+        Cancelled: t('status.cancelled'),
+      };
+      return map[status] || status;
+    };
+
+    // Pattern: Status changed from "X" to "Y".
+    const statusMatch = raw.match(/^Status changed from "(.+)" to "(.+)"\.$/);
+    if (statusMatch) {
+      return t('chat.systemMsg.statusChanged', { from: statusLabel(statusMatch[1]), to: statusLabel(statusMatch[2]) });
+    }
+
+    // Pattern: Request assigned to "Name".
+    const assignMatch = raw.match(/^Request assigned to "(.+)"\.$/);
+    if (assignMatch) {
+      return t('chat.systemMsg.assigned', { name: assignMatch[1] });
+    }
+
+    // Pattern: "Name" has been unassigned from this request.
+    const unassignMatch = raw.match(/^"(.+)" has been unassigned from this request\.$/);
+    if (unassignMatch) {
+      return t('chat.systemMsg.unassigned', { name: unassignMatch[1] });
+    }
+
+    // Pattern: Request "Title" has been created.
+    const createMatch = raw.match(/^Request "(.+)" has been created\.$/);
+    if (createMatch) {
+      return t('chat.systemMsg.created', { title: createMatch[1] });
+    }
+
+    // Pattern: All intake questions have been answered...
+    if (raw.startsWith('All intake questions have been answered')) {
+      return t('chat.systemMsg.intakeComplete');
+    }
+
+    // Fallback: return raw content
+    return raw;
+  };
+
   // System messages
   if (type === 'System') {
     return (
       <div className="flex justify-center py-2 animate-fade-in">
         <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-2)] px-4 py-1.5 text-xs text-[var(--text-muted)]">
           <InformationCircleIcon className="h-3.5 w-3.5" />
-          {content}
+          {translateSystemMessage(content)}
         </div>
       </div>
     );
@@ -126,7 +177,10 @@ export function ChatBubble({ message, isOwnMessage, requestId, userId, onReactio
               </p>
             )}
           </div>
-          <p className="mt-1 px-1 text-[10px] text-[var(--text-muted)]">
+          <p
+            className="mt-1 px-1 text-[10px] text-[var(--text-muted)]"
+            title={new Date(createdAt).toLocaleString(language === 'en' ? 'en-US' : 'vi-VN', { dateStyle: 'medium', timeStyle: 'short' })}
+          >
             {formatDate(createdAt, language)}
           </p>
         </div>
@@ -207,7 +261,10 @@ export function ChatBubble({ message, isOwnMessage, requestId, userId, onReactio
               )}
             </div>
           </div>
-          <p className="mt-1 px-1 text-[10px] text-[var(--text-muted)]">
+          <p
+            className="mt-1 px-1 text-[10px] text-[var(--text-muted)]"
+            title={new Date(createdAt).toLocaleString(language === 'en' ? 'en-US' : 'vi-VN', { dateStyle: 'medium', timeStyle: 'short' })}
+          >
             {sender?.name} · {formatDate(createdAt, language)}
           </p>
         </div>
@@ -241,6 +298,7 @@ export function ChatBubble({ message, isOwnMessage, requestId, userId, onReactio
                   : 'rounded-bl-md bg-[var(--surface-2)] text-[var(--foreground)]',
                 type === 'IntakeAnswer' && !isOwnMessage && 'bg-[var(--accent-indigo)]/5 border border-[var(--accent-indigo)]/20'
               )}
+              title={new Date(createdAt).toLocaleString(language === 'en' ? 'en-US' : 'vi-VN', { dateStyle: 'medium', timeStyle: 'short' })}
             >
               {!isOwnMessage && sender && (
                 <p className="mb-0.5 text-xs font-semibold text-[var(--accent-violet)]">

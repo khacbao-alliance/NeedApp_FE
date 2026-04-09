@@ -21,6 +21,9 @@ import {
   PencilSquareIcon,
   CheckIcon,
   XMarkIcon,
+  TrashIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { ClientMembersPanel } from '@/components/profile/ClientMembersPanel';
 
@@ -170,7 +173,10 @@ export default function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
   const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showDeleteAvatarConfirm, setShowDeleteAvatarConfirm] = useState(false);
+  const [avatarMsg, setAvatarMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const roleLabels: Record<string, string> = {
@@ -183,6 +189,12 @@ export default function ProfilePage() {
 
   const isOwner = user.client?.role === 'Owner';
 
+  // ── Flash message helper ──
+  const flashMsg = (type: 'success' | 'error', text: string) => {
+    setAvatarMsg({ type, text });
+    setTimeout(() => setAvatarMsg(null), 3000);
+  };
+
   // ── Avatar upload ──
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -191,12 +203,28 @@ export default function ProfilePage() {
     try {
       const res = await fileService.uploadAvatar(file);
       updateUser({ avatarUrl: res.avatarUrl });
+      flashMsg('success', t('profile.avatarUpdated'));
     } catch {
-      // ignore
+      flashMsg('error', t('profile.avatarUpdateError'));
     } finally {
       setUploading(false);
     }
     e.target.value = '';
+  };
+
+  // ── Avatar delete ──
+  const handleAvatarDelete = async () => {
+    setDeleting(true);
+    setShowDeleteAvatarConfirm(false);
+    try {
+      await fileService.deleteAvatar();
+      updateUser({ avatarUrl: null });
+      flashMsg('success', t('profile.avatarDeleted'));
+    } catch {
+      flashMsg('error', t('profile.avatarDeleteError'));
+    } finally {
+      setDeleting(false);
+    }
   };
 
   // ── Save name ──
@@ -228,26 +256,44 @@ export default function ProfilePage() {
 
       {/* Profile Card */}
       <div className="relative -mt-16 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-6 pt-0">
-        {/* Avatar + name header */}
-        <div className="flex items-end gap-4 -mt-8">
-          <div className="relative">
+        {/* Avatar header */}
+        <div className="flex -mt-8 items-end gap-3">
+          <div className="relative group/avatar">
             <Avatar
               src={user.avatarUrl ?? undefined}
               name={user.name || user.email}
               size="xl"
               className="ring-4 ring-[var(--surface-1)]"
             />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent-indigo)] text-white shadow-lg transition-all hover:bg-[var(--accent-violet)] disabled:opacity-50"
-            >
-              {uploading ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              ) : (
-                <CameraIcon className="h-4 w-4" />
+            {/* Overlay on hover */}
+            <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center gap-1">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading || deleting}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-all hover:bg-white/30 disabled:opacity-50"
+                title={t('profile.changeAvatar')}
+              >
+                {uploading ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <CameraIcon className="h-4 w-4" />
+                )}
+              </button>
+              {user.avatarUrl && (
+                <button
+                  onClick={() => setShowDeleteAvatarConfirm(true)}
+                  disabled={deleting || uploading}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-all hover:bg-red-500/50 disabled:opacity-50"
+                  title={t('profile.removeAvatar')}
+                >
+                  {deleting ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  ) : (
+                    <TrashIcon className="h-4 w-4" />
+                  )}
+                </button>
               )}
-            </button>
+            </div>
             <input
               ref={fileInputRef}
               type="file"
@@ -256,23 +302,42 @@ export default function ProfilePage() {
               onChange={handleAvatarUpload}
             />
           </div>
-          <div className="pb-2">
-            <h1 className="text-xl font-bold text-[var(--foreground)]">
-              {user.name || t('profile.unnamed')}
-            </h1>
-            <span
-              className={`mt-1 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${
-                user.role === 'Admin'
-                  ? 'bg-red-500/15 text-red-400'
-                  : user.role === 'Staff'
-                  ? 'bg-blue-500/15 text-blue-400'
-                  : 'bg-emerald-500/15 text-emerald-400'
+
+          {/* Inline flash message */}
+          {avatarMsg && (
+            <div
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium animate-fade-in ${
+                avatarMsg.type === 'success'
+                  ? 'bg-emerald-500/15 text-emerald-400'
+                  : 'bg-red-500/15 text-red-400'
               }`}
             >
-              <ShieldCheckIcon className="h-3.5 w-3.5" />
-              {roleLabels[user.role]}
-            </span>
-          </div>
+              {avatarMsg.type === 'success' ? (
+                <CheckCircleIcon className="h-4 w-4" />
+              ) : (
+                <ExclamationCircleIcon className="h-4 w-4" />
+              )}
+              {avatarMsg.text}
+            </div>
+          )}
+        </div>
+        {/* Name + role badge */}
+        <div className="mt-3">
+          <h1 className="text-xl font-bold text-[var(--foreground)]">
+            {user.name || t('profile.unnamed')}
+          </h1>
+          <span
+            className={`mt-1 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${
+              user.role === 'Admin'
+                ? 'bg-red-500/15 text-red-400'
+                : user.role === 'Staff'
+                ? 'bg-blue-500/15 text-blue-400'
+                : 'bg-emerald-500/15 text-emerald-400'
+            }`}
+          >
+            <ShieldCheckIcon className="h-3.5 w-3.5" />
+            {roleLabels[user.role]}
+          </span>
         </div>
 
         {/* ── Personal Info Section ── */}
@@ -398,6 +463,16 @@ export default function ProfilePage() {
         description={t('confirm.logout.description')}
         confirmLabel={t('confirm.logout.confirm')}
         variant="warning"
+      />
+
+      <ConfirmModal
+        open={showDeleteAvatarConfirm}
+        onConfirm={handleAvatarDelete}
+        onCancel={() => setShowDeleteAvatarConfirm(false)}
+        title={t('profile.deleteAvatarTitle')}
+        description={t('profile.deleteAvatarDesc')}
+        confirmLabel={t('profile.deleteAvatarConfirm')}
+        variant="danger"
       />
     </div>
   );

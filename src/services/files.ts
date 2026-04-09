@@ -15,4 +15,6 @@ export const fileService = {
     formData.append('file', file);
     return api.upload<UploadAvatarResponse>('/files/avatar', formData);
   },
+
+  deleteAvatar: () => api.delete<void>('/files/avatar'),
 };

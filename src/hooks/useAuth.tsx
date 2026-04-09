@@ -20,59 +20,92 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const USER_CACHE_KEY = 'user_cache';
+
+function getCachedUser(): UserDto | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(USER_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as UserDto) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedUser(user: UserDto | null) {
+  if (typeof window === 'undefined') return;
+  if (user) {
+    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(USER_CACHE_KEY);
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const cached = typeof window !== 'undefined' && !!getAccessToken() ? getCachedUser() : null;
+  const [user, setUser] = useState<UserDto | null>(cached);
+  const [isLoading, setIsLoading] = useState(!cached);
 
   useEffect(() => {
     const token = getAccessToken();
     if (token) {
       authService
         .me()
-        .then((userData) => setUser(userData))
+        .then((userData) => {
+          setUser(userData);
+          setCachedUser(userData);
+        })
         .catch(() => {
           clearTokens();
+          setCachedUser(null);
+          setUser(null);
         })
         .finally(() => setIsLoading(false));
     } else {
+      setCachedUser(null);
+      setUser(null);
       setIsLoading(false);
     }
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authService.loginAndStore(email, password);
-    // Fetch full profile so user.client is populated immediately (no F5 needed)
     try {
       const fullUser = await authService.me();
       setUser(fullUser);
+      setCachedUser(fullUser);
     } catch {
-      setUser({
+      const u: UserDto = {
         id: res.userId,
         email: res.email,
         name: res.name,
         role: res.role,
         hasClient: res.hasClient,
         avatarUrl: res.avatarUrl,
-      });
+      };
+      setUser(u);
+      setCachedUser(u);
     }
     return res;
   }, []);
 
   const register = useCallback(async (data: { email: string; password: string; name?: string }) => {
     const res = await authService.registerAndStore(data);
-    // Fetch full profile so user.client is populated immediately (no F5 needed)
     try {
       const fullUser = await authService.me();
       setUser(fullUser);
+      setCachedUser(fullUser);
     } catch {
-      setUser({
+      const u: UserDto = {
         id: res.userId,
         email: res.email,
         name: res.name,
         role: res.role,
         hasClient: res.hasClient,
         avatarUrl: res.avatarUrl,
-      });
+      };
+      setUser(u);
+      setCachedUser(u);
     }
     return res;
   }, []);
@@ -81,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const rt = getRefreshToken();
     if (rt) authService.logout(rt).catch(() => {});
     clearTokens();
+    setCachedUser(null);
     setUser(null);
   }, []);
 
@@ -90,19 +124,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const googleLogin = useCallback(async (idToken: string) => {
     const res = await authService.googleLoginAndStore(idToken);
-    // Fetch full profile so user.client is populated immediately
     try {
       const fullUser = await authService.me();
       setUser(fullUser);
+      setCachedUser(fullUser);
     } catch {
-      setUser({
+      const u: UserDto = {
         id: res.userId,
         email: res.email,
         name: res.name,
         role: res.role,
         hasClient: res.hasClient,
         avatarUrl: res.avatarUrl,
-      });
+      };
+      setUser(u);
+      setCachedUser(u);
     }
     return res;
   }, []);

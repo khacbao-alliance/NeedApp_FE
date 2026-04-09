@@ -215,6 +215,13 @@
       "questionCount": "{{count}} questions",
       "questionPlaceholder": "e.g. Is the company logo ready?",
       "questionNPlaceholder": "Question {{n}}..."
+    },
+    "systemMsg": {
+      "statusChanged": "Status changed from \"{{from}}\" to \"{{to}}\"",
+      "assigned": "Request assigned to \"{{name}}\"",
+      "unassigned": "\"{{name}}\" has been unassigned from this request",
+      "created": "Request \"{{title}}\" has been created",
+      "intakeComplete": "All intake questions have been answered. Your request is now being reviewed."
     }
   },
   "requestActions": {
@@ -283,7 +290,16 @@
     "logout": "Log out",
     "roleAdmin": "Administrator",
     "roleStaff": "Staff",
-    "roleClient": "Client"
+    "roleClient": "Client",
+    "avatarUpdated": "Profile picture updated successfully",
+    "avatarUpdateError": "Unable to update profile picture",
+    "avatarDeleted": "Profile picture removed",
+    "avatarDeleteError": "Unable to remove profile picture",
+    "deleteAvatarTitle": "Remove profile picture?",
+    "deleteAvatarDesc": "Your profile picture will be replaced with a default avatar.",
+    "deleteAvatarConfirm": "Remove",
+    "changeAvatar": "Change photo",
+    "removeAvatar": "Remove photo"
   },
   "confirm": {
     "logout": {

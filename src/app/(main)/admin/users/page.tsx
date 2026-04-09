@@ -171,7 +171,7 @@ export default function AdminUsersPage() {
         <select
           value={roleFilter}
           onChange={(e) => { setRoleFilter(e.target.value as UserRole | ''); setPage(1); }}
-          className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-[var(--foreground)] outline-none"
+          className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] pl-4 pr-10 py-2.5 text-sm text-[var(--foreground)] outline-none appearance-none bg-[url('data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20fill=%27none%27%20viewBox=%270%200%2020%2020%27%3e%3cpath%20stroke=%27%236b7280%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%20stroke-width=%271.5%27%20d=%27M6%208l4%204%204-4%27/%3e%3c/svg%3e')] bg-[length:1.5em_1.5em] bg-[right_0.75rem_center] bg-no-repeat"
         >
           <option value="">{t('admin.users.allRoles')}</option>
           {roleOptions.map((o) => (
