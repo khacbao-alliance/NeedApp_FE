@@ -410,7 +410,17 @@
     "stat4Label": "Projects completed",
     "ctaTitle": "Ready to start your project?",
     "ctaSubtitle": "Sign up for free today and experience the most professional request management platform.",
-    "registerFree": "Sign up free"
+    "registerFree": "Sign up free",
+    "mockChat": {
+      "senderSystem": "System",
+      "senderUser": "You",
+      "senderStaff": "Staff Alex",
+      "msg1": "What industry is your website for?",
+      "msg2": "I need an online fashion e-commerce website",
+      "msg3": "How many pages would you like the website to have?",
+      "msg4": "Around 5-10 pages, including home, products, and shopping cart",
+      "msg5": "Hi! I've received your request. I'll send a quote within 24h 👋"
+    }
   },
   "notifications": {
     "title": "Notifications",

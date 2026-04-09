@@ -25,16 +25,18 @@ export default function LandingPage() {
   const { isAuthenticated, role, isLoading } = useAuth();
   const router = useRouter();
 
-  // Admin/Staff should go to dashboard
+  // Admin/Staff should go to dashboard (middleware handles server-side, this is a fallback)
   useEffect(() => {
     if (!isLoading && isAuthenticated && role !== 'Client') {
       router.replace('/dashboard');
     }
   }, [isLoading, isAuthenticated, role, router]);
 
-  if (!isLoading && isAuthenticated && role !== 'Client') {
-    return null;
-  }
+  // While auth state is unknown, render nothing to prevent guest content flash.
+  // This lasts only ~1 frame since useEffect reads from localStorage cache synchronously.
+  if (isLoading) return null;
+
+  if (isAuthenticated && role !== 'Client') return null;
 
   const content = (
     <div className="min-h-screen flex flex-col">
@@ -61,7 +63,7 @@ export default function LandingPage() {
               {/* Headline */}
               <h1 className="text-4xl font-extrabold tracking-tight text-[var(--foreground)] sm:text-5xl lg:text-6xl animate-slide-up">
                 {t('landing.headlineLine1')}{' '}
-                <span className="gradient-text">{t('landing.headlineGradient')}</span>
+                <span className="gradient-text whitespace-nowrap">{t('landing.headlineGradient')}</span>
                 <br />
                 {t('landing.headlineLine2')}
               </h1>
@@ -118,30 +120,30 @@ export default function LandingPage() {
                     <div className="flex flex-col gap-3">
                       <MockMessage
                         align="left"
-                        name="Hệ thống"
-                        text="Bạn cần website cho lĩnh vực gì?"
+                        name={t('landing.mockChat.senderSystem')}
+                        text={t('landing.mockChat.msg1')}
                         isSystem
                       />
                       <MockMessage
                         align="right"
-                        name="Bạn"
-                        text="Tôi cần website bán hàng thời trang online"
+                        name={t('landing.mockChat.senderUser')}
+                        text={t('landing.mockChat.msg2')}
                       />
                       <MockMessage
                         align="left"
-                        name="Hệ thống"
-                        text="Bạn muốn website có bao nhiêu trang?"
+                        name={t('landing.mockChat.senderSystem')}
+                        text={t('landing.mockChat.msg3')}
                         isSystem
                       />
                       <MockMessage
                         align="right"
-                        name="Bạn"
-                        text="Khoảng 5-10 trang, bao gồm trang chủ, sản phẩm, giỏ hàng"
+                        name={t('landing.mockChat.senderUser')}
+                        text={t('landing.mockChat.msg4')}
                       />
                       <MockMessage
                         align="left"
-                        name="Staff Trần B"
-                        text="Chào anh! Em đã nhận yêu cầu. Em sẽ gửi báo giá sau 24h nhé 👋"
+                        name={t('landing.mockChat.senderStaff')}
+                        text={t('landing.mockChat.msg5')}
                         isStaff
                       />
                     </div>
@@ -157,7 +159,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center mb-16">
               <h2 className="text-3xl font-bold text-[var(--foreground)] sm:text-4xl">
-                {t('landing.featuresTitleLine1')} <span className="gradient-text">{t('landing.featuresTitleGradient')}</span>
+                {t('landing.featuresTitleLine1')} <span className="gradient-text whitespace-nowrap">{t('landing.featuresTitleGradient')}</span>
               </h2>
               <p className="mt-4 text-[var(--text-secondary)] text-lg">
                 {t('landing.featuresSubtitle')}
@@ -216,7 +218,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center mb-16">
               <h2 className="text-3xl font-bold text-[var(--foreground)] sm:text-4xl">
-                {t('landing.howTitleLine1')} <span className="gradient-text">{t('landing.howTitleGradient')}</span>
+                {t('landing.howTitleLine1')} <span className="gradient-text whitespace-nowrap">{t('landing.howTitleGradient')}</span>
               </h2>
               <p className="mt-4 text-[var(--text-secondary)] text-lg">
                 {t('landing.howSubtitle')}

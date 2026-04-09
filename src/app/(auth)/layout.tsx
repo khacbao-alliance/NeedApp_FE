@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { GuestGuard } from "@/components/auth/GuestGuard";
 
 export const metadata: Metadata = {
   title: "NeedApp — Login",
@@ -20,7 +21,9 @@ export default function AuthLayout({
           <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-[var(--accent-cyan)]/10 blur-[128px]" />
           <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent-indigo)]/5 blur-[96px]" />
         </div>
-        <div className="relative z-10 w-full">{children}</div>
+        <div className="relative z-10 w-full">
+          <GuestGuard>{children}</GuestGuard>
+        </div>
       </div>
     </>
   );

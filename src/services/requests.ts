@@ -101,18 +101,28 @@ let refreshPromise: Promise<boolean> | null = null;
 async function tryRefreshToken(): Promise<boolean> {
   if (refreshPromise) return refreshPromise;
 
-  refreshPromise = (async () => {
-    const rt = getRefreshToken();
-    if (!rt) return false;
+  // Snapshot the refresh token before the async call so we can detect
+  // if another concurrent reload already refreshed it successfully.
+  const rtAtStart = getRefreshToken();
+  if (!rtAtStart) return false;
 
+  refreshPromise = (async () => {
     try {
       const res = await fetch(`${BASE_URL}/auth/refresh-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: rt }),
+        body: JSON.stringify({ refreshToken: rtAtStart }),
       });
 
-      if (!res.ok) return false;
+      if (!res.ok) {
+        // Another concurrent reload may have already refreshed with this RT.
+        // If localStorage now has a different (newer) RT, we're still good.
+        const currentRt = getRefreshToken();
+        if (currentRt && currentRt !== rtAtStart) {
+          return true;
+        }
+        return false;
+      }
 
       const data = await res.json();
       setTokens(data.accessToken, data.refreshToken);
@@ -208,5 +218,15 @@ export const api = {
       body: formData,
     }),
 };
+
+export function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    // 10s buffer for clock skew
+    return Date.now() >= payload.exp * 1000 - 10_000;
+  } catch {
+    return true;
+  }
+}
 
 export { setTokens, clearTokens, getAccessToken, getRefreshToken };

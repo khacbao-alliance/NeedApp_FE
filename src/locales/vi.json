@@ -410,7 +410,17 @@
     "stat4Label": "Dự án hoàn thành",
     "ctaTitle": "Sẵn sàng bắt đầu dự án?",
     "ctaSubtitle": "Đăng ký miễn phí ngay hôm nay và trải nghiệm cách quản lý yêu cầu chuyên nghiệp nhất.",
-    "registerFree": "Đăng ký miễn phí"
+    "registerFree": "Đăng ký miễn phí",
+    "mockChat": {
+      "senderSystem": "Hệ thống",
+      "senderUser": "Bạn",
+      "senderStaff": "Staff Trần B",
+      "msg1": "Bạn cần website cho lĩnh vực gì?",
+      "msg2": "Tôi cần website bán hàng thời trang online",
+      "msg3": "Bạn muốn website có bao nhiêu trang?",
+      "msg4": "Khoảng 5-10 trang, bao gồm trang chủ, sản phẩm, giỏ hàng",
+      "msg5": "Chào anh! Em đã nhận yêu cầu. Em sẽ gửi báo giá sau 24h nhé 👋"
+    }
   },
   "notifications": {
     "title": "Thông báo",
