@@ -367,7 +367,8 @@
   "landing": {
     "badge": "Quản lý yêu cầu thông minh",
     "headline": "Biến ý tưởng thành <gradient>hiện thực</gradient>\nchỉ với vài bước",
-    "headlineLine1": "Biến ý tưởng thành",
+    "headlineLine1": "Biến ý tưởng",
+    "headlineConnector": "thành",
     "headlineGradient": "hiện thực",
     "headlineLine2": "chỉ với vài bước",
     "subtitle": "NeedApp giúp bạn gửi yêu cầu, trao đổi trực tiếp với đội ngũ chuyên gia và theo dõi tiến độ dự án — tất cả trong một nền tảng duy nhất.",
