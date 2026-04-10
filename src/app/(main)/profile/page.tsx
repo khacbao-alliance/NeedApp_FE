@@ -84,7 +84,7 @@ function EditableInfoRow({
       <div className="flex items-center gap-3">
         <span className="flex-shrink-0 text-[var(--text-muted)]">{icon}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-[var(--text-muted)]">{label}</p>
+          <p className="text-sm text-[var(--text-muted)]">{label}</p>
           {editing ? (
             <input
               type={type}
@@ -96,7 +96,7 @@ function EditableInfoRow({
             />
           ) : (
             <p className={`text-sm font-medium ${valueClass || 'text-[var(--foreground)]'}`}>
-              {value || <span className="text-[var(--text-muted)] italic">{placeholder || '—'}</span>}
+              {value || <span className="text-[var(--text-muted)] italic text-sm">{placeholder || '—'}</span>}
             </p>
           )}
           {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
@@ -158,10 +158,10 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-xl bg-[var(--surface-2)] p-4">
-      <span className="text-[var(--text-muted)]">{icon}</span>
-      <div>
-        <p className="text-xs text-[var(--text-muted)]">{label}</p>
-        <p className={`text-sm font-medium ${valueClass || 'text-[var(--foreground)]'}`}>{value}</p>
+      <span className="text-[var(--text-muted)] flex-shrink-0">{icon}</span>
+      <div className="min-w-0">
+        <p className="text-sm text-[var(--text-muted)]">{label}</p>
+        <p className={`text-sm font-medium truncate ${valueClass || 'text-[var(--foreground)]'}`}>{value}</p>
       </div>
     </div>
   );
@@ -250,22 +250,20 @@ export default function ProfilePage() {
     };
 
   return (
-    <div className="mx-auto max-w-2xl animate-fade-in" id="profile-page">
-      {/* Cover gradient */}
-      <div className="relative h-32 rounded-t-2xl bg-gradient-to-r from-[var(--accent-violet)] via-[var(--accent-indigo)] to-[var(--accent-cyan)] opacity-80" />
+    <div className="mx-auto max-w-4xl animate-fade-in" id="profile-page">
+      {/* ── Profile Card ── */}
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-6">
 
-      {/* Profile Card */}
-      <div className="relative -mt-16 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-6 pt-0">
-        {/* Avatar header */}
-        <div className="flex -mt-8 items-end gap-3">
-          <div className="relative group/avatar">
+        {/* Avatar + Name */}
+        <div className="flex items-center gap-5">
+          {/* Avatar */}
+          <div className="relative group/avatar flex-shrink-0">
             <Avatar
               src={user.avatarUrl ?? undefined}
               name={user.name || user.email}
               size="xl"
-              className="ring-4 ring-[var(--surface-1)]"
+              className="ring-2 ring-[var(--border)]"
             />
-            {/* Overlay on hover */}
             <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center gap-1">
               <button
                 onClick={() => fileInputRef.current?.click()}
@@ -303,10 +301,29 @@ export default function ProfilePage() {
             />
           </div>
 
-          {/* Inline flash message */}
+          {/* Name + role */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-[var(--foreground)] leading-tight">
+              {user.name || t('profile.unnamed')}
+            </h1>
+            <span
+              className={`mt-1.5 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${
+                user.role === 'Admin'
+                  ? 'bg-red-500/15 text-red-400'
+                  : user.role === 'Staff'
+                  ? 'bg-blue-500/15 text-blue-400'
+                  : 'bg-emerald-500/15 text-emerald-400'
+              }`}
+            >
+              <ShieldCheckIcon className="h-3.5 w-3.5" />
+              {roleLabels[user.role]}
+            </span>
+          </div>
+
+          {/* Flash message */}
           {avatarMsg && (
             <div
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium animate-fade-in ${
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium animate-fade-in ${
                 avatarMsg.type === 'success'
                   ? 'bg-emerald-500/15 text-emerald-400'
                   : 'bg-red-500/15 text-red-400'
@@ -321,119 +338,105 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
-        {/* Name + role badge */}
-        <div className="mt-3">
-          <h1 className="text-xl font-bold text-[var(--foreground)]">
-            {user.name || t('profile.unnamed')}
-          </h1>
-          <span
-            className={`mt-1 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${
-              user.role === 'Admin'
-                ? 'bg-red-500/15 text-red-400'
-                : user.role === 'Staff'
-                ? 'bg-blue-500/15 text-blue-400'
-                : 'bg-emerald-500/15 text-emerald-400'
-            }`}
-          >
-            <ShieldCheckIcon className="h-3.5 w-3.5" />
-            {roleLabels[user.role]}
-          </span>
-        </div>
 
-        {/* ── Personal Info Section ── */}
-        <div className="mt-6">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)] mb-3">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-500/15">
-              <ShieldCheckIcon className="h-3.5 w-3.5 text-[var(--accent-indigo)]" />
-            </span>
-            {t('profile.personalInfo')}
-          </h2>
-          <div className="space-y-3 group">
-            <InfoRow
-              icon={<EnvelopeIcon className="h-5 w-5" />}
-              label="Email"
-              value={user.email}
-            />
-            <EditableInfoRow
-              icon={<ShieldCheckIcon className="h-5 w-5" />}
-              label={t('profile.displayName')}
-              value={user.name || ''}
-              placeholder={t('profile.namePlaceholder')}
-              onSave={handleSaveName}
-            />
-            <InfoRow
-              icon={<BuildingOffice2Icon className="h-5 w-5" />}
-              label={t('profile.businessProfile')}
-              value={user.hasClient ? t('profile.setup') : t('profile.notSetup')}
-              valueClass={user.hasClient ? 'text-emerald-400' : 'text-amber-400'}
-            />
-          </div>
-        </div>
-
-        {/* ── Client Info Section ── */}
-        {user.client && (
-          <div className="mt-6">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)] mb-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-500/15">
-                <BuildingOffice2Icon className="h-3.5 w-3.5 text-[var(--accent-violet)]" />
+        {/* ── Info sections: 2-column for Client, full-width for Admin/Staff ── */}
+        <div className={`mt-6 grid grid-cols-1 gap-6 ${user.client ? 'lg:grid-cols-2' : ''}`}>
+          {/* Personal Info */}
+          <div>
+            <h2 className="flex items-center gap-2 text-base font-semibold text-[var(--foreground)] mb-3">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-500/15">
+                <ShieldCheckIcon className="h-3.5 w-3.5 text-[var(--accent-indigo)]" />
               </span>
-              {t('profile.businessInfo')}
-              {isOwner && (
-                <span className="ml-auto text-[10px] font-normal text-[var(--text-muted)] bg-[var(--surface-2)] px-2 py-0.5 rounded-full">
-                  {t('profile.ownerCanEdit')}
-                </span>
-              )}
+              {t('profile.personalInfo')}
             </h2>
-            <div className="space-y-3 group">
-              <EditableInfoRow
-                icon={<BuildingOffice2Icon className="h-5 w-5" />}
-                label={t('profile.companyName')}
-                value={user.client.name}
-                placeholder={t('profile.companyNamePlaceholder')}
-                onSave={isOwner ? makeClientSaver('name') : undefined}
-                readonly={!isOwner}
-              />
-              <EditableInfoRow
-                icon={<DocumentTextIcon className="h-5 w-5" />}
-                label={t('profile.description')}
-                value={user.client.description || ''}
-                placeholder={t('profile.descriptionPlaceholder')}
-                onSave={isOwner ? makeClientSaver('description') : undefined}
-                readonly={!isOwner}
-              />
-              <EditableInfoRow
+            {/* For Admin/Staff (no client): 2-col row grid to fill width */}
+            <div className={`grid gap-3 ${!user.client ? 'sm:grid-cols-2' : ''}`}>
+              <InfoRow
                 icon={<EnvelopeIcon className="h-5 w-5" />}
-                label={t('profile.contactEmail')}
-                value={user.client.contactEmail || ''}
-                placeholder="contact@company.com"
-                type="email"
-                onSave={isOwner ? makeClientSaver('contactEmail') : undefined}
-                readonly={!isOwner}
+                label="Email"
+                value={user.email}
               />
               <EditableInfoRow
-                icon={<PhoneIcon className="h-5 w-5" />}
-                label={t('profile.phone')}
-                value={user.client.contactPhone || ''}
-                placeholder="+84 XXX XXX XXX"
-                type="tel"
-                onSave={isOwner ? makeClientSaver('contactPhone') : undefined}
-                readonly={!isOwner}
+                icon={<ShieldCheckIcon className="h-5 w-5" />}
+                label={t('profile.displayName')}
+                value={user.name || ''}
+                placeholder={t('profile.namePlaceholder')}
+                onSave={handleSaveName}
               />
-              {user.client.role && (
-                <InfoRow
-                  icon={<ShieldCheckIcon className="h-5 w-5" />}
-                  label={t('profile.role')}
-                  value={user.client.role === 'Owner' ? t('profile.owner') : t('profile.member')}
-                  valueClass={user.client.role === 'Owner' ? 'text-[var(--accent-violet)]' : undefined}
-                />
-              )}
+              <InfoRow
+                icon={<BuildingOffice2Icon className="h-5 w-5" />}
+                label={t('profile.businessProfile')}
+                value={user.hasClient ? t('profile.setup') : t('profile.notSetup')}
+                valueClass={user.hasClient ? 'text-emerald-400' : 'text-amber-400'}
+              />
             </div>
           </div>
-        )}
 
-        {/* Members Panel */}
+          {/* Business Info (Client only) */}
+          {user.client && (
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-semibold text-[var(--foreground)] mb-3">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-500/15">
+                  <BuildingOffice2Icon className="h-3.5 w-3.5 text-[var(--accent-violet)]" />
+                </span>
+                {t('profile.businessInfo')}
+                {isOwner && (
+                  <span className="ml-auto text-[10px] font-normal text-[var(--text-muted)] bg-[var(--surface-2)] px-2 py-0.5 rounded-full">
+                    {t('profile.ownerCanEdit')}
+                  </span>
+                )}
+              </h2>
+              <div className="space-y-3">
+                <EditableInfoRow
+                  icon={<BuildingOffice2Icon className="h-5 w-5" />}
+                  label={t('profile.companyName')}
+                  value={user.client.name}
+                  placeholder={t('profile.companyNamePlaceholder')}
+                  onSave={isOwner ? makeClientSaver('name') : undefined}
+                  readonly={!isOwner}
+                />
+                <EditableInfoRow
+                  icon={<DocumentTextIcon className="h-5 w-5" />}
+                  label={t('profile.description')}
+                  value={user.client.description || ''}
+                  placeholder={t('profile.descriptionPlaceholder')}
+                  onSave={isOwner ? makeClientSaver('description') : undefined}
+                  readonly={!isOwner}
+                />
+                <EditableInfoRow
+                  icon={<EnvelopeIcon className="h-5 w-5" />}
+                  label={t('profile.contactEmail')}
+                  value={user.client.contactEmail || ''}
+                  placeholder="contact@company.com"
+                  type="email"
+                  onSave={isOwner ? makeClientSaver('contactEmail') : undefined}
+                  readonly={!isOwner}
+                />
+                <EditableInfoRow
+                  icon={<PhoneIcon className="h-5 w-5" />}
+                  label={t('profile.phone')}
+                  value={user.client.contactPhone || ''}
+                  placeholder="+84 XXX XXX XXX"
+                  type="tel"
+                  onSave={isOwner ? makeClientSaver('contactPhone') : undefined}
+                  readonly={!isOwner}
+                />
+                {user.client.role && (
+                  <InfoRow
+                    icon={<ShieldCheckIcon className="h-5 w-5" />}
+                    label={t('profile.role')}
+                    value={user.client.role === 'Owner' ? t('profile.owner') : t('profile.member')}
+                    valueClass={user.client.role === 'Owner' ? 'text-[var(--accent-violet)]' : undefined}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Members Panel (Client only) */}
         {user.role === 'Client' && user.client && (
-          <div className="mt-6">
+          <div className="mt-6 border-t border-[var(--border)] pt-6">
             <ClientMembersPanel
               clientId={user.client.id}
               currentUserId={user.id}
@@ -442,12 +445,11 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Actions */}
-        <div className="mt-8 border-t border-[var(--border)] pt-6">
+        {/* Logout */}
+        <div className="mt-6 border-t border-[var(--border)] pt-5 flex justify-end">
           <Button
             variant="danger"
             onClick={() => setShowLogoutConfirm(true)}
-            className="w-full"
           >
             <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
             {t('profile.logout')}
