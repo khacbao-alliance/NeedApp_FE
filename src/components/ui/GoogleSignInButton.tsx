@@ -76,11 +76,15 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
     if (window.google?.accounts?.id) {
       render();
     } else {
-      const script = document.querySelector<HTMLScriptElement>(
-        'script[src="https://accounts.google.com/gsi/client"]',
-      );
-      script?.addEventListener('load', render, { once: true });
-      return () => script?.removeEventListener('load', render);
+      // Poll for window.google — the script's 'load' event may have already fired
+      // before this component mounts, so we can't rely on addEventListener alone.
+      const interval = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          clearInterval(interval);
+          render();
+        }
+      }, 100);
+      return () => clearInterval(interval);
     }
   }, []);
 

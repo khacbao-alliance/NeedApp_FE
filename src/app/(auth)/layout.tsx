@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { GuestGuard } from "@/components/auth/GuestGuard";
 
 export const metadata: Metadata = {
@@ -13,7 +12,6 @@ export default function AuthLayout({
 }) {
   return (
     <>
-      <Script src="https://accounts.google.com/gsi/client" strategy="beforeInteractive" />
       <div className="flex min-h-screen items-center justify-center px-4 relative overflow-hidden">
         {/* Background gradient orbs */}
         <div className="pointer-events-none absolute inset-0">
