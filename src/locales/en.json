@@ -367,7 +367,8 @@
   "landing": {
     "badge": "Smart request management",
     "headline": "Turn ideas into <gradient>reality</gradient>\nin just a few steps",
-    "headlineLine1": "Turn ideas into",
+    "headlineLine1": "Turn ideas",
+    "headlineConnector": "into",
     "headlineGradient": "reality",
     "headlineLine2": "in just a few steps",
     "subtitle": "NeedApp helps you submit requests, communicate directly with our expert team, and track project progress — all in one platform.",

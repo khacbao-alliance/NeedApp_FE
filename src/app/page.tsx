@@ -62,8 +62,11 @@ export default function LandingPage() {
 
               {/* Headline */}
               <h1 className="text-4xl font-extrabold tracking-tight text-[var(--foreground)] sm:text-5xl lg:text-6xl animate-slide-up">
-                {t('landing.headlineLine1')}{' '}
-                <span className="gradient-text whitespace-nowrap">{t('landing.headlineGradient')}</span>
+                <span className="whitespace-nowrap">
+                  {t('landing.headlineLine1')}{' '}
+                  {t('landing.headlineConnector')}{' '}
+                  <span className="gradient-text">{t('landing.headlineGradient')}</span>
+                </span>
                 <br />
                 {t('landing.headlineLine2')}
               </h1>
