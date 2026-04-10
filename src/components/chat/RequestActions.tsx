@@ -284,8 +284,8 @@ export function AssignStaffAction({
   // Only Admin can assign
   if (role !== 'Admin') return null;
 
-  // Don't show for terminal statuses
-  if (request.status === 'Done' || request.status === 'Cancelled') return null;
+  // Don't show for terminal or intake statuses
+  if (request.status === 'Done' || request.status === 'Cancelled' || request.status === 'Intake' || request.status === 'Draft') return null;
 
   const loadStaff = async () => {
     if (staffList.length > 0) return; // Already loaded

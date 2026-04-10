@@ -330,7 +330,7 @@ function StatCard({ icon, label, value, color, bg, highlight }: {
         <span className={color}>{icon}</span>
       </div>
       <p className="text-2xl font-bold text-[var(--foreground)]">{value}</p>
-      <p className="mt-0.5 text-xs text-[var(--text-muted)]">{label}</p>
+      <p className="mt-0.5 text-xs text-[var(--text-secondary)]">{label}</p>
     </div>
   );
 }
@@ -345,7 +345,7 @@ function QuickActionCard({ href, icon, title, description, color, bg }: {
       </div>
       <div>
         <h3 className="text-sm font-semibold text-[var(--foreground)] group-hover:text-[var(--accent-violet)] transition-colors">{title}</h3>
-        <p className="mt-1 text-xs text-[var(--text-muted)]">{description}</p>
+        <p className="mt-1 text-xs text-[var(--text-secondary)]">{description}</p>
       </div>
     </Link>
   );
@@ -359,8 +359,8 @@ function RequestList({ requests }: { requests: RequestDto[] }) {
         <Link key={req.id} href={`/requests/${req.id}`} className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4 transition-all duration-200 hover:bg-[var(--surface-hover)] hover:border-[var(--glass-border)]">
           <div className="min-w-0 flex-1">
             <h3 className="truncate text-sm font-medium text-[var(--foreground)]">{req.title}</h3>
-            <div className="mt-1 flex items-center gap-2 text-xs text-[var(--text-muted)]">
-              {req.client && <span className="font-medium text-[var(--text-secondary)]">{req.client.name}</span>}
+            <div className="mt-1 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+              {req.client && <span className="font-medium">{req.client.name}</span>}
               {req.client && <span>·</span>}
               <span>{formatDate(req.createdAt, language)}</span>
               {req.assignedUser && (

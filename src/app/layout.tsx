@@ -26,6 +26,8 @@ export default function RootLayout({
       <head>
         {/* Theme + language init — must run before paint to avoid flash */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('needapp-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t;var l=localStorage.getItem('needapp-lang')||'vi';document.documentElement.setAttribute('lang',l);}catch(e){}})();` }} />
+        {/* Google Identity Services SDK for OAuth login */}
+        <script src="https://accounts.google.com/gsi/client" async />
       </head>
       <body className="min-h-full flex flex-col antialiased" suppressHydrationWarning>
         <ThemeProvider>

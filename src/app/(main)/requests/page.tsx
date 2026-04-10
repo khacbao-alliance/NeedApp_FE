@@ -122,7 +122,7 @@ export default function RequestsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--foreground)]">{t('requests.list.title')}</h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
             {isClient ? t('requests.list.subtitleClient') : t('requests.list.subtitleStaff')}
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function RequestsPage() {
               className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                 staffTab === tab.value
                   ? 'bg-[var(--accent-violet)] text-white shadow-sm'
-                  : 'text-[var(--text-muted)] hover:text-[var(--foreground)]'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
             >
               {tab.label}
@@ -193,7 +193,7 @@ export default function RequestsPage() {
             onClick={() => { setStatusFilter(f.value); setPage(1); }}
             className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${statusFilter === f.value
                 ? 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)]'
-                : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
           >
             {f.label}
@@ -267,10 +267,10 @@ export default function RequestsPage() {
                     </span>
                   )}
                 </div>
-                <div className="mt-1 flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                <div className="mt-1 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
                   {req.client && (
                     <>
-                      <span className="font-medium text-[var(--text-secondary)]">{req.client.name}</span>
+                      <span className="font-medium">{req.client.name}</span>
                       <span>·</span>
                     </>
                   )}

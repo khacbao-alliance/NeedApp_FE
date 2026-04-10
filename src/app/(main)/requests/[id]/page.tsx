@@ -30,6 +30,7 @@ import {
   ChartBarIcon,
   ClockIcon,
   ChevronDownIcon,
+  HandRaisedIcon,
 } from '@heroicons/react/24/outline';
 
 export default function RequestChatPage() {
@@ -51,6 +52,7 @@ export default function RequestChatPage() {
   const [showMissingInfo, setShowMissingInfo] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [staffNotAssigned, setStaffNotAssigned] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [newMsgCount, setNewMsgCount] = useState(0);
 
@@ -70,7 +72,7 @@ export default function RequestChatPage() {
   // ══════════════════════════════════════════════════════
   const { isConnected, typingUsers, sendTyping } = useChatSignalR({
     requestId,
-    enabled: !isIntake && !loading, // Only connect after intake + initial load
+    enabled: !isIntake && !loading && !staffNotAssigned, // Only connect after intake + initial load + assigned
     onNewMessage: useCallback((message: MessageDto) => {
       setMessages((prev) => {
         // Dedupe by ID (may already exist from REST response)
@@ -103,10 +105,12 @@ export default function RequestChatPage() {
   // ── Register active request for notification suppression + mark read ──
   useEffect(() => {
     setActiveRequestId(requestId);
-    // Mark all messages as read when entering chat
-    messageService.markRead(requestId).catch(() => {});
+    // Mark all messages as read when entering chat (skip if staff not assigned)
+    if (!staffNotAssigned) {
+      messageService.markRead(requestId).catch(() => {});
+    }
     return () => setActiveRequestId(null);
-  }, [requestId, setActiveRequestId]);
+  }, [requestId, setActiveRequestId, staffNotAssigned]);
 
   // ── Fetch messages (initial load) ──
   const fetchMessages = useCallback(async () => {
@@ -118,12 +122,17 @@ export default function RequestChatPage() {
     } catch (err: unknown) {
       const status = (err as { status?: number })?.status;
       if (status === 403 || status === 404) {
-        setAccessDenied(true);
+        // Staff not assigned → show pre-assignment UI instead of access denied
+        if (role === 'Staff' && status === 404) {
+          setStaffNotAssigned(true);
+        } else {
+          setAccessDenied(true);
+        }
       }
     } finally {
       setLoading(false);
     }
-  }, [requestId]);
+  }, [requestId, role]);
 
   useEffect(() => {
     fetchMessages();
@@ -154,7 +163,7 @@ export default function RequestChatPage() {
     },
     {
       interval: 3000,
-      enabled: isIntake && !loading, // Only poll during Intake phase
+      enabled: isIntake && !loading && !staffNotAssigned, // Only poll during Intake phase
       backgroundInterval: 60000,
     }
   );
@@ -369,8 +378,22 @@ export default function RequestChatPage() {
               <span className="hidden sm:inline">Tóm tắt</span>
             </button>
           )}
-          {request && <SelfAssignAction request={request} onUpdate={setRequest} />}
-          {request && <AssignStaffAction request={request} onUpdate={setRequest} />}
+          {request && <SelfAssignAction request={request} onUpdate={(updated) => {
+            setRequest(updated);
+            // Staff just self-assigned → unlock messages
+            if (staffNotAssigned) {
+              setStaffNotAssigned(false);
+              fetchMessages();
+            }
+          }} />}
+          {request && <AssignStaffAction request={request} onUpdate={(updated) => {
+            setRequest(updated);
+            // Admin assigned this staff → unlock messages if needed
+            if (staffNotAssigned && updated.assignedUser?.id === user?.id) {
+              setStaffNotAssigned(false);
+              fetchMessages();
+            }
+          }} />}
         </div>
       </div>
 
@@ -409,7 +432,28 @@ export default function RequestChatPage() {
         </div>
       )}
 
-      {/* Messages */}
+      {/* Staff Not Assigned — pre-assignment prompt */}
+      {staffNotAssigned ? (
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-4 p-8">
+          <div className="rounded-full bg-violet-500/10 p-4">
+            <HandRaisedIcon className="h-8 w-8 text-[var(--accent-violet)]" />
+          </div>
+          <h2 className="text-base font-semibold text-[var(--foreground)] text-center">
+            {t('chat.notAssignedTitle', 'Yêu cầu chưa được nhận xử lí')}
+          </h2>
+          <p className="text-sm text-[var(--text-muted)] text-center max-w-sm">
+            {t('chat.notAssignedDesc', 'Bạn cần nhận xử lí yêu cầu này để xem tin nhắn và tham gia cuộc hội thoại.')}
+          </p>
+          {request && !request.assignedUser && (
+            <SelfAssignAction request={request} onUpdate={(updated) => {
+              setRequest(updated);
+              setStaffNotAssigned(false);
+              fetchMessages();
+            }} />
+          )}
+        </div>
+      ) : (
+      /* Messages */
       <div
         ref={chatContainerRef}
         className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-1"
@@ -506,9 +550,10 @@ export default function RequestChatPage() {
           </button>
         )}
       </div>
+      )}
 
       {/* Input */}
-      {role === 'Admin' ? null : request?.status === 'Done' || request?.status === 'Cancelled' ? (
+      {staffNotAssigned ? null : role === 'Admin' ? null : request?.status === 'Done' || request?.status === 'Cancelled' ? (
         <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-center">
           <p className="text-xs text-[var(--text-muted)]">
             {request?.status === 'Done' ? t('chat.doneStatus') : t('chat.cancelledStatus')}
