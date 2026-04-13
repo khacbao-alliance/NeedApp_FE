@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, createElement } from 'react';
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { useNotifications } from '@/hooks/useNotifications';
+import { getNotificationContent } from '@/lib/notificationUtils';
 import type { NotificationDto, NotificationType } from '@/types';
 
 const MAX_VISIBLE_TOASTS = 3;
@@ -64,6 +66,7 @@ function getNotificationHref(notification: NotificationDto): string | null {
 export function NotificationToast({ children }: { children: ReactNode }) {
   const { latestRealTimeNotification, activeRequestId, markAsRead } = useNotifications();
   const router = useRouter();
+  const { t } = useTranslation();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const processedRef = useRef<Set<string>>(new Set());
 
@@ -206,6 +209,7 @@ export function NotificationToast({ children }: { children: ReactNode }) {
                 config.icon
               ),
 
+              // Title + content
               createElement(
                 'div',
                 { className: 'min-w-0 flex-1' },
@@ -215,17 +219,21 @@ export function NotificationToast({ children }: { children: ReactNode }) {
                     className: 'text-xs font-semibold truncate',
                     style: { color: 'var(--foreground)' },
                   },
-                  toast.notification.title
+                  t(`notifications.typeTitle.${toast.notification.type}`, toast.notification.title ?? '')
                 ),
-                toast.notification.content &&
-                  createElement(
-                    'p',
-                    {
-                      className: 'mt-0.5 text-[11px] line-clamp-1',
-                      style: { color: 'var(--text-muted)' },
-                    },
-                    toast.notification.content
-                  )
+                (() => {
+                  const content = getNotificationContent(toast.notification, t);
+                  return content
+                    ? createElement(
+                        'p',
+                        {
+                          className: 'mt-0.5 text-[11px] line-clamp-1',
+                          style: { color: 'var(--text-muted)' },
+                        },
+                        content
+                      )
+                    : null;
+                })()
               ),
 
               // Close button

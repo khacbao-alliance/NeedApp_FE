@@ -184,13 +184,13 @@ export function ClientNavbar() {
               <>
                 <Link
                   href="/login"
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                  className="inline-flex items-center justify-center min-w-[110px] rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                 >
                   {t('nav.login')}
                 </Link>
                 <Link
                   href="/register"
-                  className="btn-gradient rounded-xl px-5 py-2 text-sm font-semibold"
+                  className="btn-gradient inline-flex items-center justify-center min-w-[110px] rounded-xl px-5 py-2 text-sm font-semibold"
                 >
                   {t('nav.register')}
                 </Link>

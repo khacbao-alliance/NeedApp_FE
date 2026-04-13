@@ -95,7 +95,7 @@ function ConfirmModal({
             disabled={loading}
             className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-3)] disabled:opacity-50"
           >
-            Huỷ bỏ
+            {t('requestActions.goBack')}
           </button>
           <button
             onClick={onConfirm}

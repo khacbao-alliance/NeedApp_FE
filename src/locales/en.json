@@ -165,7 +165,17 @@
       "selfAssign": "Accept",
       "notAssigned": "Unassigned",
       "assignedTo": "→ {{name}}",
-      "paging": "Page {{page}} / {{total}} · {{count}} requests"
+      "paging": "Page {{page}} / {{total}} · {{count}} requests",
+      "staffAll": "All",
+      "staffMine": "Mine",
+      "staffUnassigned": "Unassigned",
+      "sortNewest": "Newest",
+      "sortOldest": "Oldest",
+      "sortPriority": "Priority",
+      "legendTitle": "Border color indicates waiting time",
+      "legendUrgent": "Over 24 hours — needs immediate attention",
+      "legendWarning": "4–24 hours — follow up soon",
+      "legendNormal": "Under 4 hours — on time"
     },
     "new": {
       "title": "New request",
@@ -240,7 +250,12 @@
     "cannotChangeStatus": "Unable to change status",
     "cannotAssign": "Unable to assign staff",
     "cannotUnassign": "Unable to remove staff",
-    "cannotSelfAssign": "Unable to accept request"
+    "cannotSelfAssign": "Unable to accept request",
+    "confirmDoneTitle": "Mark as complete",
+    "confirmDoneDesc": "This request will be marked as completed. You can still reopen it later.",
+    "confirmCancelTitle": "Cancel request",
+    "confirmCancelDesc": "This request will be cancelled. This action cannot be undone.",
+    "goBack": "Go back"
   },
   "dashboard": {
     "greeting": "Hello",
@@ -266,7 +281,9 @@
     "noRequestsYet": "No requests yet",
     "recentUsers": "Recent users",
     "pendingFeedback": "Requests awaiting response or missing info from client",
-    "pickFromQueue": "Pick up new requests from the pending queue"
+    "pickFromQueue": "Pick up new requests from the pending queue",
+    "unassigned": "Unassigned",
+    "allAssigned": "All requests have been assigned"
   },
   "profile": {
     "unnamed": "No name set",
@@ -432,7 +449,28 @@
     "emptyDesc": "You'll receive notifications when there's new activity",
     "loadMore": "Load more",
     "viewAll": "View all notifications",
-    "newBadge": "{{count}} new"
+    "newBadge": "{{count}} new",
+    "filterAll": "All",
+    "filterUnread": "Unread",
+    "noUnread": "No unread notifications",
+    "noUnreadDesc": "You're all caught up!",
+    "typeTitle": {
+      "NewMessage": "New message",
+      "MissingInfo": "Missing information requested",
+      "StatusChange": "Request status updated",
+      "Assignment": "New assignment",
+      "NewRequest": "New request",
+      "Invitation": "Invitation to join"
+    },
+    "typeContent": {
+      "NewMessage": "New message in \"{{requestTitle}}\": {{messagePreview}}",
+      "MissingInfo": "\"{{requestTitle}}\" needs additional information: {{messageContent}}",
+      "StatusChange": "\"{{requestTitle}}\" changed from {{fromStatus}} to {{toStatus}}",
+      "AssignmentToMe": "Request \"{{requestTitle}}\" has been assigned to you",
+      "AssignmentSelfAccept": "\"{{staffName}}\" accepted request \"{{requestTitle}}\"",
+      "NewRequest": "New request: \"{{requestTitle}}\"",
+      "Invitation": "{{inviterName}} invited you to join \"{{clientName}}\" as {{role}}"
+    }
   },
   "members": {
     "title": "Members",

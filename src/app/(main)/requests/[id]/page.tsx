@@ -18,11 +18,11 @@ import { MissingInfoComposer } from '@/components/chat/MissingInfoComposer';
 import { RequestStatusActions, AssignStaffAction, SelfAssignAction } from '@/components/chat/RequestActions';
 import { ConversationSummaryDrawer } from '@/components/chat/ConversationSummaryDrawer';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
-import { Avatar } from '@/components/ui/Avatar';
 import type { MessageDto, RequestDto, RequestStatus } from '@/types';
 import { formatDate } from '@/lib/utils';
 import {
   ArrowLeftIcon,
+  ArrowRightIcon,
   ArrowPathIcon,
   ExclamationTriangleIcon,
   SignalIcon,
@@ -31,6 +31,7 @@ import {
   ClockIcon,
   ChevronDownIcon,
   HandRaisedIcon,
+  UserCircleIcon,
 } from '@heroicons/react/24/outline';
 
 export default function RequestChatPage() {
@@ -321,32 +322,46 @@ export default function RequestChatPage() {
           <h1 className="truncate text-sm font-semibold text-[var(--foreground)]">
             {request?.title || t('common.loading')}
           </h1>
+          {/* Meta row: badges + client→staff + date pushed right */}
           <div className="mt-0.5 flex items-center gap-2 flex-wrap">
             {request && (
               <>
                 <StatusBadge status={request.status} />
                 <PriorityBadge priority={request.priority} />
+
+                {/* Client pill */}
                 {request.client && (
-                  <span className="hidden sm:inline text-[10px] text-[var(--text-muted)]">
+                  <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] px-2.5 py-0.5 text-xs font-medium text-[var(--text-secondary)]">
+                    <UserCircleIcon className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-muted)]" />
                     {request.client.name}
                   </span>
                 )}
-                {/* Creation time — hidden on mobile */}
+
+                {/* Arrow → Staff assignment */}
+                {request.client && (
+                  <ArrowRightIcon className="hidden sm:inline h-3 w-3 flex-shrink-0 text-[var(--text-muted)]" />
+                )}
+
+                {/* Staff assigned pill */}
+                {request.assignedUser ? (
+                  <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-violet-500/10 border border-violet-500/20 px-2.5 py-0.5 text-xs font-medium text-[var(--accent-violet)]">
+                    <UserCircleIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="text-violet-400/60 font-normal">Staff:</span>
+                    <span className="font-semibold">{request.assignedUser.name || 'Staff'}</span>
+                  </span>
+                ) : (
+                  <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+                    <UserCircleIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                    {t('requests.list.notAssigned')}
+                  </span>
+                )}
+
+                {/* Creation time — right after staff pill */}
                 <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] text-[var(--text-muted)]">
                   <ClockIcon className="h-3 w-3" />
                   {formatDate(request.createdAt, language)}
                 </span>
-                {/* Staff info — hidden on mobile */}
-                {request.assignedUser && (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-[var(--accent-violet)]">
-                    <Avatar
-                      src={request.assignedUser.avatarUrl ?? undefined}
-                      name={request.assignedUser.name || 'Staff'}
-                      size="xs"
-                    />
-                    {request.assignedUser.name}
-                  </span>
-                )}
+
                 {/* SignalR connection status */}
                 {!isIntake && (
                   <span className={`inline-flex items-center gap-0.5 text-[10px] ${
