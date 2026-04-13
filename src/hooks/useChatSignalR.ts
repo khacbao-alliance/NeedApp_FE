@@ -124,6 +124,14 @@ export function useChatSignalR({
       console.error('[SignalR] Hub error:', error);
     });
 
+    connection.on('JoinedRequest', (reqId: string) => {
+      console.debug('[SignalR] Joined request room:', reqId);
+    });
+
+    connection.on('LeftRequest', (reqId: string) => {
+      console.debug('[SignalR] Left request room:', reqId);
+    });
+
     // ── Connection lifecycle ──
 
     connection.onreconnecting(() => {

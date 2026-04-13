@@ -212,6 +212,7 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
    ═══════════════════════════════════════════════════════ */
 function StaffDashboard({ userName }: { userName?: string | null }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [requests, setRequests] = useState<RequestDto[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -225,18 +226,21 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
       .finally(() => setLoading(false));
   }, []);
 
+  // Only count requests actually assigned to this staff member
+  const myRequests = requests.filter((r) => r.assignedUser?.id === user?.id);
+
   const stats = {
     total: requests.length,
-    pending: requests.filter((r) => r.status === 'Pending' || r.status === 'MissingInfo').length,
-    inProgress: requests.filter((r) => r.status === 'InProgress').length,
-    done: requests.filter((r) => r.status === 'Done').length,
-    intake: requests.filter((r) => r.status === 'Intake').length,
+    // Requests that need action from this staff (assigned to me, not done/cancelled)
+    actionable: myRequests.filter((r) => r.status === 'Pending' || r.status === 'MissingInfo').length,
+    inProgress: myRequests.filter((r) => r.status === 'InProgress').length,
+    done: myRequests.filter((r) => r.status === 'Done').length,
   };
 
-  const actionNeeded = requests.filter(
+  const actionNeeded = myRequests.filter(
     (r) => r.status === 'Pending' || r.status === 'MissingInfo'
   );
-  const inProgressList = requests.filter((r) => r.status === 'InProgress').slice(0, 5);
+  const inProgressList = myRequests.filter((r) => r.status === 'InProgress').slice(0, 5);
 
   return (
     <div className="space-y-8" id="dashboard-page">
@@ -255,7 +259,7 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
 
       <StaggerContainer staggerDelay={0.1} className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StaggerItem><StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" /></StaggerItem>
-        <StaggerItem><StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.myRequests')} value={stats.pending + stats.intake} color="text-amber-400" bg="bg-amber-500/10" highlight={stats.pending + stats.intake > 0} /></StaggerItem>
+        <StaggerItem><StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.myRequests')} value={stats.actionable} color="text-amber-400" bg="bg-amber-500/10" highlight={stats.actionable > 0} /></StaggerItem>
         <StaggerItem><StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label={t('dashboard.inProgress')} value={stats.inProgress} color="text-blue-400" bg="bg-blue-500/10" /></StaggerItem>
         <StaggerItem><StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label={t('dashboard.done')} value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" /></StaggerItem>
       </StaggerContainer>

@@ -317,7 +317,16 @@
     "deleteAvatarDesc": "Your profile picture will be replaced with a default avatar.",
     "deleteAvatarConfirm": "Remove",
     "changeAvatar": "Change photo",
-    "removeAvatar": "Remove photo"
+    "removeAvatar": "Remove photo",
+    "deleteClientBtn": "Delete organization",
+    "leaveClientBtn": "Leave organization",
+    "deleteClientTitle": "Delete organization?",
+    "deleteClientDesc": "All organization data will be permanently deleted. All members will lose access. This action cannot be undone.",
+    "deleteClientConfirm": "Delete permanently",
+    "leaveClientTitle": "Leave organization?",
+    "leaveClientDesc": "You will no longer see this organization's requests. You can be re-invited later.",
+    "leaveClientConfirm": "Leave organization",
+    "clientActionError": "An error occurred. Please try again."
   },
   "confirm": {
     "logout": {

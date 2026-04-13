@@ -63,6 +63,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
   const connectionRef = useRef<HubConnection | null>(null);
   const mountedRef = useRef(true);
+  const pageRef = useRef(1);
 
   const fetchNotifications = useCallback(async (pageNum = 1) => {
     try {
@@ -79,6 +80,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
       setUnreadCount(countResult.count);
       setPage(pageNum);
+      pageRef.current = pageNum;
     } catch {
       // silent
     } finally {
@@ -89,8 +91,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(() => fetchNotifications(1), [fetchNotifications]);
 
   const fetchMore = useCallback(async () => {
-    await fetchNotifications(page + 1);
-  }, [fetchNotifications, page]);
+    await fetchNotifications(pageRef.current + 1);
+  }, [fetchNotifications]);
 
   const markAsRead = useCallback(async (id: string) => {
     try {

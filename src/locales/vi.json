@@ -317,7 +317,16 @@
     "deleteAvatarDesc": "Ảnh đại diện sẽ được thay bằng ảnh mặc định.",
     "deleteAvatarConfirm": "Xóa",
     "changeAvatar": "Đổi ảnh",
-    "removeAvatar": "Xóa ảnh"
+    "removeAvatar": "Xóa ảnh",
+    "deleteClientBtn": "Xóa tổ chức",
+    "leaveClientBtn": "Rời tổ chức",
+    "deleteClientTitle": "Xóa tổ chức?",
+    "deleteClientDesc": "Toàn bộ dữ liệu tổ chức sẽ bị xóa vĩnh viễn. Tất cả thành viên sẽ mất quyền truy cập. Hành động này không thể hoàn tác.",
+    "deleteClientConfirm": "Xóa vĩnh viễn",
+    "leaveClientTitle": "Rời tổ chức?",
+    "leaveClientDesc": "Bạn sẽ không còn thấy các yêu cầu của tổ chức này. Bạn có thể được mời lại sau.",
+    "leaveClientConfirm": "Rời tổ chức",
+    "clientActionError": "Có lỗi xảy ra. Vui lòng thử lại."
   },
   "confirm": {
     "logout": {
