@@ -26,5 +26,13 @@ export const clientService = {
 
   removeMember: (clientId: string, userId: string) =>
     api.delete<void>(`/clients/${clientId}/members/${userId}`),
+
+  /** Owner deletes the entire client organization */
+  deleteMyClient: () =>
+    api.delete<void>('/clients/me'),
+
+  /** Member leaves the client organization */
+  leaveClient: () =>
+    api.delete<void>('/clients/me/leave'),
 };
 

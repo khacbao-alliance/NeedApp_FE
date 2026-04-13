@@ -123,13 +123,12 @@ export default function RequestChatPage() {
       setHasMore(res.hasMore);
     } catch (err: unknown) {
       const status = (err as { status?: number })?.status;
-      if (status === 403 || status === 404) {
-        // Staff not assigned → show pre-assignment UI instead of access denied
-        if (role === 'Staff' && status === 404) {
-          setStaffNotAssigned(true);
-        } else {
-          setAccessDenied(true);
-        }
+      if (status === 403 && role === 'Staff') {
+        // BE returns 403 when staff is not yet a participant (not assigned).
+        // Show the self-assign prompt instead of the generic access-denied screen.
+        setStaffNotAssigned(true);
+      } else if (status === 403 || status === 404) {
+        setAccessDenied(true);
       }
     } finally {
       setLoading(false);
