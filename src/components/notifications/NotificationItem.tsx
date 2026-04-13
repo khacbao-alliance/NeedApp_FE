@@ -10,6 +10,7 @@ import {
   EnvelopeIcon,
 } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
+import { getNotificationContent } from '@/lib/notificationUtils';
 import type { NotificationDto, NotificationType } from '@/types';
 
 interface NotificationItemProps {
@@ -65,11 +66,11 @@ export function NotificationItem({ notification, onClick, compact }: Notificatio
           'text-sm leading-snug',
           notification.isRead ? 'text-[var(--text-secondary)]' : 'text-[var(--foreground)] font-medium'
         )}>
-          {notification.title}
+          {t(`notifications.typeTitle.${notification.type}`, notification.title ?? '')}
         </p>
-        {notification.content && (
+        {getNotificationContent(notification, t) && (
           <p className="mt-0.5 text-xs text-[var(--text-muted)] line-clamp-2">
-            {notification.content}
+            {getNotificationContent(notification, t)}
           </p>
         )}
         <p className="mt-1 text-[11px] text-[var(--text-muted)]">

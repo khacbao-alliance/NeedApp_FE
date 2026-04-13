@@ -342,6 +342,7 @@ export interface NotificationDto {
   type: NotificationType;
   title: string | null;
   content: string | null;
+  metadata: Record<string, string> | null;
   referenceId: string | null;
   referenceType: string | null;
   isRead: boolean;

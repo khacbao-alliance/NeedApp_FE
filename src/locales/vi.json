@@ -165,7 +165,17 @@
       "selfAssign": "Nhận xử lý",
       "notAssigned": "Chưa assign",
       "assignedTo": "→ {{name}}",
-      "paging": "Trang {{page}} / {{total}} · {{count}} yêu cầu"
+      "paging": "Trang {{page}} / {{total}} · {{count}} yêu cầu",
+      "staffAll": "Tất cả",
+      "staffMine": "Của tôi",
+      "staffUnassigned": "Chưa nhận",
+      "sortNewest": "Mới nhất",
+      "sortOldest": "Cũ nhất",
+      "sortPriority": "Ưu tiên",
+      "legendTitle": "Màu viền thể hiện thời gian chờ",
+      "legendUrgent": "Trên 24 giờ — cần xử lý ngay",
+      "legendWarning": "4–24 giờ — nên theo dõi sớm",
+      "legendNormal": "Dưới 4 giờ — đúng tiến độ"
     },
     "new": {
       "title": "Tạo yêu cầu mới",
@@ -240,7 +250,12 @@
     "cannotChangeStatus": "Không thể chuyển trạng thái",
     "cannotAssign": "Không thể gán staff",
     "cannotUnassign": "Không thể gỡ staff",
-    "cannotSelfAssign": "Không thể nhận request"
+    "cannotSelfAssign": "Không thể nhận request",
+    "confirmDoneTitle": "Hoàn thành yêu cầu",
+    "confirmDoneDesc": "Yêu cầu sẽ được đánh dấu hoàn thành. Bạn vẫn có thể mở lại sau.",
+    "confirmCancelTitle": "Huỷ yêu cầu",
+    "confirmCancelDesc": "Yêu cầu sẽ bị huỷ. Hành động này không thể hoàn tác.",
+    "goBack": "Quay lại"
   },
   "dashboard": {
     "greeting": "Xin chào",
@@ -266,7 +281,9 @@
     "noRequestsYet": "Chưa có yêu cầu nào",
     "recentUsers": "Người dùng gần đây",
     "pendingFeedback": "Có yêu cầu đang chờ phản hồi hoặc thiếu thông tin từ khách hàng",
-    "pickFromQueue": "Nhận yêu cầu mới từ danh sách chờ xử lý"
+    "pickFromQueue": "Nhận yêu cầu mới từ danh sách chờ xử lý",
+    "unassigned": "Chưa phân công",
+    "allAssigned": "Tất cả request đã được phân công"
   },
   "profile": {
     "unnamed": "Chưa đặt tên",
@@ -432,7 +449,28 @@
     "emptyDesc": "Bạn sẽ nhận thông báo khi có hoạt động mới",
     "loadMore": "Tải thêm",
     "viewAll": "Xem tất cả thông báo",
-    "newBadge": "{{count}} mới"
+    "newBadge": "{{count}} mới",
+    "filterAll": "Tất cả",
+    "filterUnread": "Chưa đọc",
+    "noUnread": "Không có thông báo chưa đọc",
+    "noUnreadDesc": "Bạn đã đọc hết thông báo",
+    "typeTitle": {
+      "NewMessage": "Tin nhắn mới",
+      "MissingInfo": "Yêu cầu bổ sung thông tin",
+      "StatusChange": "Trạng thái yêu cầu đã thay đổi",
+      "Assignment": "Phân công mới",
+      "NewRequest": "Yêu cầu mới",
+      "Invitation": "Lời mời tham gia"
+    },
+    "typeContent": {
+      "NewMessage": "Tin nhắn mới trong \"{{requestTitle}}\": {{messagePreview}}",
+      "MissingInfo": "\"{{requestTitle}}\" cần bổ sung thông tin: {{messageContent}}",
+      "StatusChange": "\"{{requestTitle}}\" chuyển từ {{fromStatus}} sang {{toStatus}}",
+      "AssignmentToMe": "Yêu cầu \"{{requestTitle}}\" đã được giao cho bạn",
+      "AssignmentSelfAccept": "\"{{staffName}}\" đã nhận xử lý yêu cầu \"{{requestTitle}}\"",
+      "NewRequest": "Yêu cầu mới: \"{{requestTitle}}\"",
+      "Invitation": "{{inviterName}} mời bạn tham gia \"{{clientName}}\" với vai trò {{role}}"
+    }
   },
   "members": {
     "title": "Thành viên",

@@ -201,6 +201,23 @@ export default function RequestsPage() {
         ))}
       </div>
 
+      {/* Urgency Legend */}
+      <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)] select-none">
+        <span className="font-medium text-[var(--text-secondary)]">{t('requests.list.legendTitle')}:</span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-red-500/70" />
+          {t('requests.list.legendUrgent')}
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-amber-500/70" />
+          {t('requests.list.legendWarning')}
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-[var(--border)]" />
+          {t('requests.list.legendNormal')}
+        </span>
+      </div>
+
       {/* List */}
       {loading ? (
         <div className="space-y-3">
