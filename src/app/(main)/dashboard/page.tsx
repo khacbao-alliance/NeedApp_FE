@@ -27,6 +27,9 @@ import {
   InboxIcon,
   UserPlusIcon,
 } from '@heroicons/react/24/outline';
+import { motion } from 'framer-motion';
+import { StaggerContainer, StaggerItem } from '@/components/ui/motion/StaggerContainer';
+import { FadeIn } from '@/components/ui/motion/FadeIn';
 
 export default function DashboardPage() {
   const { user, role } = useAuth();
@@ -85,40 +88,42 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
     .slice(0, 5);
 
   return (
-    <div className="space-y-8 animate-fade-in" id="dashboard-page">
+    <div className="space-y-8" id="dashboard-page">
       {/* Welcome */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <ShieldCheckIcon className="h-6 w-6 text-red-400" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-red-400">Admin Panel</span>
+      <FadeIn direction="down" delay={0}>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <ShieldCheckIcon className="h-6 w-6 text-red-400" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-red-400">Admin Panel</span>
+            </div>
+            <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
+              {t('dashboard.greeting')}, <span className="gradient-text">{userName || 'Admin'}</span>! 👋
+            </h1>
+            <p className="mt-1 text-[var(--text-muted)]">
+              {t('dashboard.adminSubtitle')}
+            </p>
           </div>
-          <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
-            {t('dashboard.greeting')}, <span className="gradient-text">{userName || 'Admin'}</span>! 👋
-          </h1>
-          <p className="mt-1 text-[var(--text-muted)]">
-            {t('dashboard.adminSubtitle')}
-          </p>
         </div>
-      </div>
+      </FadeIn>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
-        <StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" />
-        <StatCard icon={<InboxIcon className="h-5 w-5" />} label={t('dashboard.intake')} value={stats.intake} color="text-amber-400" bg="bg-amber-500/10" />
-        <StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.pending')} value={stats.pending} color="text-blue-400" bg="bg-blue-500/10" />
-        <StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label={t('dashboard.inProgress')} value={stats.inProgress} color="text-purple-400" bg="bg-purple-500/10" />
-        <StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label={t('dashboard.done')} value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" />
-        <StatCard icon={<ExclamationTriangleIcon className="h-5 w-5" />} label={t('dashboard.unassigned', 'Chưa phân công')} value={stats.unassigned} color="text-red-400" bg="bg-red-500/10" highlight={stats.unassigned > 0} />
-        <StatCard icon={<UserGroupIcon className="h-5 w-5" />} label={t('dashboard.totalUsers')} value={stats.totalUsers} color="text-cyan-400" bg="bg-cyan-500/10" />
-      </div>
+      <StaggerContainer staggerDelay={0.07} className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
+        <StaggerItem><StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" /></StaggerItem>
+        <StaggerItem><StatCard icon={<InboxIcon className="h-5 w-5" />} label={t('dashboard.intake')} value={stats.intake} color="text-amber-400" bg="bg-amber-500/10" /></StaggerItem>
+        <StaggerItem><StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.pending')} value={stats.pending} color="text-blue-400" bg="bg-blue-500/10" /></StaggerItem>
+        <StaggerItem><StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label={t('dashboard.inProgress')} value={stats.inProgress} color="text-purple-400" bg="bg-purple-500/10" /></StaggerItem>
+        <StaggerItem><StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label={t('dashboard.done')} value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" /></StaggerItem>
+        <StaggerItem><StatCard icon={<ExclamationTriangleIcon className="h-5 w-5" />} label={t('dashboard.unassigned', 'Chưa phân công')} value={stats.unassigned} color="text-red-400" bg="bg-red-500/10" highlight={stats.unassigned > 0} /></StaggerItem>
+        <StaggerItem><StatCard icon={<UserGroupIcon className="h-5 w-5" />} label={t('dashboard.totalUsers')} value={stats.totalUsers} color="text-cyan-400" bg="bg-cyan-500/10" /></StaggerItem>
+      </StaggerContainer>
 
       {/* Quick Actions Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <QuickActionCard href="/admin/users" icon={<UserGroupIcon className="h-6 w-6" />} title={t('dashboard.manageUsers')} description={t('dashboard.manageUsersDesc')} color="text-cyan-400" bg="bg-cyan-500/10" />
-        <QuickActionCard href="/admin/intake-questions" icon={<ChatBubbleLeftRightIcon className="h-6 w-6" />} title={t('dashboard.intakeQuestions')} description={t('dashboard.intakeQuestionsDesc')} color="text-amber-400" bg="bg-amber-500/10" />
-        <QuickActionCard href="/requests" icon={<DocumentTextIcon className="h-6 w-6" />} title={t('dashboard.allRequests')} description={t('dashboard.allRequestsDesc')} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" />
-      </div>
+      <StaggerContainer staggerDelay={0.1} delayStart={0.3} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StaggerItem><QuickActionCard href="/admin/users" icon={<UserGroupIcon className="h-6 w-6" />} title={t('dashboard.manageUsers')} description={t('dashboard.manageUsersDesc')} color="text-cyan-400" bg="bg-cyan-500/10" /></StaggerItem>
+        <StaggerItem><QuickActionCard href="/admin/intake-questions" icon={<ChatBubbleLeftRightIcon className="h-6 w-6" />} title={t('dashboard.intakeQuestions')} description={t('dashboard.intakeQuestionsDesc')} color="text-amber-400" bg="bg-amber-500/10" /></StaggerItem>
+        <StaggerItem><QuickActionCard href="/requests" icon={<DocumentTextIcon className="h-6 w-6" />} title={t('dashboard.allRequests')} description={t('dashboard.allRequestsDesc')} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" /></StaggerItem>
+      </StaggerContainer>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Urgent Requests */}
@@ -234,24 +239,26 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
   const inProgressList = requests.filter((r) => r.status === 'InProgress').slice(0, 5);
 
   return (
-    <div className="space-y-8 animate-fade-in" id="dashboard-page">
-      <div>
-        <div className="flex items-center gap-2">
-          <BoltIcon className="h-5 w-5 text-blue-400" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">Staff Workspace</span>
+    <div className="space-y-8" id="dashboard-page">
+      <FadeIn direction="down" delay={0}>
+        <div>
+          <div className="flex items-center gap-2">
+            <BoltIcon className="h-5 w-5 text-blue-400" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">Staff Workspace</span>
+          </div>
+          <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
+            {t('dashboard.greeting')}, <span className="gradient-text">{userName || 'bạn'}</span>! 👋
+          </h1>
+          <p className="mt-1 text-[var(--text-muted)]">{t('dashboard.staffSubtitle')}</p>
         </div>
-        <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
-          {t('dashboard.greeting')}, <span className="gradient-text">{userName || 'bạn'}</span>! 👋
-        </h1>
-        <p className="mt-1 text-[var(--text-muted)]">{t('dashboard.staffSubtitle')}</p>
-      </div>
+      </FadeIn>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" />
-        <StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.myRequests')} value={stats.pending + stats.intake} color="text-amber-400" bg="bg-amber-500/10" highlight={stats.pending + stats.intake > 0} />
-        <StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label={t('dashboard.inProgress')} value={stats.inProgress} color="text-blue-400" bg="bg-blue-500/10" />
-        <StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label={t('dashboard.done')} value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" />
-      </div>
+      <StaggerContainer staggerDelay={0.1} className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <StaggerItem><StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" /></StaggerItem>
+        <StaggerItem><StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.myRequests')} value={stats.pending + stats.intake} color="text-amber-400" bg="bg-amber-500/10" highlight={stats.pending + stats.intake > 0} /></StaggerItem>
+        <StaggerItem><StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label={t('dashboard.inProgress')} value={stats.inProgress} color="text-blue-400" bg="bg-blue-500/10" /></StaggerItem>
+        <StaggerItem><StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label={t('dashboard.done')} value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" /></StaggerItem>
+      </StaggerContainer>
 
       {actionNeeded.length > 0 && (
         <div className="gradient-border rounded-2xl">
@@ -354,30 +361,34 @@ function QuickActionCard({ href, icon, title, description, color, bg }: {
 function RequestList({ requests }: { requests: RequestDto[] }) {
   const { language } = useLanguage();
   return (
-    <div className="space-y-2">
+    <StaggerContainer staggerDelay={0.07} className="space-y-2">
       {requests.map((req) => (
-        <Link key={req.id} href={`/requests/${req.id}`} className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4 transition-all duration-200 hover:bg-[var(--surface-hover)] hover:border-[var(--glass-border)]">
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-medium text-[var(--foreground)]">{req.title}</h3>
-            <div className="mt-1 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-              {req.client && <span className="font-medium">{req.client.name}</span>}
-              {req.client && <span>·</span>}
-              <span>{formatDate(req.createdAt, language)}</span>
-              {req.assignedUser && (
-                <>
-                  <span>·</span>
-                  <span className="text-[var(--accent-violet)]">→ {req.assignedUser.name}</span>
-                </>
-              )}
-            </div>
-          </div>
-          <div className="ml-4 flex items-center gap-2 flex-shrink-0">
-            <PriorityBadge priority={req.priority} />
-            <StatusBadge status={req.status} />
-          </div>
-        </Link>
+        <StaggerItem key={req.id}>
+          <motion.div whileHover={{ x: 2 }} transition={{ duration: 0.15, ease: 'easeOut' }}>
+            <Link href={`/requests/${req.id}`} className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4 transition-all duration-200 hover:bg-[var(--surface-hover)] hover:border-[var(--glass-border)]">
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-sm font-medium text-[var(--foreground)]">{req.title}</h3>
+                <div className="mt-1 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                  {req.client && <span className="font-medium">{req.client.name}</span>}
+                  {req.client && <span>·</span>}
+                  <span>{formatDate(req.createdAt, language)}</span>
+                  {req.assignedUser && (
+                    <>
+                      <span>·</span>
+                      <span className="text-[var(--accent-violet)]">→ {req.assignedUser.name}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="ml-4 flex items-center gap-2 flex-shrink-0">
+                <PriorityBadge priority={req.priority} />
+                <StatusBadge status={req.status} />
+              </div>
+            </Link>
+          </motion.div>
+        </StaggerItem>
       ))}
-    </div>
+    </StaggerContainer>
   );
 }
 
