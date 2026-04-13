@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { NotificationProvider } from '@/hooks/useNotifications';
 import { NotificationToast } from '@/components/notifications/NotificationToast';
 import { ErrorToastContainer } from '@/components/ui/ErrorToast';
+import { PageTransition } from '@/components/ui/motion/PageTransition';
 
 export default function MainLayout({
   children,
@@ -68,7 +69,7 @@ export default function MainLayout({
               ) : (
                 <>
                   <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 lg:px-8">
-                    {children}
+                    <PageTransition>{children}</PageTransition>
                   </div>
                   <Footer />
                 </>
@@ -95,7 +96,7 @@ export default function MainLayout({
               children
             ) : (
               <div className="px-6 py-6 lg:px-10">
-                {children}
+                <PageTransition>{children}</PageTransition>
               </div>
             )}
           </main>
