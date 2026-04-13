@@ -229,7 +229,7 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
   };
 
   const actionNeeded = requests.filter(
-    (r) => r.status === 'Pending' || r.status === 'Intake' || r.status === 'MissingInfo'
+    (r) => r.status === 'Pending' || r.status === 'MissingInfo'
   );
   const inProgressList = requests.filter((r) => r.status === 'InProgress').slice(0, 5);
 

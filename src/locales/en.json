@@ -205,6 +205,7 @@
     "doneStatus": "✅ Request completed",
     "cancelledStatus": "❌ Request cancelled",
     "missingInfoToggle": "Request missing information",
+    "summary": "Summary",
     "live": "Live",
     "connecting": "Connecting...",
     "intakeQuestion": "Intake question",

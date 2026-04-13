@@ -10,6 +10,7 @@ import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationProvider } from '@/hooks/useNotifications';
 import { NotificationToast } from '@/components/notifications/NotificationToast';
+import { ErrorToastContainer } from '@/components/ui/ErrorToast';
 
 export default function MainLayout({
   children,
@@ -58,6 +59,7 @@ export default function MainLayout({
     return (
       <NotificationProvider>
         <NotificationToast>
+          <ErrorToastContainer />
           <div className="flex flex-col h-screen overflow-hidden">
             <ClientNavbar />
             <main className={`flex-1 min-h-0 ${isChatPage ? 'overflow-hidden' : 'overflow-y-auto'}`}>
@@ -82,6 +84,7 @@ export default function MainLayout({
   return (
     <NotificationProvider>
       <NotificationToast>
+        <ErrorToastContainer />
         <div className="flex h-screen overflow-hidden">
           <div className="hidden md:flex">
             <Sidebar />

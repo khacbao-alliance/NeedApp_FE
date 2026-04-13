@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Runs at the edge before React renders — eliminates auth flash entirely
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isLoggedIn = request.cookies.has('auth_flag');
   const role = request.cookies.get('auth_role')?.value;

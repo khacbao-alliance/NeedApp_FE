@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePolling } from '@/hooks/usePolling';
 import { useChatSignalR } from '@/hooks/useChatSignalR';
 import { useNotifications } from '@/hooks/useNotifications';
+import { showErrorToast } from '@/components/ui/ErrorToast';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { MissingInfoComposer } from '@/components/chat/MissingInfoComposer';
@@ -163,7 +164,7 @@ export default function RequestChatPage() {
       }
     },
     {
-      interval: 3000,
+      interval: 8000,
       enabled: isIntake && !loading && !staffNotAssigned, // Only poll during Intake phase
       backgroundInterval: 60000,
     }
@@ -238,7 +239,7 @@ export default function RequestChatPage() {
         }, 1000);
       }
     } catch {
-      // ignore
+      showErrorToast(t('common.error', 'Có lỗi xảy ra'));
     } finally {
       setSending(false);
     }
@@ -253,7 +254,7 @@ export default function RequestChatPage() {
         await fetchMessages();
       }
     } catch {
-      // ignore
+      showErrorToast(t('common.error', 'Có lỗi xảy ra'));
     }
   };
 
@@ -390,7 +391,7 @@ export default function RequestChatPage() {
               className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--accent-violet)] bg-violet-500/10 hover:bg-violet-500/20 transition-colors border border-violet-500/20"
             >
               <ChartBarIcon className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Tóm tắt</span>
+              <span className="hidden sm:inline">{t('chat.summary', 'Tóm tắt')}</span>
             </button>
           )}
           {request && <SelfAssignAction request={request} onUpdate={(updated) => {
@@ -568,7 +569,7 @@ export default function RequestChatPage() {
       )}
 
       {/* Input */}
-      {staffNotAssigned ? null : role === 'Admin' ? null : request?.status === 'Done' || request?.status === 'Cancelled' ? (
+      {staffNotAssigned ? null : request?.status === 'Done' || request?.status === 'Cancelled' ? (
         <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-center">
           <p className="text-xs text-[var(--text-muted)]">
             {request?.status === 'Done' ? t('chat.doneStatus') : t('chat.cancelledStatus')}
@@ -606,8 +607,8 @@ export default function RequestChatPage() {
             disabled={sending}
             isIntake={isIntake}
           />
-          {/* Missing Info toggle (Staff only, not during Intake; Admin is already excluded above) */}
-          {role === 'Staff' && !isIntake && (
+          {/* Missing Info toggle (Staff/Admin only, not during Intake) */}
+          {(role === 'Staff' || role === 'Admin') && !isIntake && (
             <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-1.5 flex justify-end">
               <button
                 onClick={() => setShowMissingInfo(true)}

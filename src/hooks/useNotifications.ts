@@ -118,16 +118,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       await notificationService.markAsReadByRequest(id);
       // Update local state: mark matching notifications as read
       setNotifications(prev => {
-        let changed = 0;
-        const updated = prev.map(n => {
-          if (n.referenceId === id && !n.isRead) {
-            changed++;
-            return { ...n, isRead: true };
-          }
-          return n;
-        });
-        if (changed > 0) setUnreadCount(prev => Math.max(0, prev - changed));
-        return updated;
+        const changed = prev.filter(n => n.referenceId === id && !n.isRead).length;
+        if (changed > 0) {
+          // Update unread count separately to avoid nested state update issues
+          setUnreadCount(c => Math.max(0, c - changed));
+        }
+        return prev.map(n =>
+          n.referenceId === id && !n.isRead ? { ...n, isRead: true } : n
+        );
       });
     } catch { /* silent */ }
   }, []);

@@ -389,23 +389,25 @@ export function ClientMembersPanel({
           <p className="text-sm text-[var(--text-muted)]">{t('members.noMembers')}</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {members.map((member) => (
-            <MemberRow
-              key={member.userId}
-              member={member}
-              isCurrentUser={member.userId === currentUserId}
-              isOwner={isOwner}
-              onRemove={setPendingRemove}
-              removing={removingId === member.userId}
-            />
-          ))}
+        <>
+          <div className="space-y-2">
+            {members.map((member) => (
+              <MemberRow
+                key={member.userId}
+                member={member}
+                isCurrentUser={member.userId === currentUserId}
+                isOwner={isOwner}
+                onRemove={setPendingRemove}
+                removing={removingId === member.userId}
+              />
+            ))}
+          </div>
           {!isOwner && (
             <p className="text-center text-[11px] text-[var(--text-muted)] pt-1">
               {t('members.ownerOnly')}
             </p>
           )}
-        </div>
+        </>
       )}
 
       <InviteMemberModal

@@ -205,6 +205,7 @@
     "doneStatus": "✅ Yêu cầu đã hoàn tất",
     "cancelledStatus": "❌ Yêu cầu đã bị hủy",
     "missingInfoToggle": "Yêu cầu bổ sung thông tin",
+    "summary": "Tóm tắt",
     "live": "Live",
     "connecting": "Đang kết nối...",
     "intakeQuestion": "Câu hỏi tiếp nhận",

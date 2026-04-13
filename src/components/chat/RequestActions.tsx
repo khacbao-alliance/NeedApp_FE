@@ -46,7 +46,6 @@ const VARIANT_CLASSES: Record<string, string> = {
   warning: 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25',
   danger: 'bg-red-500/15 text-red-400 hover:bg-red-500/25',
 };
-
 /* ─── Confirm Modal ─── */
 function ConfirmModal({
   open,
@@ -69,6 +68,7 @@ function ConfirmModal({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   if (!open) return null;
   const btnClass = variant === 'success'
     ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
