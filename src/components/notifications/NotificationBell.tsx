@@ -6,12 +6,14 @@ import { useTranslation } from 'react-i18next';
 import { BellIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { BellAlertIcon } from '@heroicons/react/24/solid';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAuth } from '@/hooks/useAuth';
 import { NotificationItem } from './NotificationItem';
 import { cn } from '@/lib/utils';
 
 export function NotificationBell() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { hasClient, role } = useAuth();
   const {
     notifications,
     unreadCount,
@@ -43,7 +45,16 @@ export function NotificationBell() {
     if (notification.referenceType === 'Request' && notification.referenceId) {
       router.push(`/requests/${notification.referenceId}`);
     } else if (notification.referenceType === 'Invitation') {
-      router.push('/setup-client');
+      if (!hasClient) {
+        // Haven't joined yet → go to setup-client to see pending invitations
+        router.push('/setup-client');
+      } else if (role === 'Client') {
+        // Already joined as Client → /requests is their home page
+        router.push('/requests');
+      } else {
+        // Staff/Admin who received an invitation (edge case)
+        router.push('/dashboard');
+      }
     }
   };
 

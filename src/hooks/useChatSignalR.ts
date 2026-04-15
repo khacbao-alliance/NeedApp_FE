@@ -8,7 +8,7 @@ import {
   LogLevel,
 } from '@microsoft/signalr';
 import { getAccessToken, normalizeEnums } from '@/services/requests';
-import type { MessageDto } from '@/types';
+import type { MessageDto, ReadReceiptDto } from '@/types';
 
 interface UseChatSignalROptions {
   requestId: string;
@@ -20,6 +20,8 @@ interface UseChatSignalROptions {
   onStatusChanged?: (status: string) => void;
   /** Called when a message is deleted */
   onMessageDeleted?: (messageId: string) => void;
+  /** Called when a participant marks as read */
+  onMessageRead?: (receipt: ReadReceiptDto) => void;
 }
 
 interface TypingUser {
@@ -51,6 +53,7 @@ export function useChatSignalR({
   onNewMessage,
   onStatusChanged,
   onMessageDeleted,
+  onMessageRead,
 }: UseChatSignalROptions) {
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
@@ -61,10 +64,12 @@ export function useChatSignalR({
   const onNewMessageRef = useRef(onNewMessage);
   const onStatusChangedRef = useRef(onStatusChanged);
   const onMessageDeletedRef = useRef(onMessageDeleted);
+  const onMessageReadRef = useRef(onMessageRead);
 
   useEffect(() => { onNewMessageRef.current = onNewMessage; }, [onNewMessage]);
   useEffect(() => { onStatusChangedRef.current = onStatusChanged; }, [onStatusChanged]);
   useEffect(() => { onMessageDeletedRef.current = onMessageDeleted; }, [onMessageDeleted]);
+  useEffect(() => { onMessageReadRef.current = onMessageRead; }, [onMessageRead]);
 
   // ── Build & manage connection ──
   useEffect(() => {
@@ -122,6 +127,10 @@ export function useChatSignalR({
 
     connection.on('Error', (error: string) => {
       console.error('[SignalR] Hub error:', error);
+    });
+
+    connection.on('MessageRead', (data: { userId: string; lastReadAt: string }) => {
+      onMessageReadRef.current?.({ userId: data.userId, lastReadAt: data.lastReadAt });
     });
 
     connection.on('JoinedRequest', (reqId: string) => {

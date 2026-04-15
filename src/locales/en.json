@@ -164,8 +164,8 @@
       "createRequest": "Create request",
       "selfAssign": "Accept",
       "notAssigned": "Unassigned",
-      "assignedTo": "→ {{name}}",
-      "paging": "Page {{page}} / {{total}} · {{count}} requests",
+      "assignedTo": "â†’ {{name}}",
+      "paging": "Page {{page}} / {{total}} Â· {{count}} requests",
       "staffAll": "All",
       "staffMine": "Mine",
       "staffUnassigned": "Unassigned",
@@ -173,9 +173,10 @@
       "sortOldest": "Oldest",
       "sortPriority": "Priority",
       "legendTitle": "Border color indicates waiting time",
-      "legendUrgent": "Over 24 hours — needs immediate attention",
-      "legendWarning": "4–24 hours — follow up soon",
-      "legendNormal": "Under 4 hours — on time"
+      "legendUrgent": "Over 24 hours â€” needs immediate attention",
+      "legendWarning": "4â€“24 hours â€” follow up soon",
+      "legendNormal": "Under 4 hours â€” on time",
+      "clientDissolved": "Organization dissolved"
     },
     "new": {
       "title": "New request",
@@ -202,8 +203,10 @@
     "typing": "is typing...",
     "answerPlaceholder": "Enter your answer...",
     "messagePlaceholder": "Type a message...",
-    "doneStatus": "✅ Request completed",
-    "cancelledStatus": "❌ Request cancelled",
+    "doneStatus": "Request completed",
+    "adminObserverStatus": "You are viewing as Admin. Only the assigned Staff member can send messages.",
+    "cancelledStatus": "âŒ Request cancelled",
+    "clientDissolvedStatus": "ðŸš« Client organization dissolved â€” chat disabled",
     "missingInfoToggle": "Request missing information",
     "summary": "Summary",
     "live": "Live",
@@ -213,13 +216,13 @@
     "answer": "Answer",
     "missingInfo": {
       "title": "Request missing information",
-      "clientReceive": "— Client will receive a list of questions",
+      "clientReceive": "â€” Client will receive a list of questions",
       "messageLabel": "Message",
       "messageOptional": "(optional)",
       "messagePlaceholder": "e.g. We need some more information to process your request...",
       "questionListLabel": "Question list",
       "addQuestion": "Add question",
-      "hint": "Enter to add • Backspace to remove",
+      "hint": "Enter to add â€¢ Backspace to remove",
       "sendBtn": "Send ({{count}})",
       "cannotSend": "Unable to send follow-up request",
       "needOneQuestion": "At least 1 question is required",
@@ -260,7 +263,7 @@
   },
   "dashboard": {
     "greeting": "Hello",
-    "adminSubtitle": "System overview — manage requests and users",
+    "adminSubtitle": "System overview â€” manage requests and users",
     "staffSubtitle": "Requests assigned to you today",
     "totalRequests": "Total requests",
     "intake": "In intake",
@@ -398,7 +401,7 @@
     "headlineConnector": "into",
     "headlineGradient": "reality",
     "headlineLine2": "in just a few steps",
-    "subtitle": "NeedApp helps you submit requests, communicate directly with our expert team, and track project progress — all in one platform.",
+    "subtitle": "NeedApp helps you submit requests, communicate directly with our expert team, and track project progress â€” all in one platform.",
     "createRequest": "New request",
     "viewMyRequests": "My requests",
     "startFree": "Get started free",
@@ -407,11 +410,11 @@
     "featuresTitleGradient": "in one place",
     "featuresSubtitle": "Simple workflow, clear communication, track anytime.",
     "feature1Title": "Easy request creation",
-    "feature1Desc": "Just describe your need briefly — the system automatically asks for more details to fully understand your requirements.",
+    "feature1Desc": "Just describe your need briefly â€” the system automatically asks for more details to fully understand your requirements.",
     "feature2Title": "Direct chat",
     "feature2Desc": "Communicate with our team through a modern chat interface. Send files, images and get fast responses.",
     "feature3Title": "Track progress",
-    "feature3Desc": "Know the exact status of your request — from intake, in progress to completion. Never miss an update.",
+    "feature3Desc": "Know the exact status of your request â€” from intake, in progress to completion. Never miss an update.",
     "feature4Title": "Fast processing",
     "feature4Desc": "The automated intake process helps the team grasp your needs instantly, shortening response time.",
     "feature5Title": "High security",
@@ -447,7 +450,7 @@
       "msg2": "I need an online fashion e-commerce website",
       "msg3": "How many pages would you like the website to have?",
       "msg4": "Around 5-10 pages, including home, products, and shopping cart",
-      "msg5": "Hi! I've received your request. I'll send a quote within 24h 👋"
+      "msg5": "Hi! I've received your request. I'll send a quote within 24h ðŸ‘‹"
     }
   },
   "notifications": {
@@ -491,6 +494,7 @@
     "inviteNote": "The user must already have a NeedApp account before being invited.",
     "inviting": "Inviting...",
     "inviteBtn": "Invite now",
+    "inviteSuccess": "Invitation sent successfully!",
     "noMembers": "No members yet",
     "ownerOnly": "Only Owner can invite or remove members.",
     "tryAgain": "Try again",
@@ -507,7 +511,7 @@
   },
   "summary": {
     "title": "Conversation summary",
-    "powered": "AI-powered · Gemini",
+    "powered": "AI-powered Â· Gemini",
     "refresh": "Refresh",
     "overview": "Overview",
     "messages": "Messages",
@@ -515,12 +519,12 @@
     "system": "System",
     "participants": "Participants",
     "aiSummary": "AI Summary",
-    "aiUnavailable": "🤖 AI summary temporarily unavailable",
+    "aiUnavailable": "ðŸ¤– AI summary temporarily unavailable",
     "intakeTitle": "Intake Questions",
     "unanswered": "(Unanswered)",
     "missingInfo": "Missing information requests",
     "resolved": "Resolved",
-    "waiting": "⏳ Waiting for response",
+    "waiting": "â³ Waiting for response",
     "highlights": "Highlights",
     "attachments": "Attachments",
     "noMessages": "No messages in this conversation yet",
@@ -531,7 +535,7 @@
     "messagesCount": "{{count}} msgs"
   },
   "footer": {
-    "tagline": "Smart customer request management system — helping you communicate and track projects easily.",
+    "tagline": "Smart customer request management system â€” helping you communicate and track projects easily.",
     "product": "Product",
     "features": "Features",
     "howItWorks": "How it works",
@@ -546,3 +550,4 @@
     "rights": "All rights reserved."
   }
 }
+

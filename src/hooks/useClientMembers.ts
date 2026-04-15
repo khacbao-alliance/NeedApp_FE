@@ -25,9 +25,12 @@ export function useClientMembers(clientId: string) {
   }, [fetchMembers, clientId]);
 
   const invite = async (email: string, role: ClientRole = 'Member') => {
-    const newMember = await clientService.inviteMember(clientId, { email, role });
-    setMembers((prev) => [...prev, newMember]);
-    return newMember;
+    // Just send the invitation — do NOT add to members list yet.
+    // The invited user is still "pending"; they won't appear as a ClientUser
+    // until they accept. Refetching here would still return no new member.
+    await clientService.inviteMember(clientId, { email, role });
+    // Refresh so any already-accepted members are visible, but don't fake-add.
+    await fetchMembers();
   };
 
   const remove = async (userId: string) => {

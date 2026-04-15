@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/Avatar';
-import type { MessageDto, IntakeQuestionMetadata, MissingInfoMetadata } from '@/types';
+import type { MessageDto, IntakeQuestionMetadata, MissingInfoMetadata, ReadReceiptDto } from '@/types';
 import { formatDate } from '@/lib/utils';
 import { FileAttachment } from './FileAttachment';
 import {
@@ -19,6 +19,8 @@ interface ChatBubbleProps {
   isOwnMessage: boolean;
   requestId?: string;
   userId?: string;
+  readers?: ReadReceiptDto[];
+  isLastOwnMessage?: boolean;
   onReaction?: (messageId: string, emoji: string) => void;
 }
 
@@ -85,7 +87,7 @@ function ReactionPicker({ messageId, onReaction }: {
   );
 }
 
-export function ChatBubble({ message, isOwnMessage, requestId, userId, onReaction }: ChatBubbleProps) {
+export function ChatBubble({ message, isOwnMessage, requestId, userId, onReaction, readers = [], isLastOwnMessage = false }: ChatBubbleProps) {
   const { t } = useTranslation();
   const { language } = useLanguage();
   const { type, content, sender, files, createdAt, metadata } = message;
@@ -327,11 +329,31 @@ export function ChatBubble({ message, isOwnMessage, requestId, userId, onReactio
         </div>
         <p
           className={cn(
-            'mt-1 px-1 text-[10px] text-[var(--text-muted)]',
-            isOwnMessage && 'text-right'
+            'mt-1 px-1 text-[10px] text-[var(--text-muted)] flex items-center gap-0.5',
+            isOwnMessage ? 'justify-end' : 'justify-start'
           )}
         >
           {formatDate(createdAt, language)}
+          {/* Read receipt tick marks — only on own messages, only on last sent */}
+          {isOwnMessage && isLastOwnMessage && (() => {
+            const msgTime = new Date(message.createdAt).getTime();
+            // Other participants who have read up to or past this message
+            const seenBy = readers.filter(
+              (r) => r.userId !== userId && new Date(r.lastReadAt).getTime() >= msgTime
+            );
+            const isSeen = seenBy.length > 0;
+            return (
+              <span
+                className={cn(
+                  'ml-0.5 font-bold tracking-tight',
+                  isSeen ? 'text-[var(--accent-violet)]' : 'text-[var(--text-muted)]'
+                )}
+                title={isSeen ? 'Đã xem' : 'Đã gửi'}
+              >
+                {isSeen ? '✓✓' : '✓'}
+              </span>
+            );
+          })()}
         </p>
       </div>
     </div>

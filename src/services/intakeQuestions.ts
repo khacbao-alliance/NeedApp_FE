@@ -1,5 +1,5 @@
 import { api } from './requests';
-import type { IntakeQuestionSetDto, CreateIntakeQuestionSetRequest } from '@/types';
+import type { IntakeQuestionSetDto, CreateIntakeQuestionSetRequest, UpdateIntakeQuestionSetRequest } from '@/types';
 
 export const intakeQuestionService = {
   list: () =>
@@ -11,8 +11,11 @@ export const intakeQuestionService = {
   create: (data: CreateIntakeQuestionSetRequest) =>
     api.post<IntakeQuestionSetDto>('/intake-question-sets', data),
 
-  update: (id: string, data: Partial<CreateIntakeQuestionSetRequest>) =>
+  update: (id: string, data: UpdateIntakeQuestionSetRequest) =>
     api.put<IntakeQuestionSetDto>(`/intake-question-sets/${id}`, data),
+
+  toggleActive: (id: string) =>
+    api.patch<{ id: string; isActive: boolean }>(`/intake-question-sets/${id}/toggle-active`, {}),
 
   delete: (id: string) =>
     api.delete<void>(`/intake-question-sets/${id}`),
