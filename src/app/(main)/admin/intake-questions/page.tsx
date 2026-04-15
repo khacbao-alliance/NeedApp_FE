@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ApiRequestError } from '@/services/requests';
+import { showErrorToast } from '@/components/ui/ErrorToast';
 import type { IntakeQuestionSetDto } from '@/types';
 import { formatDate } from '@/lib/utils';
 import {
@@ -21,6 +22,7 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   StarIcon,
+  PowerIcon,
 } from '@heroicons/react/24/outline';
 
 interface QuestionFormItem {
@@ -42,10 +44,12 @@ export default function IntakeQuestionsPage() {
   const [formName, setFormName] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [formDefault, setFormDefault] = useState(false);
+  const [formActive, setFormActive] = useState(true);
   const [questions, setQuestions] = useState<QuestionFormItem[]>([
     { content: '', isRequired: true, placeholder: '' },
   ]);
   const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   // Detail modal
@@ -93,6 +97,7 @@ export default function IntakeQuestionsPage() {
       setFormName(detail.name);
       setFormDesc(detail.description || '');
       setFormDefault(detail.isDefault);
+      setFormActive(detail.isActive);
       setQuestions(
         detail.questions.map((q) => ({
           content: q.content,
@@ -130,22 +135,31 @@ export default function IntakeQuestionsPage() {
     }
     setSaving(true);
     try {
-      const payload = {
-        name: formName,
-        description: formDesc || undefined,
-        isDefault: formDefault,
-        questions: validQuestions.map((q, i) => ({
-          content: q.content,
-          orderIndex: i,
-          isRequired: q.isRequired,
-          placeholder: q.placeholder || null,
-        })),
-      };
-
       if (editingSet) {
-        await intakeQuestionService.update(editingSet.id, payload);
+        await intakeQuestionService.update(editingSet.id, {
+          name: formName,
+          description: formDesc || undefined,
+          isDefault: formDefault,
+          isActive: formActive,
+          questions: validQuestions.map((q, i) => ({
+            content: q.content,
+            orderIndex: i,
+            isRequired: q.isRequired,
+            placeholder: q.placeholder || null,
+          })),
+        });
       } else {
-        await intakeQuestionService.create(payload);
+        await intakeQuestionService.create({
+          name: formName,
+          description: formDesc || undefined,
+          isDefault: formDefault,
+          questions: validQuestions.map((q, i) => ({
+            content: q.content,
+            orderIndex: i,
+            isRequired: q.isRequired,
+            placeholder: q.placeholder || null,
+          })),
+        });
       }
       setShowModal(false);
       fetchSets();
@@ -162,8 +176,22 @@ export default function IntakeQuestionsPage() {
     try {
       await intakeQuestionService.delete(id);
       fetchSets();
-    } catch {
-      // ignore
+    } catch (err) {
+      if (err instanceof ApiRequestError) showErrorToast(err.message);
+      else showErrorToast(t('admin.intake.error'));
+    }
+  };
+
+  const handleToggleActive = async (set: IntakeQuestionSetDto) => {
+    setToggling(set.id);
+    try {
+      const result = await intakeQuestionService.toggleActive(set.id);
+      setSets((prev) => prev.map((s) => s.id === set.id ? { ...s, isActive: result.isActive } : s));
+    } catch (err) {
+      if (err instanceof ApiRequestError) showErrorToast(err.message);
+      else showErrorToast(t('admin.intake.error'));
+    } finally {
+      setToggling(null);
     }
   };
 
@@ -250,6 +278,18 @@ export default function IntakeQuestionsPage() {
                 </div>
 
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => handleToggleActive(set)}
+                    disabled={toggling === set.id}
+                    title={set.isActive ? t('admin.intake.inactive') : t('admin.intake.active')}
+                    className={`rounded-lg p-1.5 transition-colors ${
+                      set.isActive
+                        ? 'text-emerald-400 hover:bg-emerald-500/10'
+                        : 'text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-emerald-400'
+                    }`}
+                  >
+                    <PowerIcon className={`h-4 w-4 ${toggling === set.id ? 'animate-pulse' : ''}`} />
+                  </button>
                   <button
                     onClick={() => openEdit(set)}
                     className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--foreground)]"

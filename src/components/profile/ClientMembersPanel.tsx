@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useClientMembers } from '@/hooks/useClientMembers';
 import { Modal } from '@/components/ui/Modal';
 import { Avatar } from '@/components/ui/Avatar';
+import { showSuccessToast } from '@/components/ui/ErrorToast';
 import type { ClientMemberDto, ClientRole } from '@/types';
 import {
   UserPlusIcon,
@@ -146,6 +147,7 @@ function InviteMemberModal({
     try {
       await onInvite(email.trim(), role);
       handleClose();
+      showSuccessToast(t('members.inviteSuccess', `Đã gửi lời mời tới ${email.trim()}`));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t('common.error');
       if (msg.includes('No user found with email')) {

@@ -19,7 +19,7 @@ import { MissingInfoComposer } from '@/components/chat/MissingInfoComposer';
 import { RequestStatusActions, AssignStaffAction, SelfAssignAction } from '@/components/chat/RequestActions';
 import { ConversationSummaryDrawer } from '@/components/chat/ConversationSummaryDrawer';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
-import type { MessageDto, RequestDto, RequestStatus } from '@/types';
+import type { MessageDto, RequestDto, RequestStatus, ReadReceiptDto } from '@/types';
 import { formatDate } from '@/lib/utils';
 import {
   ArrowLeftIcon,
@@ -57,6 +57,7 @@ export default function RequestChatPage() {
   const [staffNotAssigned, setStaffNotAssigned] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [newMsgCount, setNewMsgCount] = useState(0);
+  const [readers, setReaders] = useState<ReadReceiptDto[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -81,12 +82,21 @@ export default function RequestChatPage() {
         if (prev.some((m) => m.id === message.id)) return prev;
         return [...prev, message];
       });
-    }, []),
+      // Mark this new message as read immediately
+      messageService.markRead(requestId).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [requestId]),
     onStatusChanged: useCallback((status: string) => {
       setRequest((prev) => prev ? { ...prev, status: status as RequestStatus } : null);
     }, []),
     onMessageDeleted: useCallback((messageId: string) => {
       setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    }, []),
+    onMessageRead: useCallback((receipt: ReadReceiptDto) => {
+      setReaders((prev) => {
+        const filtered = prev.filter((r) => r.userId !== receipt.userId);
+        return [...filtered, receipt];
+      });
     }, []),
   });
 
@@ -121,6 +131,9 @@ export default function RequestChatPage() {
       setMessages(res.items);
       setNextCursor(res.nextCursor);
       setHasMore(res.hasMore);
+      if (res.readers) setReaders(res.readers);
+      // Mark as read whenever we load messages
+      messageService.markRead(requestId).catch(() => {});
     } catch (err: unknown) {
       const status = (err as { status?: number })?.status;
       if (status === 403 && role === 'Staff') {
@@ -237,8 +250,9 @@ export default function RequestChatPage() {
           setRequest(updatedReq);
         }, 1000);
       }
-    } catch {
-      showErrorToast(t('common.error', 'Có lỗi xảy ra'));
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message;
+      showErrorToast(msg || t('common.error', 'Có lỗi xảy ra'));
     } finally {
       setSending(false);
     }
@@ -273,8 +287,9 @@ export default function RequestChatPage() {
     orderIndex: number;
     totalQuestions: number;
   } | null;
+  // orderIndex is 0-based, so question 1 = (0+1)/total = 1/total
   const intakeProgress = intakeMeta
-    ? (intakeMeta.orderIndex / intakeMeta.totalQuestions) * 100
+    ? ((intakeMeta.orderIndex + 1) / intakeMeta.totalQuestions) * 100
     : 0;
 
   // ── Access denied UI ──
@@ -331,9 +346,16 @@ export default function RequestChatPage() {
 
                 {/* Client pill */}
                 {request.client && (
-                  <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] px-2.5 py-0.5 text-xs font-medium text-[var(--text-secondary)]">
-                    <UserCircleIcon className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-muted)]" />
-                    {request.client.name}
+                  <span className={`hidden sm:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+                    request.isClientActive
+                      ? 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-secondary)]'
+                      : 'bg-red-500/10 border-red-500/20 text-red-400'
+                  }`}>
+                    <UserCircleIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className={!request.isClientActive ? 'line-through' : ''}>{request.client.name}</span>
+                    {!request.isClientActive && (
+                      <span className="text-[10px] font-normal">({t('requests.list.clientDissolved')})</span>
+                    )}
                   </span>
                 )}
 
@@ -500,35 +522,44 @@ export default function RequestChatPage() {
             <p className="text-sm text-[var(--text-muted)]">{t('chat.empty')}</p>
           </div>
         ) : (
-          messages.map((msg) => (
-            <ChatBubble
-              key={msg.id}
-              message={msg}
-              isOwnMessage={msg.sender?.id === user?.id}
-              requestId={requestId}
-              userId={user?.id}
-              onReaction={async (messageId, emoji) => {
-                try {
-                  const res = await messageService.toggleReaction(requestId, messageId, emoji);
-                  // Optimistic update
-                  setMessages((prev) => prev.map((m) => {
-                    if (m.id !== messageId) return m;
-                    const currentReactions = m.reactions || [];
-                    if (res.added) {
-                      const existing = currentReactions.find((r) => r.emoji === emoji);
-                      if (existing) {
-                        return { ...m, reactions: currentReactions.map((r) => r.emoji === emoji ? { ...r, count: res.count, userIds: [...r.userIds, user?.id || ''] } : r) };
+          messages.map((msg, idx) => {
+            // Determine if this is the last message sent by the current user
+            // (only last own message shows the seen tick)
+            const isLastOwnMessage =
+              msg.sender?.id === user?.id &&
+              !messages.slice(idx + 1).some((m) => m.sender?.id === user?.id);
+            return (
+              <ChatBubble
+                key={msg.id}
+                message={msg}
+                isOwnMessage={msg.sender?.id === user?.id}
+                requestId={requestId}
+                userId={user?.id}
+                readers={readers}
+                isLastOwnMessage={isLastOwnMessage}
+                onReaction={async (messageId, emoji) => {
+                  try {
+                    const res = await messageService.toggleReaction(requestId, messageId, emoji);
+                    // Optimistic update
+                    setMessages((prev) => prev.map((m) => {
+                      if (m.id !== messageId) return m;
+                      const currentReactions = m.reactions || [];
+                      if (res.added) {
+                        const existing = currentReactions.find((r) => r.emoji === emoji);
+                        if (existing) {
+                          return { ...m, reactions: currentReactions.map((r) => r.emoji === emoji ? { ...r, count: res.count, userIds: [...r.userIds, user?.id || ''] } : r) };
+                        }
+                        return { ...m, reactions: [...currentReactions, { emoji, count: 1, userIds: [user?.id || ''] }] };
+                      } else {
+                        const updated = currentReactions.map((r) => r.emoji === emoji ? { ...r, count: res.count, userIds: r.userIds.filter((id) => id !== user?.id) } : r).filter((r) => r.count > 0);
+                        return { ...m, reactions: updated.length > 0 ? updated : null };
                       }
-                      return { ...m, reactions: [...currentReactions, { emoji, count: 1, userIds: [user?.id || ''] }] };
-                    } else {
-                      const updated = currentReactions.map((r) => r.emoji === emoji ? { ...r, count: res.count, userIds: r.userIds.filter((id) => id !== user?.id) } : r).filter((r) => r.count > 0);
-                      return { ...m, reactions: updated.length > 0 ? updated : null };
-                    }
-                  }));
-                } catch { /* ignore */ }
-              }}
-            />
-          ))
+                    }));
+                  } catch { /* ignore */ }
+                }}
+              />
+            );
+          })
         )}
 
         {/* Typing indicator */}
@@ -574,6 +605,19 @@ export default function RequestChatPage() {
             {request?.status === 'Done' ? t('chat.doneStatus') : t('chat.cancelledStatus')}
           </p>
         </div>
+      ) : request && !request.isClientActive ? (
+        <div className="border-t border-red-500/20 bg-red-500/5 px-4 py-3 text-center">
+          <p className="text-xs text-red-400">
+            {t('chat.clientDissolvedStatus')}
+          </p>
+        </div>
+      ) : role === 'Admin' ? (
+        // Admin is observer-only — cannot send messages (not a participant)
+        <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-center">
+          <p className="text-xs text-[var(--text-muted)]">
+            {t('chat.adminObserverStatus', 'Bạn đang xem với tư cách Admin. Chỉ Staff được phân công mới có thể nhắn tin.')}
+          </p>
+        </div>
       ) : showMissingInfo ? (
         <MissingInfoComposer
           onSend={async (content, questions) => {
@@ -606,8 +650,8 @@ export default function RequestChatPage() {
             disabled={sending}
             isIntake={isIntake}
           />
-          {/* Missing Info toggle (Staff/Admin only, not during Intake) */}
-          {(role === 'Staff' || role === 'Admin') && !isIntake && (
+          {/* Missing Info toggle — Staff only, not Admin, not during Intake */}
+          {role === 'Staff' && !isIntake && (
             <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-1.5 flex justify-end">
               <button
                 onClick={() => setShowMissingInfo(true)}

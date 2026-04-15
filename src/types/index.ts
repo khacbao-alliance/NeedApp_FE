@@ -132,6 +132,7 @@ export interface RequestDto {
   assignedUser: RequestUserDto | null;
   createdByUser: RequestUserDto | null;
   messageCount: number;
+  isClientActive: boolean;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -170,10 +171,16 @@ export interface FileAttachmentDto {
   fileSize: number | null;
 }
 
+export interface ReadReceiptDto {
+  userId: string;
+  lastReadAt: string;
+}
+
 export interface MessageListResponse {
   items: MessageDto[];
   nextCursor: string | null;
   hasMore: boolean;
+  readers?: ReadReceiptDto[] | null;
 }
 
 export interface SendMessageRequest {
@@ -228,6 +235,19 @@ export interface CreateIntakeQuestionSetRequest {
   name: string;
   description?: string;
   isDefault?: boolean;
+  questions: {
+    content: string;
+    orderIndex: number;
+    isRequired: boolean;
+    placeholder?: string | null;
+  }[];
+}
+
+export interface UpdateIntakeQuestionSetRequest {
+  name: string;
+  description?: string;
+  isDefault: boolean;
+  isActive: boolean;
   questions: {
     content: string;
     orderIndex: number;
