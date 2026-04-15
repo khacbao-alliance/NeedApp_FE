@@ -119,15 +119,15 @@ export default function RequestsPage() {
   return (
     <div className="space-y-6 animate-fade-in min-h-[70vh]" id="requests-page">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-[var(--foreground)]">{t('requests.list.title')}</h1>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
             {isClient ? t('requests.list.subtitleClient') : t('requests.list.subtitleStaff')}
           </p>
         </div>
         {isClient && (
-          <Link href="/requests/new">
+          <Link href="/requests/new" className="flex-shrink-0">
             <Button variant="gradient">
               <PlusIcon className="h-4 w-4" />
               {t('requests.list.createNew')}
@@ -202,7 +202,7 @@ export default function RequestsPage() {
       </div>
 
       {/* Urgency Legend */}
-      <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)] select-none">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-[var(--text-muted)] select-none">
         <span className="font-medium text-[var(--text-secondary)]">{t('requests.list.legendTitle')}:</span>
         <span className="flex items-center gap-1">
           <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-red-500/70" />
@@ -253,8 +253,10 @@ export default function RequestsPage() {
             <Link
               key={req.id}
               href={`/requests/${req.id}`}
-              className={`group flex items-center gap-4 rounded-xl border p-4 transition-all duration-200 hover:bg-(--surface-hover) bg-(--surface-1) ${
-                urgency === 'urgent'
+              className={`group flex items-center gap-3 rounded-xl border p-3 sm:p-4 transition-all duration-200 hover:bg-(--surface-hover) bg-(--surface-1) ${
+                !req.isClientActive
+                  ? 'border-(--border) hover:border-(--glass-border) opacity-75'
+                  : urgency === 'urgent'
                   ? 'border-red-500/50 hover:border-red-500/70'
                   : urgency === 'warning'
                   ? 'border-amber-500/40 hover:border-amber-500/60'
@@ -263,7 +265,7 @@ export default function RequestsPage() {
               style={{ animationDelay: `${i * 50}ms` }}
             >
               {/* Creator Avatar */}
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 hidden xs:block sm:block">
                 <Avatar
                   src={req.createdByUser?.avatarUrl ?? undefined}
                   name={req.createdByUser?.name || req.client?.name || '?'}
@@ -278,27 +280,34 @@ export default function RequestsPage() {
                     {req.title}
                   </h3>
                   {req.messageCount > 0 && (
-                    <span className="flex items-center gap-0.5 text-[10px] text-[var(--text-muted)]">
+                    <span className="flex-shrink-0 flex items-center gap-0.5 text-[10px] text-[var(--text-muted)]">
                       <ChatBubbleLeftRightIcon className="h-3 w-3" />
                       {req.messageCount}
                     </span>
                   )}
                 </div>
-                <div className="mt-1 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[var(--text-secondary)]">
                   {req.client && (
                     <>
-                      <span className="font-medium">{req.client.name}</span>
-                      <span>·</span>
+                      <span className={`font-medium truncate max-w-[120px] sm:max-w-none ${!req.isClientActive ? 'line-through text-[var(--text-muted)]' : ''}`}>{req.client.name}</span>
+                      {!req.isClientActive && (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 text-[10px] font-medium text-red-400">
+                          {t('requests.list.clientDissolved')}
+                        </span>
+                      )}
+                      <span className="text-[var(--text-muted)]">·</span>
                     </>
                   )}
-                  <span className={`inline-flex items-center gap-1 font-medium ${
-                    urgency === 'urgent'
+                  <span className={`inline-flex items-center gap-1 font-medium flex-shrink-0 ${
+                    !req.isClientActive
+                      ? ''
+                      : urgency === 'urgent'
                       ? 'text-red-400'
                       : urgency === 'warning'
                       ? 'text-amber-400'
                       : ''
                   }`}>
-                    {urgency === 'urgent' && (
+                    {req.isClientActive && urgency === 'urgent' && (
                       <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
                     )}
                     <ClockIcon className="h-3 w-3" />
@@ -306,13 +315,13 @@ export default function RequestsPage() {
                   </span>
                   {!isClient && req.assignedUser && (
                     <>
-                      <span>·</span>
-                      <span className="text-[var(--accent-violet)]">→ {req.assignedUser.name || 'Staff'}</span>
+                      <span className="text-[var(--text-muted)]">·</span>
+                      <span className="text-[var(--accent-violet)] truncate max-w-[100px] sm:max-w-none">→ {req.assignedUser.name || 'Staff'}</span>
                     </>
                   )}
                   {!isClient && !req.assignedUser && (
                     <>
-                      <span>·</span>
+                      <span className="text-[var(--text-muted)]">·</span>
                       <span className="text-amber-400">{t('requests.list.notAssigned')}</span>
                     </>
                   )}
@@ -320,7 +329,7 @@ export default function RequestsPage() {
               </div>
 
               {/* Badges + Actions */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex flex-col items-end gap-1.5 sm:flex-row sm:items-center sm:gap-2 flex-shrink-0">
                 {/* Staff self-assign button */}
                 {!isClient && !req.assignedUser && req.status === 'Pending' && role === 'Staff' && (
                   <button
@@ -330,18 +339,20 @@ export default function RequestsPage() {
                       handleSelfAssign(req.id);
                     }}
                     disabled={selfAssigning === req.id}
-                    className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[var(--accent-indigo)] to-[var(--accent-violet)] px-2.5 py-1.5 text-[10px] font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[var(--accent-indigo)] to-[var(--accent-violet)] px-2 py-1.5 sm:px-2.5 text-[10px] font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-50"
                   >
                     {selfAssigning === req.id ? (
                       <ArrowPathIcon className="h-3 w-3 animate-spin" />
                     ) : (
                       <HandRaisedIcon className="h-3 w-3" />
                     )}
-                    {t('requests.list.selfAssign')}
+                    <span className="hidden sm:inline">{t('requests.list.selfAssign')}</span>
                   </button>
                 )}
-                <PriorityBadge priority={req.priority} />
-                <StatusBadge status={req.status} />
+                <div className="flex items-center gap-1.5">
+                  <PriorityBadge priority={req.priority} />
+                  <StatusBadge status={req.status} />
+                </div>
               </div>
             </Link>
           );})}

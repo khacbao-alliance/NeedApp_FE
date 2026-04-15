@@ -175,7 +175,8 @@
       "legendTitle": "Màu viền thể hiện thời gian chờ",
       "legendUrgent": "Trên 24 giờ — cần xử lý ngay",
       "legendWarning": "4–24 giờ — nên theo dõi sớm",
-      "legendNormal": "Dưới 4 giờ — đúng tiến độ"
+      "legendNormal": "Dưới 4 giờ — đúng tiến độ",
+      "clientDissolved": "Tổ chức đã giải thể"
     },
     "new": {
       "title": "Tạo yêu cầu mới",
@@ -202,8 +203,10 @@
     "typing": "đang nhập...",
     "answerPlaceholder": "Nhập câu trả lời...",
     "messagePlaceholder": "Nhập tin nhắn...",
-    "doneStatus": "✅ Yêu cầu đã hoàn tất",
-    "cancelledStatus": "❌ Yêu cầu đã bị hủy",
+    "doneStatus": " Yêu cầu đã hoàn tất",
+    "adminObserverStatus": "Bạn đang xem với tư cách Admin. Chỉ Staff được phân công mới có thể nhắn tin.",
+    "cancelledStatus": " Yêu cầu đã bị hủy",
+    "clientDissolvedStatus": " Tổ chức khách hàng đã giải thể — không thể chat",
     "missingInfoToggle": "Yêu cầu bổ sung thông tin",
     "summary": "Tóm tắt",
     "live": "Live",
@@ -491,6 +494,7 @@
     "inviteNote": "Người dùng phải đã có tài khoản NeedApp trước khi được mời.",
     "inviting": "Đang mời...",
     "inviteBtn": "Mời ngay",
+    "inviteSuccess": "Đã gửi lời mời thành công!",
     "noMembers": "Chưa có thành viên nào",
     "ownerOnly": "Chỉ Owner mới có thể mời hoặc xóa thành viên.",
     "tryAgain": "Thử lại",

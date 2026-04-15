@@ -2,32 +2,41 @@
 
 import { useState, useCallback, createElement } from 'react';
 
-// ── Global error toast system ──
-// Simple, lightweight toast for user-facing error feedback.
-// Usage: import { showErrorToast } from '@/components/ui/ErrorToast';
+// ── Global toast system ──
+// Supports 'error' and 'success' variants.
+// Usage: import { showErrorToast, showSuccessToast } from '@/components/ui/ErrorToast';
 //        showErrorToast('Không thể gửi tin nhắn');
+//        showSuccessToast('Đã mời thành công!');
 
-interface ErrorToastItem {
+type ToastVariant = 'error' | 'success';
+
+interface ToastItem {
   id: string;
   message: string;
+  variant: ToastVariant;
   exiting?: boolean;
 }
 
 const DURATION = 4000;
-let _addToast: ((msg: string) => void) | null = null;
+let _addToast: ((msg: string, variant: ToastVariant) => void) | null = null;
 
-/** Call this anywhere to show an error toast */
+/** Show an error toast (red) */
 export function showErrorToast(message: string) {
-  _addToast?.(message);
+  _addToast?.(message, 'error');
 }
 
-/** Mount this once in your layout (already renders its own portal) */
-export function ErrorToastContainer() {
-  const [toasts, setToasts] = useState<ErrorToastItem[]>([]);
+/** Show a success toast (green) */
+export function showSuccessToast(message: string) {
+  _addToast?.(message, 'success');
+}
 
-  const addToast = useCallback((message: string) => {
+/** Mount this once in your layout */
+export function ErrorToastContainer() {
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  const addToast = useCallback((message: string, variant: ToastVariant) => {
     const id = crypto.randomUUID();
-    setToasts(prev => [{ id, message }, ...prev].slice(0, 3));
+    setToasts(prev => [{ id, message, variant }, ...prev].slice(0, 3));
 
     setTimeout(() => {
       setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
@@ -49,8 +58,9 @@ export function ErrorToastContainer() {
       style: { maxWidth: '360px', width: '100%' },
       'aria-live': 'assertive',
     },
-    toasts.map(toast =>
-      createElement(
+    toasts.map(toast => {
+      const isSuccess = toast.variant === 'success';
+      return createElement(
         'div',
         {
           key: toast.id,
@@ -62,18 +72,26 @@ export function ErrorToastContainer() {
             background: 'var(--glass-bg)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(239, 68, 68, 0.25)',
-            boxShadow: '0 8px 32px -4px rgba(0,0,0,0.3), 0 0 0 1px rgba(239,68,68,0.08)',
+            border: isSuccess
+              ? '1px solid rgba(34, 197, 94, 0.25)'
+              : '1px solid rgba(239, 68, 68, 0.25)',
+            boxShadow: isSuccess
+              ? '0 8px 32px -4px rgba(0,0,0,0.3), 0 0 0 1px rgba(34,197,94,0.08)'
+              : '0 8px 32px -4px rgba(0,0,0,0.3), 0 0 0 1px rgba(239,68,68,0.08)',
           },
         },
         // Icon
         createElement('span', {
           className: 'flex-shrink-0 flex items-center justify-center rounded-lg text-sm',
-          style: { width: '28px', height: '28px', background: 'rgba(239, 68, 68, 0.12)' },
-        }, '❌'),
+          style: {
+            width: '28px',
+            height: '28px',
+            background: isSuccess ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+          },
+        }, isSuccess ? '✅' : '❌'),
         // Message
         createElement('p', {
-          className: 'text-xs font-medium line-clamp-2',
+          className: 'text-xs font-medium line-clamp-2 flex-1',
           style: { color: 'var(--foreground)' },
         }, toast.message),
         // Dismiss
@@ -85,7 +103,7 @@ export function ErrorToastContainer() {
             setTimeout(() => setToasts(prev => prev.filter(t => t.id !== toast.id)), 300);
           },
         }, '✕')
-      )
-    )
+      );
+    })
   );
 }
