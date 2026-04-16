@@ -38,14 +38,26 @@ function playNotificationSound() {
   }
 }
 
+// SVG icon paths (24x24 heroicons outline) used in notification toasts
+const svgIcon = (path: string) => `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="${path}" /></svg>`;
+
+const ICON_PATHS = {
+  chat: 'M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z',
+  warning: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z',
+  refresh: 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182',
+  user: 'M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z',
+  clipboard: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z',
+  envelope: 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75',
+};
+
 // Type-specific accent colors (matching the app's design palette)
 const typeConfig: Record<NotificationType, { icon: string; color: string; bg: string }> = {
-  NewMessage:   { icon: '💬', color: 'var(--accent-violet)',  bg: 'rgba(139, 92, 246, 0.12)' },
-  MissingInfo:  { icon: '⚠️', color: 'var(--status-missing)', bg: 'rgba(239, 68, 68, 0.12)' },
-  StatusChange: { icon: '🔄', color: 'var(--accent-cyan)',    bg: 'rgba(6, 182, 212, 0.12)' },
-  Assignment:   { icon: '👤', color: 'var(--accent-indigo)',  bg: 'rgba(99, 102, 241, 0.12)' },
-  NewRequest:   { icon: '📋', color: 'var(--status-pending)', bg: 'rgba(59, 130, 246, 0.12)' },
-  Invitation:   { icon: '✉️', color: 'var(--status-intake)',  bg: 'rgba(245, 158, 11, 0.12)' },
+  NewMessage:   { icon: svgIcon(ICON_PATHS.chat),      color: 'var(--accent-primary)',  bg: 'rgba(59, 130, 246, 0.12)' },
+  MissingInfo:  { icon: svgIcon(ICON_PATHS.warning),   color: 'var(--status-missing)', bg: 'rgba(239, 68, 68, 0.12)' },
+  StatusChange: { icon: svgIcon(ICON_PATHS.refresh),   color: 'var(--accent-primary)',  bg: 'rgba(59, 130, 246, 0.12)' },
+  Assignment:   { icon: svgIcon(ICON_PATHS.user),      color: 'var(--accent-primary)',  bg: 'rgba(59, 130, 246, 0.12)' },
+  NewRequest:   { icon: svgIcon(ICON_PATHS.clipboard), color: 'var(--status-pending)', bg: 'rgba(59, 130, 246, 0.12)' },
+  Invitation:   { icon: svgIcon(ICON_PATHS.envelope),  color: 'var(--status-intake)',  bg: 'rgba(245, 158, 11, 0.12)' },
 };
 
 interface Toast {
@@ -184,7 +196,7 @@ export function NotificationToast({ children }: { children: ReactNode }) {
                 left: 0,
                 right: 0,
                 height: '2px',
-                background: `linear-gradient(90deg, ${config.color}, var(--accent-cyan))`,
+                background: config.color,
                 opacity: 0.8,
               },
             }),
@@ -203,10 +215,10 @@ export function NotificationToast({ children }: { children: ReactNode }) {
                     width: '32px',
                     height: '32px',
                     background: config.bg,
-                    fontSize: '14px',
+                    color: config.color,
                   },
-                },
-                config.icon
+                  dangerouslySetInnerHTML: { __html: config.icon },
+                }
               ),
 
               // Title + content
@@ -267,7 +279,7 @@ export function NotificationToast({ children }: { children: ReactNode }) {
                 left: 0,
                 height: '2px',
                 width: `${100 - toast.progress}%`,
-                background: `linear-gradient(90deg, ${config.color}, var(--accent-cyan))`,
+                background: config.color,
                 transition: 'width 80ms linear',
                 opacity: 0.5,
                 borderRadius: '0 1px 0 0',

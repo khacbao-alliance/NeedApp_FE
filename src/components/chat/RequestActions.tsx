@@ -41,7 +41,7 @@ function getStatusTransitions(t: (key: string) => string) {
 }
 
 const VARIANT_CLASSES: Record<string, string> = {
-  primary: 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)] hover:bg-[var(--accent-indigo)]/25',
+  primary: 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/25',
   success: 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25',
   warning: 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25',
   danger: 'bg-red-500/15 text-red-400 hover:bg-red-500/25',
@@ -249,7 +249,7 @@ export function SelfAssignAction({
       <button
         onClick={handleSelfAssign}
         disabled={assigning}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[var(--accent-indigo)] to-[var(--accent-violet)] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-[var(--accent-indigo)]/20 disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent-primary)] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[var(--accent-primary-hover)] hover:shadow-md disabled:opacity-50"
       >
         {assigning ? (
           <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
@@ -368,7 +368,7 @@ export function AssignStaffAction({
                     onClick={() => handleAssign(staff.id)}
                     disabled={assigning || staff.id === request.assignedUser?.id}
                     className={`w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50 ${
-                      staff.id === request.assignedUser?.id ? 'bg-[var(--accent-indigo)]/10 text-[var(--accent-violet)]' : 'text-[var(--foreground)]'
+                      staff.id === request.assignedUser?.id ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]' : 'text-[var(--foreground)]'
                     }`}
                   >
                     <div className="flex-1 min-w-0">
@@ -376,7 +376,7 @@ export function AssignStaffAction({
                       <p className="text-[var(--text-muted)] truncate">{staff.email}</p>
                     </div>
                     {staff.id === request.assignedUser?.id && (
-                      <span className="text-[10px] text-[var(--accent-violet)]">{t('requestActions.current')}</span>
+                      <span className="text-[10px] text-[var(--accent-primary)]">{t('requestActions.current')}</span>
                     )}
                   </button>
                 ))}

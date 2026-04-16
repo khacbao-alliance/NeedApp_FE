@@ -19,13 +19,13 @@ const sizes = {
 };
 
 const gradients = [
-  'from-violet-500 via-purple-500 to-indigo-600',
-  'from-blue-500 via-indigo-500 to-violet-600',
-  'from-emerald-400 via-teal-500 to-cyan-600',
-  'from-rose-500 via-pink-500 to-fuchsia-600',
-  'from-orange-400 via-amber-500 to-yellow-500',
-  'from-sky-400 via-blue-500 to-indigo-500',
-  'from-teal-400 via-emerald-500 to-green-600',
+  'from-blue-500 to-blue-600',
+  'from-slate-500 to-slate-600',
+  'from-sky-500 to-sky-600',
+  'from-teal-500 to-teal-600',
+  'from-indigo-500 to-indigo-600',
+  'from-cyan-500 to-cyan-600',
+  'from-blue-600 to-indigo-600',
 ];
 
 function getGradient(name: string) {

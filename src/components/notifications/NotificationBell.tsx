@@ -68,7 +68,7 @@ export function NotificationBell() {
         className={cn(
           'relative rounded-xl p-2 transition-all duration-200',
           open
-            ? 'bg-[var(--accent-indigo)]/10 text-[var(--accent-violet)]'
+            ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
             : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]'
         )}
         aria-label={t('notifications.title')}
@@ -82,7 +82,7 @@ export function NotificationBell() {
 
         {/* Badge */}
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gradient-to-r from-[var(--accent-violet)] to-[var(--accent-indigo)] px-1 text-[10px] font-bold text-white shadow-lg shadow-[var(--accent-violet)]/30">
+          <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--accent-primary)] px-1 text-[10px] font-bold text-white shadow-sm">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -96,7 +96,7 @@ export function NotificationBell() {
             <h3 className="text-sm font-semibold text-[var(--foreground)]">
               {t('notifications.title')}
               {unreadCount > 0 && (
-                <span className="ml-2 inline-flex items-center rounded-full bg-[var(--accent-violet)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent-violet)]">
+                <span className="ml-2 inline-flex items-center rounded-full bg-[var(--accent-primary)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent-primary)]">
                   {t('notifications.newBadge', { count: unreadCount })}
                 </span>
               )}
@@ -104,7 +104,7 @@ export function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-[var(--accent-indigo)] hover:bg-[var(--accent-indigo)]/10 transition-colors"
+                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/10 transition-colors"
               >
                 <CheckIcon className="h-3.5 w-3.5" />
                 {t('notifications.markAllDone')}
@@ -138,7 +138,7 @@ export function NotificationBell() {
                   setOpen(false);
                   router.push('/notifications');
                 }}
-                className="w-full rounded-lg py-1.5 text-center text-xs font-medium text-[var(--accent-indigo)] hover:bg-[var(--accent-indigo)]/5 transition-colors"
+                className="w-full rounded-lg py-1.5 text-center text-xs font-medium text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/5 transition-colors"
               >
                 {t('notifications.viewAll')}
               </button>

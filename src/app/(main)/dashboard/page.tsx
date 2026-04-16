@@ -98,7 +98,7 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
               <span className="text-xs font-semibold uppercase tracking-wider text-red-400">Admin Panel</span>
             </div>
             <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
-              {t('dashboard.greeting')}, <span className="gradient-text">{userName || 'Admin'}</span>! 👋
+              {t('dashboard.greeting')}, <span className="gradient-text">{userName || 'Admin'}</span>!
             </h1>
             <p className="mt-1 text-[var(--text-muted)]">
               {t('dashboard.adminSubtitle')}
@@ -109,7 +109,7 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
 
       {/* Stats */}
       <StaggerContainer staggerDelay={0.07} className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
-        <StaggerItem><StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" /></StaggerItem>
+        <StaggerItem><StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-primary)]" bg="bg-[var(--accent-primary)]/10" /></StaggerItem>
         <StaggerItem><StatCard icon={<InboxIcon className="h-5 w-5" />} label={t('dashboard.intake')} value={stats.intake} color="text-amber-400" bg="bg-amber-500/10" /></StaggerItem>
         <StaggerItem><StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.pending')} value={stats.pending} color="text-blue-400" bg="bg-blue-500/10" /></StaggerItem>
         <StaggerItem><StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label={t('dashboard.inProgress')} value={stats.inProgress} color="text-purple-400" bg="bg-purple-500/10" /></StaggerItem>
@@ -120,9 +120,9 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
 
       {/* Quick Actions Grid */}
       <StaggerContainer staggerDelay={0.1} delayStart={0.3} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StaggerItem><QuickActionCard href="/admin/users" icon={<UserGroupIcon className="h-6 w-6" />} title={t('dashboard.manageUsers')} description={t('dashboard.manageUsersDesc')} color="text-cyan-400" bg="bg-cyan-500/10" /></StaggerItem>
-        <StaggerItem><QuickActionCard href="/admin/intake-questions" icon={<ChatBubbleLeftRightIcon className="h-6 w-6" />} title={t('dashboard.intakeQuestions')} description={t('dashboard.intakeQuestionsDesc')} color="text-amber-400" bg="bg-amber-500/10" /></StaggerItem>
-        <StaggerItem><QuickActionCard href="/requests" icon={<DocumentTextIcon className="h-6 w-6" />} title={t('dashboard.allRequests')} description={t('dashboard.allRequestsDesc')} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" /></StaggerItem>
+        <StaggerItem><QuickActionCard href="/admin/users" icon={<UserGroupIcon className="h-6 w-6" />} title={t('dashboard.manageUsers')} description={t('dashboard.manageUsersDesc')} color="text-[var(--accent-primary)]" bg="bg-[var(--accent-primary)]/10" /></StaggerItem>
+        <StaggerItem><QuickActionCard href="/admin/intake-questions" icon={<ChatBubbleLeftRightIcon className="h-6 w-6" />} title={t('dashboard.intakeQuestions')} description={t('dashboard.intakeQuestionsDesc')} color="text-[var(--accent-primary)]" bg="bg-[var(--accent-primary)]/10" /></StaggerItem>
+        <StaggerItem><QuickActionCard href="/requests" icon={<DocumentTextIcon className="h-6 w-6" />} title={t('dashboard.allRequests')} description={t('dashboard.allRequestsDesc')} color="text-[var(--accent-primary)]" bg="bg-[var(--accent-primary)]/10" /></StaggerItem>
       </StaggerContainer>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -133,7 +133,7 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
               <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
               {t('dashboard.highPriority')}
             </h2>
-            <Link href="/requests" className="text-sm font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
+            <Link href="/requests" className="text-sm font-medium text-[var(--accent-primary)] hover:text-[var(--accent-primary-hover)] transition-colors">
               {t('dashboard.viewAll')} →
             </Link>
           </div>
@@ -156,7 +156,7 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
               <UserPlusIcon className="h-5 w-5 text-amber-400" />
               {t('dashboard.unassigned', 'Chưa phân công')}
             </h2>
-            <Link href="/requests" className="text-sm font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
+            <Link href="/requests" className="text-sm font-medium text-[var(--accent-primary)] hover:text-[var(--accent-primary-hover)] transition-colors">
               {t('dashboard.viewAll')} →
             </Link>
           </div>
@@ -165,7 +165,7 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
           ) : unassignedRequests.length === 0 ? (
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-6 text-center">
               <CheckCircleIcon className="mx-auto h-8 w-8 text-emerald-400" />
-              <p className="mt-2 text-sm text-[var(--text-muted)]">{t('dashboard.allAssigned', 'Tất cả request đã được phân công')} ✅</p>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">{t('dashboard.allAssigned', 'Tất cả request đã được phân công')}</p>
             </div>
           ) : (
             <RequestList requests={unassignedRequests} />
@@ -180,7 +180,7 @@ function AdminDashboard({ userName }: { userName?: string | null }) {
             <UserGroupIcon className="h-5 w-5 text-cyan-400" />
             {t('dashboard.recentUsers')}
           </h2>
-          <Link href="/admin/users" className="text-sm font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
+          <Link href="/admin/users" className="text-sm font-medium text-[var(--accent-primary)] hover:text-[var(--accent-primary-hover)] transition-colors">
             {t('dashboard.viewAll')} →
           </Link>
         </div>
@@ -251,14 +251,14 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
             <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">Staff Workspace</span>
           </div>
           <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
-            {t('dashboard.greeting')}, <span className="gradient-text">{userName || 'bạn'}</span>! 👋
+            {t('dashboard.greeting')}, <span className="gradient-text">{userName || 'bạn'}</span>!
           </h1>
           <p className="mt-1 text-[var(--text-muted)]">{t('dashboard.staffSubtitle')}</p>
         </div>
       </FadeIn>
 
       <StaggerContainer staggerDelay={0.1} className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StaggerItem><StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-violet)]" bg="bg-[var(--accent-violet)]/10" /></StaggerItem>
+        <StaggerItem><StatCard icon={<DocumentTextIcon className="h-5 w-5" />} label={t('dashboard.totalRequests')} value={stats.total} color="text-[var(--accent-primary)]" bg="bg-[var(--accent-primary)]/10" /></StaggerItem>
         <StaggerItem><StatCard icon={<ClockIcon className="h-5 w-5" />} label={t('dashboard.myRequests')} value={stats.actionable} color="text-amber-400" bg="bg-amber-500/10" highlight={stats.actionable > 0} /></StaggerItem>
         <StaggerItem><StatCard icon={<ArrowTrendingUpIcon className="h-5 w-5" />} label={t('dashboard.inProgress')} value={stats.inProgress} color="text-blue-400" bg="bg-blue-500/10" /></StaggerItem>
         <StaggerItem><StatCard icon={<CheckCircleIcon className="h-5 w-5" />} label={t('dashboard.done')} value={stats.done} color="text-emerald-400" bg="bg-emerald-500/10" /></StaggerItem>
@@ -288,7 +288,7 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
               <ClockIcon className="h-5 w-5 text-amber-400" />
               {t('dashboard.myRequests')}
             </h2>
-            <Link href="/requests" className="text-sm font-medium text-[var(--accent-violet)] hover:text-[var(--accent-indigo)] transition-colors">
+            <Link href="/requests" className="text-sm font-medium text-[var(--accent-primary)] hover:text-[var(--accent-primary-hover)] transition-colors">
               {t('dashboard.viewAll')} →
             </Link>
           </div>
@@ -297,7 +297,7 @@ function StaffDashboard({ userName }: { userName?: string | null }) {
           ) : actionNeeded.length === 0 ? (
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-6 text-center">
               <CheckCircleIcon className="mx-auto h-8 w-8 text-emerald-400" />
-              <p className="mt-2 text-sm text-[var(--text-muted)]">{t('dashboard.noRequestsYet')} 🎉</p>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">{t('dashboard.noRequestsYet')}</p>
             </div>
           ) : (
             <RequestList requests={actionNeeded.slice(0, 5)} />
@@ -355,7 +355,7 @@ function QuickActionCard({ href, icon, title, description, color, bg }: {
         <span className={color}>{icon}</span>
       </div>
       <div>
-        <h3 className="text-sm font-semibold text-[var(--foreground)] group-hover:text-[var(--accent-violet)] transition-colors">{title}</h3>
+        <h3 className="text-sm font-semibold text-[var(--foreground)] group-hover:text-[var(--accent-primary)] transition-colors">{title}</h3>
         <p className="mt-1 text-xs text-[var(--text-secondary)]">{description}</p>
       </div>
     </Link>
@@ -379,7 +379,7 @@ function RequestList({ requests }: { requests: RequestDto[] }) {
                   {req.assignedUser && (
                     <>
                       <span>·</span>
-                      <span className="text-[var(--accent-violet)]">→ {req.assignedUser.name}</span>
+                      <span className="text-[var(--accent-primary)]">→ {req.assignedUser.name}</span>
                     </>
                   )}
                 </div>

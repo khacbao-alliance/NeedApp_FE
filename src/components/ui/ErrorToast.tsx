@@ -1,6 +1,10 @@
 'use client';
 
 import { useState, useCallback, createElement } from 'react';
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline';
 
 // ── Global toast system ──
 // Supports 'error' and 'success' variants.
@@ -88,7 +92,10 @@ export function ErrorToastContainer() {
             height: '28px',
             background: isSuccess ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
           },
-        }, isSuccess ? '✅' : '❌'),
+        }, createElement(isSuccess ? CheckCircleIcon : XCircleIcon, {
+          className: 'h-4 w-4',
+          style: { color: isSuccess ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)' },
+        })),
         // Message
         createElement('p', {
           className: 'text-xs font-medium line-clamp-2 flex-1',

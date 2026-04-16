@@ -16,6 +16,7 @@ import {
   LockClosedIcon,
   CheckCircleIcon,
   ArrowLeftIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
 
 type Step = 'email' | 'otp' | 'password' | 'done';
@@ -197,7 +198,7 @@ export default function ForgotPasswordPage() {
                       ? 'bg-[var(--accent-indigo)]/20 text-[var(--accent-violet)] ring-2 ring-[var(--accent-indigo)]/30'
                       : 'bg-[var(--surface-3)] text-[var(--text-muted)]'
                   }`}>
-                  {i < currentIdx ? '✓' : i + 1}
+                  {i < currentIdx ? <CheckIcon className="h-3 w-3" /> : i + 1}
                 </div>
                 {i < steps.length - 1 && (
                   <div className={`h-px w-8 transition-colors duration-300 ${i < currentIdx ? 'bg-emerald-500/40' : 'bg-[var(--border)]'

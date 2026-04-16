@@ -307,7 +307,7 @@ export default function RequestChatPage() {
         </p>
         <Link
           href="/requests"
-          className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[var(--accent-violet)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+          className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[var(--accent-primary)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
         >
           <ArrowLeftIcon className="h-4 w-4" />
           {t('common.backToRequests', 'Quay lại danh sách')}
@@ -366,9 +366,9 @@ export default function RequestChatPage() {
 
                 {/* Staff assigned pill */}
                 {request.assignedUser ? (
-                  <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-violet-500/10 border border-violet-500/20 px-2.5 py-0.5 text-xs font-medium text-[var(--accent-violet)]">
+                  <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 px-2.5 py-0.5 text-xs font-medium text-[var(--accent-primary)]">
                     <UserCircleIcon className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span className="text-violet-400/60 font-normal">Staff:</span>
+                    <span className="text-[var(--accent-primary)]/60 font-normal">Staff:</span>
                     <span className="font-semibold">{request.assignedUser.name || 'Staff'}</span>
                   </span>
                 ) : (
@@ -409,7 +409,7 @@ export default function RequestChatPage() {
             <button
               onClick={() => setShowSummary(true)}
               title="Xem tóm tắt cuộc hội thoại"
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--accent-violet)] bg-violet-500/10 hover:bg-violet-500/20 transition-colors border border-violet-500/20"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--accent-primary)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20 transition-colors border border-[var(--accent-primary)]/20"
             >
               <ChartBarIcon className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">{t('chat.summary', 'Tóm tắt')}</span>
@@ -452,7 +452,7 @@ export default function RequestChatPage() {
           </div>
           <div className="mt-1.5 h-1.5 rounded-full bg-[var(--surface-3)] overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[var(--accent-violet)] to-[var(--accent-cyan)] transition-all duration-500"
+              className="h-full rounded-full bg-[var(--accent-primary)] transition-all duration-500"
               style={{ width: `${intakeProgress}%` }}
             />
           </div>
@@ -472,8 +472,8 @@ export default function RequestChatPage() {
       {/* Staff Not Assigned — pre-assignment prompt */}
       {staffNotAssigned ? (
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-4 p-8">
-          <div className="rounded-full bg-violet-500/10 p-4">
-            <HandRaisedIcon className="h-8 w-8 text-[var(--accent-violet)]" />
+          <div className="rounded-full bg-[var(--accent-primary)]/10 p-4">
+            <HandRaisedIcon className="h-8 w-8 text-[var(--accent-primary)]" />
           </div>
           <h2 className="text-base font-semibold text-[var(--foreground)] text-center">
             {t('chat.notAssignedTitle', 'Yêu cầu chưa được nhận xử lí')}
@@ -515,7 +515,7 @@ export default function RequestChatPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent-violet)] border-t-transparent" />
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent-primary)] border-t-transparent" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center py-16">
@@ -589,7 +589,7 @@ export default function RequestChatPage() {
           >
             <ChevronDownIcon className="h-4 w-4" />
             {newMsgCount > 0 && (
-              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gradient-to-r from-[var(--accent-violet)] to-[var(--accent-indigo)] px-1.5 text-[10px] font-bold text-white">
+              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--accent-primary)] px-1.5 text-[10px] font-bold text-white">
                 {newMsgCount}
               </span>
             )}

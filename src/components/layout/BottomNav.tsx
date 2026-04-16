@@ -43,14 +43,14 @@ export function BottomNav() {
               className={cn(
                 'relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition-all duration-200',
                 isActive
-                  ? 'text-[var(--accent-violet)]'
+                  ? 'text-[var(--accent-primary)]'
                   : 'text-[var(--text-muted)]'
               )}
             >
               <Ico className="h-6 w-6" />
               <span className="text-[10px] font-medium">{t(labelKey)}</span>
               {href === '/notifications' && unreadCount > 0 && (
-                <span className="absolute -right-0.5 top-0 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-gradient-to-r from-[var(--accent-violet)] to-[var(--accent-indigo)] px-1 text-[9px] font-bold text-white">
+                <span className="absolute -right-0.5 top-0 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[var(--accent-primary)] px-1 text-[9px] font-bold text-white">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}

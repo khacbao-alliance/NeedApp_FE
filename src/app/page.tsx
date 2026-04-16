@@ -49,19 +49,14 @@ export default function LandingPage() {
           {/* Background Effects */}
           <div className="pointer-events-none absolute inset-0">
             <motion.div
-              className="absolute -top-40 left-1/4 h-[500px] w-[500px] rounded-full bg-[var(--accent-violet)]/8 blur-[128px]"
-              animate={{ scale: [1, 1.08, 1], opacity: [0.8, 1, 0.8] }}
-              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute -top-40 left-1/3 h-[500px] w-[500px] rounded-full bg-[var(--accent-primary)]/5 blur-[128px]"
+              animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
             />
             <motion.div
-              className="absolute -bottom-20 right-1/4 h-[400px] w-[400px] rounded-full bg-[var(--accent-cyan)]/8 blur-[128px]"
-              animate={{ scale: [1, 1.06, 1], opacity: [0.8, 1, 0.8] }}
-              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-            />
-            <motion.div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[300px] w-[300px] rounded-full bg-[var(--accent-indigo)]/5 blur-[96px]"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+              className="absolute -bottom-20 right-1/3 h-[400px] w-[400px] rounded-full bg-[var(--accent-primary)]/4 blur-[128px]"
+              animate={{ scale: [1, 1.04, 1], opacity: [0.5, 0.7, 0.5] }}
+              transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
             />
           </div>
 
@@ -190,8 +185,8 @@ export default function LandingPage() {
                   icon={<DocumentTextIcon className="h-6 w-6" />}
                   title={t('landing.feature1Title')}
                   description={t('landing.feature1Desc')}
-                  color="text-[var(--accent-violet)]"
-                  bg="bg-[var(--accent-violet)]/10"
+                  color="text-[var(--accent-primary)]"
+                  bg="bg-[var(--accent-primary)]/10"
                 />
               </StaggerItem>
               <StaggerItem>
@@ -199,8 +194,8 @@ export default function LandingPage() {
                   icon={<ChatBubbleLeftRightIcon className="h-6 w-6" />}
                   title={t('landing.feature2Title')}
                   description={t('landing.feature2Desc')}
-                  color="text-[var(--accent-cyan)]"
-                  bg="bg-[var(--accent-cyan)]/10"
+                  color="text-[var(--accent-primary)]"
+                  bg="bg-[var(--accent-primary)]/10"
                 />
               </StaggerItem>
               <StaggerItem>
@@ -208,8 +203,8 @@ export default function LandingPage() {
                   icon={<ArrowTrendingUpIcon className="h-6 w-6" />}
                   title={t('landing.feature3Title')}
                   description={t('landing.feature3Desc')}
-                  color="text-emerald-400"
-                  bg="bg-emerald-500/10"
+                  color="text-[var(--accent-primary)]"
+                  bg="bg-[var(--accent-primary)]/10"
                 />
               </StaggerItem>
               <StaggerItem>
@@ -217,8 +212,8 @@ export default function LandingPage() {
                   icon={<BoltIcon className="h-6 w-6" />}
                   title={t('landing.feature4Title')}
                   description={t('landing.feature4Desc')}
-                  color="text-amber-400"
-                  bg="bg-amber-500/10"
+                  color="text-[var(--accent-primary)]"
+                  bg="bg-[var(--accent-primary)]/10"
                 />
               </StaggerItem>
               <StaggerItem>
@@ -226,8 +221,8 @@ export default function LandingPage() {
                   icon={<ShieldCheckIcon className="h-6 w-6" />}
                   title={t('landing.feature5Title')}
                   description={t('landing.feature5Desc')}
-                  color="text-blue-400"
-                  bg="bg-blue-500/10"
+                  color="text-[var(--accent-primary)]"
+                  bg="bg-[var(--accent-primary)]/10"
                 />
               </StaggerItem>
               <StaggerItem>
@@ -235,8 +230,8 @@ export default function LandingPage() {
                   icon={<ClockIcon className="h-6 w-6" />}
                   title={t('landing.feature6Title')}
                   description={t('landing.feature6Desc')}
-                  color="text-pink-400"
-                  bg="bg-pink-500/10"
+                  color="text-[var(--accent-primary)]"
+                  bg="bg-[var(--accent-primary)]/10"
                 />
               </StaggerItem>
             </StaggerContainer>
@@ -287,8 +282,7 @@ export default function LandingPage() {
             <FadeIn direction="up" inView>
               <div className="relative overflow-hidden rounded-3xl">
                 {/* Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-violet)] via-[var(--accent-indigo)] to-[var(--accent-cyan)] opacity-90" />
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVHJhbnNmb3JtPSJyb3RhdGUoNDUpIj48cGF0aCBkPSJNLTEwIDMwaDYwIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-50" />
+                <div className="absolute inset-0 bg-[var(--accent-primary)] opacity-90" />
 
                 <div className="relative px-8 py-16 sm:px-16 sm:py-20 text-center">
                   <h2 className="text-3xl font-bold text-white sm:text-4xl">
@@ -367,8 +361,8 @@ function MockMessage({
   return (
     <div className={`flex ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${align === 'right'
-            ? 'bg-gradient-to-br from-[var(--accent-violet)] to-[var(--accent-indigo)] text-white'
+          className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${align === 'right'
+            ? 'bg-[var(--accent-primary)] text-white'
             : isStaff
               ? 'bg-blue-500/10 border border-blue-500/20 text-[var(--foreground)]'
               : 'bg-[var(--surface-2)] text-[var(--foreground)]'
@@ -432,7 +426,7 @@ function StepCard({
         whileHover={{ y: -3 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
       >
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent-violet)] to-[var(--accent-indigo)] text-xl font-bold text-white shadow-lg shadow-[var(--accent-indigo)]/20">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent-primary)] text-xl font-bold text-white shadow-sm">
           {step}
         </div>
         <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">{title}</h3>

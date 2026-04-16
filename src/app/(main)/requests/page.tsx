@@ -149,7 +149,7 @@ export default function RequestsPage() {
               onClick={() => setStaffTab(tab.value)}
               className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                 staffTab === tab.value
-                  ? 'bg-[var(--accent-violet)] text-white shadow-sm'
+                  ? 'bg-[var(--accent-primary)] text-white shadow-sm'
                   : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
             >
@@ -192,7 +192,7 @@ export default function RequestsPage() {
             key={f.value}
             onClick={() => { setStatusFilter(f.value); setPage(1); }}
             className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${statusFilter === f.value
-                ? 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)]'
+                ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]'
                 : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
           >
@@ -276,7 +276,7 @@ export default function RequestsPage() {
               {/* Main Info */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="truncate text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--accent-violet)] transition-colors">
+                  <h3 className="truncate text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--accent-primary)] transition-colors">
                     {req.title}
                   </h3>
                   {req.messageCount > 0 && (
@@ -316,7 +316,7 @@ export default function RequestsPage() {
                   {!isClient && req.assignedUser && (
                     <>
                       <span className="text-[var(--text-muted)]">·</span>
-                      <span className="text-[var(--accent-violet)] truncate max-w-[100px] sm:max-w-none">→ {req.assignedUser.name || 'Staff'}</span>
+                      <span className="text-[var(--accent-primary)] truncate max-w-[100px] sm:max-w-none">→ {req.assignedUser.name || 'Staff'}</span>
                     </>
                   )}
                   {!isClient && !req.assignedUser && (
@@ -339,7 +339,7 @@ export default function RequestsPage() {
                       handleSelfAssign(req.id);
                     }}
                     disabled={selfAssigning === req.id}
-                    className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[var(--accent-indigo)] to-[var(--accent-violet)] px-2 py-1.5 sm:px-2.5 text-[10px] font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-lg bg-[var(--accent-primary)] px-2 py-1.5 sm:px-2.5 text-[10px] font-semibold text-white shadow-sm transition-all hover:bg-[var(--accent-primary-hover)] hover:shadow-md disabled:opacity-50"
                   >
                     {selfAssigning === req.id ? (
                       <ArrowPathIcon className="h-3 w-3 animate-spin" />
@@ -386,7 +386,7 @@ export default function RequestsPage() {
                     key={p}
                     onClick={() => setPage(p)}
                     className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${page === p
-                        ? 'bg-[var(--accent-indigo)]/15 text-[var(--accent-violet)]'
+                        ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]'
                         : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)]'
                       }`}
                   >

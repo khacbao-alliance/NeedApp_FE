@@ -12,6 +12,8 @@ import {
   InformationCircleIcon,
   QuestionMarkCircleIcon,
   ExclamationTriangleIcon,
+  FaceSmileIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
 
 interface ChatBubbleProps {
@@ -65,7 +67,7 @@ function ReactionPicker({ messageId, onReaction }: {
         className="opacity-0 group-hover:opacity-100 rounded-full p-1 text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)] transition-all text-xs"
         title="React"
       >
-        😊
+        <FaceSmileIcon className="h-4 w-4" />
       </button>
       {show && (
         <>
@@ -244,7 +246,7 @@ export function ChatBubble({ message, isOwnMessage, requestId, userId, onReactio
                               : 'bg-amber-500/15 text-amber-400/70'
                           )}
                         >
-                          {q.answered ? '✓' : idx + 1}
+                          {q.answered ? <CheckIcon className="h-3 w-3" /> : idx + 1}
                         </span>
                         <span
                           className={cn(
@@ -350,7 +352,7 @@ export function ChatBubble({ message, isOwnMessage, requestId, userId, onReactio
                 )}
                 title={isSeen ? 'Đã xem' : 'Đã gửi'}
               >
-                {isSeen ? '✓✓' : '✓'}
+                {isSeen ? <><CheckIcon className="inline h-3 w-3" /><CheckIcon className="inline h-3 w-3 -ml-1.5" /></> : <CheckIcon className="inline h-3 w-3" />}
               </span>
             );
           })()}
