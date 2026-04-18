@@ -12,6 +12,8 @@ import {
   UserCircleIcon,
   ArrowRightStartOnRectangleIcon,
   BellIcon,
+  ClockIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeSolid,
@@ -46,6 +48,13 @@ const navItems: NavItem[] = [
     labelKey: 'nav.intakeQuestions',
     Icon: QuestionMarkCircleIcon,
     ActiveIcon: QuestionMarkCircleIcon,
+    roles: ['Admin'],
+  },
+  {
+    href: '/admin/sla-config',
+    labelKey: 'nav.slaConfig',
+    Icon: ClockIcon,
+    ActiveIcon: ClockIcon,
     roles: ['Admin'],
   },
 ];
@@ -122,6 +131,21 @@ export function Sidebar() {
             >
               <UserCircleIcon className="h-5 w-5 flex-shrink-0" />
               {t('nav.profile')}
+            </Link>
+          )}
+
+          {user && (
+            <Link
+              href="/email-settings"
+              className={cn(
+                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                pathname.startsWith('/email-settings')
+                  ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]'
+              )}
+            >
+              <Cog6ToothIcon className="h-5 w-5 flex-shrink-0" />
+              {t('nav.emailSettings')}
             </Link>
           )}
         </nav>

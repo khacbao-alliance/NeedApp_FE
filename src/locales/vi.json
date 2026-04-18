@@ -32,7 +32,9 @@
     "dashboard": "Tổng quan",
     "users": "Người dùng",
     "intakeQuestions": "Câu hỏi tiếp nhận",
-    "notifications": "Thông báo"
+    "notifications": "Thông báo",
+    "slaConfig": "Cấu hình SLA",
+    "emailSettings": "Cài đặt Email"
   },
   "auth": {
     "login": {
@@ -192,7 +194,10 @@
       "priorityLow": "Thấp",
       "priorityMedium": "Trung bình",
       "priorityHigh": "Cao",
-      "priorityUrgent": "Khẩn cấp"
+      "priorityUrgent": "Khẩn cấp",
+      "estimatedDeadline": "Thời hạn dự kiến",
+      "hours": "giờ",
+      "days": "ngày"
     }
   },
   "chat": {
@@ -236,7 +241,10 @@
       "unassigned": "\"{{name}}\" đã được gỡ khỏi yêu cầu này",
       "created": "Yêu cầu \"{{title}}\" đã được tạo",
       "intakeComplete": "Tất cả câu hỏi tiếp nhận đã được trả lời. Yêu cầu của bạn đang được xem xét."
-    }
+    },
+    "searchMessages": "Tìm tin nhắn",
+    "searchPlaceholder": "Tìm trong cuộc hội thoại...",
+    "noResults": "Không tìm thấy"
   },
   "requestActions": {
     "startProcessing": "Bắt đầu xử lý",
@@ -287,7 +295,24 @@
     "pendingFeedback": "Có yêu cầu đang chờ phản hồi hoặc thiếu thông tin từ khách hàng",
     "pickFromQueue": "Nhận yêu cầu mới từ danh sách chờ xử lý",
     "unassigned": "Chưa phân công",
-    "allAssigned": "Tất cả request đã được phân công"
+    "allAssigned": "Tất cả request đã được phân công",
+    "overdue": "Quá hạn",
+    "avgResolution": "Thời gian TB xử lý",
+    "slaCompliance": "SLA Compliance",
+    "statusDistribution": "Phân bổ trạng thái",
+    "dailyTrend": "Xu hướng 30 ngày",
+    "staffLeaderboard": "Bảng xếp hạng nhân viên",
+    "staffName": "Nhân viên",
+    "assigned": "Được gán",
+    "completedCol": "Hoàn thành",
+    "avgTime": "TB xử lý",
+    "created": "Tạo mới",
+    "completed": "Hoàn thành",
+    "noData": "Chưa có dữ liệu",
+    "overdueRequests": "Yêu cầu quá hạn",
+    "deadline": "Hạn chót",
+    "dueSoon": "Sắp hết hạn",
+    "priorityBreakdown": "Phân bổ ưu tiên (active)"
   },
   "profile": {
     "unnamed": "Chưa đặt tên",
@@ -392,6 +417,28 @@
       "updateBtn": "Cập nhật",
       "createBtn": "Tạo bộ câu hỏi",
       "error": "Có lỗi xảy ra"
+    },
+    "sla": {
+      "title": "Cấu hình SLA",
+      "subtitle": "Thiết lập thời hạn deadline tự động cho từng mức ưu tiên",
+      "noPermission": "Không có quyền",
+      "noPermissionDesc": "Chỉ Admin mới có thể cấu hình SLA.",
+      "howItWorks": "Cách hoạt động",
+      "howItWorksDesc": "Khi Client tạo request mới, hệ thống sẽ tự động đặt deadline dựa trên mức ưu tiên mà Client chọn. Bạn có thể tùy chỉnh thời hạn (số giờ) cho từng mức bên dưới.",
+      "deadlineHours": "Thời hạn (giờ)",
+      "description": "Ghi chú (tùy chọn)",
+      "descPlaceholder": "VD: Ticket khẩn cấp cần xử lý ngay",
+      "save": "Lưu cấu hình",
+      "saved": "Đã lưu!",
+      "resetDefault": "Đặt lại mặc định",
+      "error": "Lỗi khi lưu cấu hình SLA",
+      "preview": "Xem trước",
+      "priorityCol": "Mức ưu tiên",
+      "deadlineCol": "Deadline",
+      "daysCol": "Ngày",
+      "noteCol": "Ghi chú",
+      "hours": "giờ",
+      "days": "ngày"
     }
   },
   "landing": {
@@ -548,5 +595,43 @@
     "terms": "Điều khoản sử dụng",
     "privacy": "Chính sách bảo mật",
     "rights": "All rights reserved."
+  },
+  "emailSettings": {
+    "title": "Cài đặt Email",
+    "subtitle": "Tùy chỉnh loại email thông báo bạn muốn nhận",
+    "backToProfile": "Quay lại hồ sơ",
+    "saving": "Đang lưu...",
+    "saved": "Đã lưu",
+    "eventNotifications": "Thông báo sự kiện",
+    "eventNotificationsDesc": "Chọn loại sự kiện bạn muốn nhận email thông báo",
+    "onAssignment": "Khi được gán yêu cầu",
+    "onAssignmentDesc": "Nhận email khi có request mới được gán cho bạn",
+    "onStatusChange": "Khi trạng thái thay đổi",
+    "onStatusChangeDesc": "Nhận email khi trạng thái request thay đổi",
+    "onOverdue": "Cảnh báo quá hạn",
+    "onOverdueDesc": "Nhận email khi request quá deadline",
+    "onNewRequest": "Request mới",
+    "onNewRequestDesc": "Nhận email khi có request mới được tạo",
+    "digestTitle": "Email tóm tắt định kỳ",
+    "digestDesc": "Nhận bản tóm tắt tổng hợp tất cả request đang xử lý",
+    "digestFrequencyLabel": "Tần suất gửi",
+    "digestOff": "Bạn chưa bật email tóm tắt",
+    "digestDailyInfo": "Gửi mỗi ngày lúc 8:00 sáng (UTC)",
+    "digestWeeklyInfo": "Gửi mỗi thứ Hai lúc 8:00 sáng (UTC)",
+    "digestNone": "Không gửi",
+    "digestDaily": "Hàng ngày",
+    "digestWeekly": "Hàng tuần",
+    "note": "Email mời tham gia tổ chức sẽ luôn được gửi và không thể tắt. Thay đổi được lưu tự động."
+  },
+  "kanban": {
+    "listView": "Danh sách",
+    "kanbanView": "Kanban",
+    "emptyColumn": "Chưa có yêu cầu",
+    "dropHere": "Thả vào đây",
+    "allPriorities": "Tất cả ưu tiên",
+    "myRequests": "Của tôi",
+    "total": "yêu cầu",
+    "moveSuccess": "Đã chuyển trạng thái",
+    "moveError": "Không thể chuyển trạng thái"
   }
 }

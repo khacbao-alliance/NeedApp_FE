@@ -32,7 +32,9 @@
     "dashboard": "Dashboard",
     "users": "Users",
     "intakeQuestions": "Intake Questions",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "slaConfig": "SLA Config",
+    "emailSettings": "Email Settings"
   },
   "auth": {
     "login": {
@@ -173,9 +175,9 @@
       "sortOldest": "Oldest",
       "sortPriority": "Priority",
       "legendTitle": "Border color indicates waiting time",
-      "legendUrgent": "Over 24 hours â€” needs immediate attention",
-      "legendWarning": "4â€“24 hours â€” follow up soon",
-      "legendNormal": "Under 4 hours â€” on time",
+      "legendUrgent": "Over 24 hours - needs immediate attention",
+      "legendWarning": "4-24 hours - follow up soon",
+      "legendNormal": "Under 4 hours - on time",
       "clientDissolved": "Organization dissolved"
     },
     "new": {
@@ -192,7 +194,10 @@
       "priorityLow": "Low",
       "priorityMedium": "Medium",
       "priorityHigh": "High",
-      "priorityUrgent": "Urgent"
+      "priorityUrgent": "Urgent",
+      "estimatedDeadline": "Estimated deadline",
+      "hours": "hours",
+      "days": "days"
     }
   },
   "chat": {
@@ -236,7 +241,10 @@
       "unassigned": "\"{{name}}\" has been unassigned from this request",
       "created": "Request \"{{title}}\" has been created",
       "intakeComplete": "All intake questions have been answered. Your request is now being reviewed."
-    }
+    },
+    "searchMessages": "Search messages",
+    "searchPlaceholder": "Search in conversation...",
+    "noResults": "No results found"
   },
   "requestActions": {
     "startProcessing": "Start processing",
@@ -287,7 +295,24 @@
     "pendingFeedback": "Requests awaiting response or missing info from client",
     "pickFromQueue": "Pick up new requests from the pending queue",
     "unassigned": "Unassigned",
-    "allAssigned": "All requests have been assigned"
+    "allAssigned": "All requests have been assigned",
+    "overdue": "Overdue",
+    "avgResolution": "Avg Resolution Time",
+    "slaCompliance": "SLA Compliance",
+    "statusDistribution": "Status Distribution",
+    "dailyTrend": "30-Day Trend",
+    "staffLeaderboard": "Staff Leaderboard",
+    "staffName": "Staff Member",
+    "assigned": "Assigned",
+    "completedCol": "Completed",
+    "avgTime": "Avg Time",
+    "created": "Created",
+    "completed": "Completed",
+    "noData": "No data available",
+    "overdueRequests": "Overdue Requests",
+    "deadline": "Deadline",
+    "dueSoon": "Due Soon",
+    "priorityBreakdown": "Priority Breakdown (active)"
   },
   "profile": {
     "unnamed": "No name set",
@@ -392,6 +417,28 @@
       "updateBtn": "Update",
       "createBtn": "Create question set",
       "error": "An error occurred"
+    },
+    "sla": {
+      "title": "SLA Configuration",
+      "subtitle": "Configure automatic deadline hours per priority level",
+      "noPermission": "No permission",
+      "noPermissionDesc": "Only Admin can configure SLA.",
+      "howItWorks": "How it works",
+      "howItWorksDesc": "When a Client creates a new request, the system automatically sets a deadline based on the selected priority level. You can customize the deadline hours for each level below.",
+      "deadlineHours": "Deadline (hours)",
+      "description": "Note (optional)",
+      "descPlaceholder": "E.g. Urgent tickets require immediate attention",
+      "save": "Save configuration",
+      "saved": "Saved!",
+      "resetDefault": "Reset to defaults",
+      "error": "Error saving SLA configuration",
+      "preview": "Preview",
+      "priorityCol": "Priority",
+      "deadlineCol": "Deadline",
+      "daysCol": "Days",
+      "noteCol": "Note",
+      "hours": "hours",
+      "days": "days"
     }
   },
   "landing": {
@@ -548,6 +595,43 @@
     "terms": "Terms of service",
     "privacy": "Privacy policy",
     "rights": "All rights reserved."
+  },
+  "emailSettings": {
+    "title": "Email Settings",
+    "subtitle": "Customize which email notifications you receive",
+    "backToProfile": "Back to profile",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "eventNotifications": "Event Notifications",
+    "eventNotificationsDesc": "Choose which events trigger an email notification",
+    "onAssignment": "Request assigned",
+    "onAssignmentDesc": "Get notified when a request is assigned to you",
+    "onStatusChange": "Status changes",
+    "onStatusChangeDesc": "Get notified when a request status changes",
+    "onOverdue": "Overdue alerts",
+    "onOverdueDesc": "Get notified when a request passes its deadline",
+    "onNewRequest": "New requests",
+    "onNewRequestDesc": "Get notified when a new request is created",
+    "digestTitle": "Periodic Digest",
+    "digestDesc": "Receive a summary of all active requests you're involved with",
+    "digestFrequencyLabel": "Frequency",
+    "digestOff": "Digest emails are currently off",
+    "digestDailyInfo": "Sent every day at 8:00 AM (UTC)",
+    "digestWeeklyInfo": "Sent every Monday at 8:00 AM (UTC)",
+    "digestNone": "Off",
+    "digestDaily": "Daily",
+    "digestWeekly": "Weekly",
+    "note": "Organization invitation emails are always sent and cannot be disabled. Changes are saved automatically."
+  },
+  "kanban": {
+    "listView": "List",
+    "kanbanView": "Kanban",
+    "emptyColumn": "No requests",
+    "dropHere": "Drop here",
+    "allPriorities": "All priorities",
+    "myRequests": "My requests",
+    "total": "requests",
+    "moveSuccess": "Status updated",
+    "moveError": "Failed to update status"
   }
 }
-

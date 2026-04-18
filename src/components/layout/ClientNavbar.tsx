@@ -20,6 +20,7 @@ import {
   DocumentTextIcon,
   PlusCircleIcon,
   HomeIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 
 export function ClientNavbar() {
@@ -166,6 +167,13 @@ export function ClientNavbar() {
                       <UserCircleIcon className="h-4 w-4" />
                       {t('nav.profile')}
                     </Link>
+                    <Link
+                      href="/email-settings"
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] transition-colors"
+                    >
+                      <Cog6ToothIcon className="h-4 w-4" />
+                      {t('nav.emailSettings')}
+                    </Link>
                     <button
                       onClick={() => {
                         setProfileOpen(false);
@@ -245,6 +253,13 @@ export function ClientNavbar() {
                   >
                     <UserCircleIcon className="h-5 w-5" />
                     {t('nav.profile')}
+                  </Link>
+                  <Link
+                    href="/email-settings"
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+                  >
+                    <Cog6ToothIcon className="h-5 w-5" />
+                    {t('nav.emailSettings')}
                   </Link>
                   <div className="border-t border-[var(--border)] mt-2 pt-2">
                     <button

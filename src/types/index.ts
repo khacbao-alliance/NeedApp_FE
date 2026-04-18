@@ -102,6 +102,7 @@ export interface CreateRequestRequest {
   title: string;
   description?: string;
   priority?: RequestPriority;
+  dueDate?: string;
 }
 
 export interface CreateRequestResponse {
@@ -135,6 +136,8 @@ export interface RequestDto {
   isClientActive: boolean;
   createdAt: string;
   updatedAt: string | null;
+  dueDate: string | null;
+  isOverdue: boolean;
 }
 
 // ── Message ────────────────────────────────────────────
@@ -373,3 +376,56 @@ export interface UnreadCountDto {
   count: number;
 }
 
+// ── Dashboard Analytics ───────────────────────────────
+export interface DashboardStatsDto {
+  totalRequests: number;
+  intakeCount: number;
+  pendingCount: number;
+  inProgressCount: number;
+  doneCount: number;
+  cancelledCount: number;
+  missingInfoCount: number;
+  unassignedCount: number;
+  overdueCount: number;
+  totalUsers: number;
+  totalClients: number;
+  avgResolutionHours: number;
+  slaComplianceRate: number;
+  statusBreakdown: StatusCountDto[];
+  priorityBreakdown: PriorityCountDto[];
+  dailyTrend: DailyCountDto[];
+  staffPerformance: StaffPerformanceDto[];
+}
+
+export interface StatusCountDto {
+  status: string;
+  count: number;
+}
+
+export interface PriorityCountDto {
+  priority: string;
+  count: number;
+}
+
+export interface DailyCountDto {
+  date: string;
+  created: number;
+  completed: number;
+}
+
+export interface StaffPerformanceDto {
+  userId: string;
+  name: string | null;
+  avatarUrl: string | null;
+  assignedCount: number;
+  completedCount: number;
+  avgResolutionHours: number;
+}
+
+// ── SLA Config ────────────────────────────────────────
+export interface SlaConfigDto {
+  id: string;
+  priority: string;
+  deadlineHours: number;
+  description: string | null;
+}

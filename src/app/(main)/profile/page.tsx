@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { fileService } from '@/services/files';
 import { userService } from '@/services/users';
@@ -511,6 +512,26 @@ export default function ProfilePage() {
             />
           </div>
         )}
+
+        {/* Email Settings Link */}
+        <div className="mt-6 border-t border-[var(--border)] pt-5">
+          <Link
+            href="/email-settings"
+            className="flex items-center justify-between rounded-xl bg-[var(--surface-2)] p-4 transition-all hover:bg-[var(--surface-3)] group"
+            id="email-settings-link"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/15">
+                <EnvelopeIcon className="h-4.5 w-4.5 text-amber-400" />
+              </span>
+              <div>
+                <p className="text-sm font-medium text-[var(--foreground)]">{t('profile.emailSettingsLink', 'Cài đặt Email')}</p>
+                <p className="text-xs text-[var(--text-muted)]">{t('profile.emailSettingsLinkDesc', 'Tùy chỉnh email thông báo')}</p>
+              </div>
+            </div>
+            <span className="text-[var(--text-muted)] group-hover:text-[var(--foreground)] transition-colors text-lg">→</span>
+          </Link>
+        </div>
 
         {/* Logout */}
         <div className="mt-6 border-t border-[var(--border)] pt-5 flex justify-end">

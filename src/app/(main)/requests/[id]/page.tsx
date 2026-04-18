@@ -31,8 +31,12 @@ import {
   ChartBarIcon,
   ClockIcon,
   ChevronDownIcon,
+  ChevronUpIcon,
   HandRaisedIcon,
   UserCircleIcon,
+  FireIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 export default function RequestChatPage() {
@@ -58,6 +62,13 @@ export default function RequestChatPage() {
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [newMsgCount, setNewMsgCount] = useState(0);
   const [readers, setReaders] = useState<ReadReceiptDto[]>([]);
+
+  // ── In-chat search ──
+  const [chatSearchOpen, setChatSearchOpen] = useState(false);
+  const [chatSearchQuery, setChatSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<string[]>([]); // message IDs
+  const [searchIndex, setSearchIndex] = useState(0);
+  const [searching, setSearching] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -384,6 +395,11 @@ export default function RequestChatPage() {
                   {formatDate(request.createdAt, language)}
                 </span>
 
+                {/* Deadline badge */}
+                {request.dueDate && (
+                  <DeadlineBadge dueDate={request.dueDate} isOverdue={request.isOverdue} />
+                )}
+
                 {/* SignalR connection status */}
                 {!isIntake && (
                   <span className={`inline-flex items-center gap-0.5 text-[10px] ${
@@ -415,6 +431,20 @@ export default function RequestChatPage() {
               <span className="hidden sm:inline">{t('chat.summary', 'Tóm tắt')}</span>
             </button>
           )}
+          {/* Chat search toggle */}
+          {request && (
+            <button
+              onClick={() => { setChatSearchOpen(!chatSearchOpen); setChatSearchQuery(''); setSearchResults([]); }}
+              title={t('chat.searchMessages', 'Tìm tin nhắn')}
+              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors border ${
+                chatSearchOpen
+                  ? 'text-[var(--accent-primary)] bg-[var(--accent-primary)]/10 border-[var(--accent-primary)]/20'
+                  : 'text-[var(--text-secondary)] bg-[var(--surface-2)] border-[var(--border)] hover:text-[var(--foreground)]'
+              }`}
+            >
+              <MagnifyingGlassIcon className="h-3.5 w-3.5" />
+            </button>
+          )}
           {request && <SelfAssignAction request={request} onUpdate={(updated) => {
             setRequest(updated);
             // Staff just self-assigned → unlock messages
@@ -433,6 +463,74 @@ export default function RequestChatPage() {
           }} />}
         </div>
       </div>
+
+      {/* ── In-Chat Search Bar ── */}
+      {chatSearchOpen && (
+        <div className="border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 flex items-center gap-2 animate-fade-in">
+          <MagnifyingGlassIcon className="h-4 w-4 text-[var(--text-muted)] flex-shrink-0" />
+          <input
+            type="text"
+            value={chatSearchQuery}
+            onChange={(e) => setChatSearchQuery(e.target.value)}
+            onKeyDown={async (e) => {
+              if (e.key === 'Enter' && chatSearchQuery.trim()) {
+                setSearching(true);
+                try {
+                  const results = await requestService.searchMessages(requestId, chatSearchQuery.trim());
+                  const ids = results.map(m => m.id);
+                  setSearchResults(ids);
+                  setSearchIndex(0);
+                  // Scroll to first result
+                  if (ids.length > 0) {
+                    document.getElementById(`msg-${ids[0]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                } catch { /* ignore */ }
+                finally { setSearching(false); }
+              }
+            }}
+            placeholder={t('chat.searchPlaceholder', 'Tìm trong cuộc hội thoại...')}
+            className="flex-1 bg-transparent text-sm text-[var(--foreground)] placeholder-[var(--text-muted)] outline-none"
+            autoFocus
+          />
+          {searching && <ArrowPathIcon className="h-4 w-4 text-[var(--text-muted)] animate-spin" />}
+          {searchResults.length > 0 && (
+            <>
+              <span className="text-xs text-[var(--text-muted)] whitespace-nowrap">
+                {searchIndex + 1}/{searchResults.length}
+              </span>
+              <button
+                onClick={() => {
+                  const prev = (searchIndex - 1 + searchResults.length) % searchResults.length;
+                  setSearchIndex(prev);
+                  document.getElementById(`msg-${searchResults[prev]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
+                className="p-0.5 rounded text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
+              >
+                <ChevronUpIcon className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => {
+                  const next = (searchIndex + 1) % searchResults.length;
+                  setSearchIndex(next);
+                  document.getElementById(`msg-${searchResults[next]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
+                className="p-0.5 rounded text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
+              >
+                <ChevronDownIcon className="h-4 w-4" />
+              </button>
+            </>
+          )}
+          {chatSearchQuery && searchResults.length === 0 && !searching && (
+            <span className="text-xs text-[var(--text-muted)]">{t('chat.noResults', 'Không tìm thấy')}</span>
+          )}
+          <button
+            onClick={() => { setChatSearchOpen(false); setChatSearchQuery(''); setSearchResults([]); }}
+            className="p-0.5 rounded text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Status Actions Bar (Staff/Admin only) */}
       {request && (role === 'Staff' || role === 'Admin') && (
@@ -528,36 +626,49 @@ export default function RequestChatPage() {
             const isLastOwnMessage =
               msg.sender?.id === user?.id &&
               !messages.slice(idx + 1).some((m) => m.sender?.id === user?.id);
+            const isSearchMatch = searchResults.includes(msg.id);
+            const isCurrentSearchTarget = searchResults[searchIndex] === msg.id;
             return (
-              <ChatBubble
+              <div
                 key={msg.id}
-                message={msg}
-                isOwnMessage={msg.sender?.id === user?.id}
-                requestId={requestId}
-                userId={user?.id}
-                readers={readers}
-                isLastOwnMessage={isLastOwnMessage}
-                onReaction={async (messageId, emoji) => {
-                  try {
-                    const res = await messageService.toggleReaction(requestId, messageId, emoji);
-                    // Optimistic update
-                    setMessages((prev) => prev.map((m) => {
-                      if (m.id !== messageId) return m;
-                      const currentReactions = m.reactions || [];
-                      if (res.added) {
-                        const existing = currentReactions.find((r) => r.emoji === emoji);
-                        if (existing) {
-                          return { ...m, reactions: currentReactions.map((r) => r.emoji === emoji ? { ...r, count: res.count, userIds: [...r.userIds, user?.id || ''] } : r) };
+                id={`msg-${msg.id}`}
+                className={`transition-all duration-300 rounded-lg ${
+                  isCurrentSearchTarget
+                    ? 'ring-2 ring-[var(--accent-primary)] bg-[var(--accent-primary)]/5'
+                    : isSearchMatch
+                    ? 'ring-1 ring-[var(--accent-primary)]/30 bg-[var(--accent-primary)]/[0.02]'
+                    : ''
+                }`}
+              >
+                <ChatBubble
+                  message={msg}
+                  isOwnMessage={msg.sender?.id === user?.id}
+                  requestId={requestId}
+                  userId={user?.id}
+                  readers={readers}
+                  isLastOwnMessage={isLastOwnMessage}
+                  onReaction={async (messageId, emoji) => {
+                    try {
+                      const res = await messageService.toggleReaction(requestId, messageId, emoji);
+                      // Optimistic update
+                      setMessages((prev) => prev.map((m) => {
+                        if (m.id !== messageId) return m;
+                        const currentReactions = m.reactions || [];
+                        if (res.added) {
+                          const existing = currentReactions.find((r) => r.emoji === emoji);
+                          if (existing) {
+                            return { ...m, reactions: currentReactions.map((r) => r.emoji === emoji ? { ...r, count: res.count, userIds: [...r.userIds, user?.id || ''] } : r) };
+                          }
+                          return { ...m, reactions: [...currentReactions, { emoji, count: 1, userIds: [user?.id || ''] }] };
+                        } else {
+                          const updated = currentReactions.map((r) => r.emoji === emoji ? { ...r, count: res.count, userIds: r.userIds.filter((id) => id !== user?.id) } : r).filter((r) => r.count > 0);
+                          return { ...m, reactions: updated.length > 0 ? updated : null };
                         }
-                        return { ...m, reactions: [...currentReactions, { emoji, count: 1, userIds: [user?.id || ''] }] };
-                      } else {
-                        const updated = currentReactions.map((r) => r.emoji === emoji ? { ...r, count: res.count, userIds: r.userIds.filter((id) => id !== user?.id) } : r).filter((r) => r.count > 0);
-                        return { ...m, reactions: updated.length > 0 ? updated : null };
-                      }
-                    }));
-                  } catch { /* ignore */ }
-                }}
-              />
+                      }));
+                    } catch { /* ignore */ }
+                  }}
+                />
+              </div>
             );
           })
         )}
@@ -672,5 +783,38 @@ export default function RequestChatPage() {
         />
       )}
     </div>
+  );
+}
+
+function DeadlineBadge({ dueDate, isOverdue }: { dueDate: string; isOverdue: boolean }) {
+  const due = new Date(dueDate);
+  const now = new Date();
+  const hoursLeft = (due.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  if (isOverdue) {
+    return (
+      <span className="inline-flex items-center gap-0.5 rounded-full bg-red-500/15 border border-red-500/25 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">
+        <FireIcon className="h-3 w-3" />
+        <span className="hidden sm:inline">Overdue</span>
+      </span>
+    );
+  }
+
+  if (hoursLeft > 0 && hoursLeft < 24) {
+    return (
+      <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400">
+        <ClockIcon className="h-3 w-3" />
+        {hoursLeft < 1 ? `${Math.max(1, Math.round(hoursLeft * 60))}m` : `${Math.round(hoursLeft)}h`}
+      </span>
+    );
+  }
+
+  // Show due date for non-urgent
+  const daysLeft = Math.ceil(hoursLeft / 24);
+  return (
+    <span className="hidden sm:inline-flex items-center gap-0.5 rounded-full bg-[var(--surface-2)] border border-[var(--border)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">
+      <ClockIcon className="h-3 w-3" />
+      {daysLeft}d left
+    </span>
   );
 }
