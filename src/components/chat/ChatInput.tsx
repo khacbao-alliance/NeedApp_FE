@@ -111,7 +111,7 @@ export function ChatInput({
                   {t('chat.replyingTo', 'Đang trả lời')} {replyToMessage.sender?.name || 'Unknown'}
                 </span>
               </div>
-              <p className="text-[12px] text-[var(--text-muted)] truncate" title={replyToMessage.content}>
+              <p className="text-[12px] text-[var(--text-muted)] truncate" title={replyToMessage.content || undefined}>
                 {replyToMessage.content || '📎 File đính kèm'}
               </p>
             </div>
