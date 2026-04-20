@@ -19,9 +19,10 @@ interface KanbanColumnProps {
   isOver?: boolean;
   onSelfAssign?: (id: string) => Promise<void>;
   isStaff?: boolean;
+  movingIds?: Set<string>;
 }
 
-export function KanbanColumn({ config, requests, isOver, onSelfAssign, isStaff }: KanbanColumnProps) {
+export function KanbanColumn({ config, requests, isOver, onSelfAssign, isStaff, movingIds }: KanbanColumnProps) {
   const { t } = useTranslation();
   const { setNodeRef } = useDroppable({
     id: config.status,
@@ -65,7 +66,7 @@ export function KanbanColumn({ config, requests, isOver, onSelfAssign, isStaff }
             </div>
           ) : (
             requests.map((request) => (
-              <KanbanCard key={request.id} request={request} onSelfAssign={onSelfAssign} isStaff={isStaff} />
+              <KanbanCard key={request.id} request={request} onSelfAssign={onSelfAssign} isStaff={isStaff} isMoving={movingIds?.has(request.id)} />
             ))
           )}
         </SortableContext>

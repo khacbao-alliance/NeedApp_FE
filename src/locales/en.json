@@ -19,6 +19,22 @@
     "password": "Password",
     "name": "Name"
   },
+  "guide": {
+    "title": "Status Management Guide",
+    "subtitle": "Click on a status to see details and transitions",
+    "triggerLabel": "Guide",
+    "canMoveTo": "Can transition to",
+    "flowTitle": "Standard status flow",
+    "branchNote": "Branch:",
+    "tip": "In Kanban view, drag cards to change status. Invalid transitions are automatically rejected.",
+    "status": {
+      "intakeDesc": "Client is answering intake questions. The system auto-moves to Pending once all questions are answered. Staff can also manually close intake and move to Pending.",
+      "pendingDesc": "Request is submitted and waiting for a staff member to pick it up. Staff can self-assign and start processing.",
+      "missingInfoDesc": "Staff needs additional information from the client. The request is paused until the client provides what is needed.",
+      "inProgressDesc": "A staff member is actively working on this request. Can be moved to Done, MissingInfo, or back to Pending.",
+      "doneDesc": "Request has been completed. Can be re-opened and moved back to InProgress if needed."
+    }
+  },
   "nav": {
     "home": "Home",
     "requests": "Requests",
@@ -166,19 +182,21 @@
       "createRequest": "Create request",
       "selfAssign": "Accept",
       "notAssigned": "Unassigned",
-      "assignedTo": "â†’ {{name}}",
-      "paging": "Page {{page}} / {{total}} Â· {{count}} requests",
+      "assignedTo": "→ {{name}}",
+      "paging": "Page {{page}} / {{total}} · {{count}} requests",
       "staffAll": "All",
       "staffMine": "Mine",
       "staffUnassigned": "Unassigned",
       "sortNewest": "Newest",
       "sortOldest": "Oldest",
       "sortPriority": "Priority",
+      "sortDueDate": "Deadline",
       "legendTitle": "Border color indicates waiting time",
       "legendUrgent": "Over 24 hours - needs immediate attention",
       "legendWarning": "4-24 hours - follow up soon",
       "legendNormal": "Under 4 hours - on time",
-      "clientDissolved": "Organization dissolved"
+      "clientDissolved": "Organization dissolved",
+      "overdue": "Overdue"
     },
     "new": {
       "title": "New request",
@@ -196,8 +214,22 @@
       "priorityHigh": "High",
       "priorityUrgent": "Urgent",
       "estimatedDeadline": "Estimated deadline",
+      "hour": "hour",
       "hours": "hours",
+      "day": "day",
       "days": "days"
+    },
+    "filter": {
+      "advanced": "Advanced filters",
+      "advancedTitle": "Advanced Filters",
+      "clearAll": "Clear filters",
+      "priority": "Priority",
+      "allPriorities": "All",
+      "dateFrom": "From date",
+      "dateTo": "To date",
+      "overdueOnly": "Overdue only",
+      "filterName": "Filter name...",
+      "save": "Save"
     }
   },
   "chat": {
@@ -210,8 +242,9 @@
     "messagePlaceholder": "Type a message...",
     "doneStatus": "Request completed",
     "adminObserverStatus": "You are viewing as Admin. Only the assigned Staff member can send messages.",
-    "cancelledStatus": "âŒ Request cancelled",
-    "clientDissolvedStatus": "ðŸš« Client organization dissolved â€” chat disabled",
+    "staffNotParticipant": "You are not the assigned staff for this request.",
+    "cancelledStatus": "❌ Request cancelled",
+    "clientDissolvedStatus": "🚫 Client organization dissolved — chat disabled",
     "missingInfoToggle": "Request missing information",
     "summary": "Summary",
     "live": "Live",
@@ -221,13 +254,13 @@
     "answer": "Answer",
     "missingInfo": {
       "title": "Request missing information",
-      "clientReceive": "â€” Client will receive a list of questions",
+      "clientReceive": "— Client will receive a list of questions",
       "messageLabel": "Message",
       "messageOptional": "(optional)",
       "messagePlaceholder": "e.g. We need some more information to process your request...",
       "questionListLabel": "Question list",
       "addQuestion": "Add question",
-      "hint": "Enter to add â€¢ Backspace to remove",
+      "hint": "Enter to add • Backspace to remove",
       "sendBtn": "Send ({{count}})",
       "cannotSend": "Unable to send follow-up request",
       "needOneQuestion": "At least 1 question is required",
@@ -271,7 +304,7 @@
   },
   "dashboard": {
     "greeting": "Hello",
-    "adminSubtitle": "System overview â€” manage requests and users",
+    "adminSubtitle": "System overview — manage requests and users",
     "staffSubtitle": "Requests assigned to you today",
     "totalRequests": "Total requests",
     "intake": "In intake",
@@ -448,7 +481,7 @@
     "headlineConnector": "into",
     "headlineGradient": "reality",
     "headlineLine2": "in just a few steps",
-    "subtitle": "NeedApp helps you submit requests, communicate directly with our expert team, and track project progress â€” all in one platform.",
+    "subtitle": "NeedApp helps you submit requests, communicate directly with our expert team, and track project progress — all in one platform.",
     "createRequest": "New request",
     "viewMyRequests": "My requests",
     "startFree": "Get started free",
@@ -457,11 +490,11 @@
     "featuresTitleGradient": "in one place",
     "featuresSubtitle": "Simple workflow, clear communication, track anytime.",
     "feature1Title": "Easy request creation",
-    "feature1Desc": "Just describe your need briefly â€” the system automatically asks for more details to fully understand your requirements.",
+    "feature1Desc": "Just describe your need briefly — the system automatically asks for more details to fully understand your requirements.",
     "feature2Title": "Direct chat",
     "feature2Desc": "Communicate with our team through a modern chat interface. Send files, images and get fast responses.",
     "feature3Title": "Track progress",
-    "feature3Desc": "Know the exact status of your request â€” from intake, in progress to completion. Never miss an update.",
+    "feature3Desc": "Know the exact status of your request — from intake, in progress to completion. Never miss an update.",
     "feature4Title": "Fast processing",
     "feature4Desc": "The automated intake process helps the team grasp your needs instantly, shortening response time.",
     "feature5Title": "High security",
@@ -492,12 +525,12 @@
     "mockChat": {
       "senderSystem": "System",
       "senderUser": "You",
-      "senderStaff": "Staff Alex",
+      "senderStaff": "Staff Bảo",
       "msg1": "What industry is your website for?",
       "msg2": "I need an online fashion e-commerce website",
       "msg3": "How many pages would you like the website to have?",
       "msg4": "Around 5-10 pages, including home, products, and shopping cart",
-      "msg5": "Hi! I've received your request. I'll send a quote within 24h ðŸ‘‹"
+      "msg5": "Hi! I've received your request. I'll send a quote within 24h 👋"
     }
   },
   "notifications": {
@@ -558,7 +591,7 @@
   },
   "summary": {
     "title": "Conversation summary",
-    "powered": "AI-powered Â· Gemini",
+    "powered": "AI-powered · Gemini",
     "refresh": "Refresh",
     "overview": "Overview",
     "messages": "Messages",
@@ -566,12 +599,12 @@
     "system": "System",
     "participants": "Participants",
     "aiSummary": "AI Summary",
-    "aiUnavailable": "ðŸ¤– AI summary temporarily unavailable",
+    "aiUnavailable": "🤖 AI summary temporarily unavailable",
     "intakeTitle": "Intake Questions",
     "unanswered": "(Unanswered)",
     "missingInfo": "Missing information requests",
     "resolved": "Resolved",
-    "waiting": "â³ Waiting for response",
+    "waiting": "⏳ Waiting for response",
     "highlights": "Highlights",
     "attachments": "Attachments",
     "noMessages": "No messages in this conversation yet",
@@ -582,7 +615,7 @@
     "messagesCount": "{{count}} msgs"
   },
   "footer": {
-    "tagline": "Smart customer request management system â€” helping you communicate and track projects easily.",
+    "tagline": "Smart customer request management system — helping you communicate and track projects easily.",
     "product": "Product",
     "features": "Features",
     "howItWorks": "How it works",
@@ -632,6 +665,7 @@
     "myRequests": "My requests",
     "total": "requests",
     "moveSuccess": "Status updated",
-    "moveError": "Failed to update status"
+    "moveError": "Failed to update status",
+    "invalidTransition": "Cannot move from {from} to {to}"
   }
 }

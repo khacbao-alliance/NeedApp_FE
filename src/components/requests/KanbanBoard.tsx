@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -15,6 +15,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { KanbanColumn, type ColumnConfig } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
+import { showErrorToast } from '@/components/ui/ErrorToast';
 import type { RequestDto, RequestStatus } from '@/types';
 
 const COLUMNS: ColumnConfig[] = [
@@ -24,6 +25,22 @@ const COLUMNS: ColumnConfig[] = [
   { status: 'InProgress',  labelKey: 'status.inProgress',  color: 'text-violet-400',  bgColor: 'bg-violet-400' },
   { status: 'Done',        labelKey: 'status.done',        color: 'text-emerald-400', bgColor: 'bg-emerald-400' },
 ];
+
+// Mirror backend ValidTransitions — used to block invalid drags before API call
+const VALID_TRANSITIONS: Partial<Record<RequestStatus, RequestStatus[]>> = {
+  Intake:      ['Pending'],                                                    // Staff can force-close intake
+  Pending:     ['InProgress', 'Cancelled'],
+  MissingInfo: ['InProgress', 'Pending', 'Cancelled'],
+  InProgress:  ['Done', 'MissingInfo', 'Pending', 'Cancelled'],
+  Done:        ['InProgress'],
+};
+
+function canTransition(from: RequestStatus, to: RequestStatus): boolean {
+  if (from === to) return false;
+  if (from === 'Draft') return false; // Draft is never manually movable
+  const allowed = VALID_TRANSITIONS[from];
+  return allowed ? allowed.includes(to) : false;
+}
 
 interface KanbanBoardProps {
   requests: RequestDto[];
@@ -37,11 +54,13 @@ export function KanbanBoard({ requests, onStatusChange, onSelfAssign, currentUse
   const { t } = useTranslation();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
+  // optimisticMoves: requestId → target status while API is in-flight
   const [optimisticMoves, setOptimisticMoves] = useState<Record<string, RequestStatus>>({});
+  // Track which cards are currently being moved (disables drag on them)
+  const [movingIds, setMovingIds] = useState<Set<string>>(new Set());
 
-  // Quick filters
+  // Quick local filter — priority only (Mine/Unassigned handled by parent via staff tabs)
   const [filterPriority, setFilterPriority] = useState<string>('');
-  const [filterMine, setFilterMine] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -49,27 +68,24 @@ export function KanbanBoard({ requests, onStatusChange, onSelfAssign, currentUse
     })
   );
 
-  // Apply quick filters + optimistic moves
+  // Apply quick local filters
   const filteredRequests = useMemo(() => {
     let items = requests;
     if (filterPriority) {
       items = items.filter((r) => r.priority === filterPriority);
     }
-    if (filterMine && currentUserId) {
-      items = items.filter((r) => r.assignedUser?.id === currentUserId);
-    }
     return items;
-  }, [requests, filterPriority, filterMine, currentUserId]);
+  }, [requests, filterPriority]);
 
-  // Group by column, using optimistic status if available
+  // Group by column — use optimisticMoves status when in-flight
   const columns = useMemo(() => {
     const grouped: Record<string, RequestDto[]> = {};
     for (const col of COLUMNS) {
       grouped[col.status] = [];
     }
     for (const req of filteredRequests) {
-      const effectiveStatus = optimisticMoves[req.id] || req.status;
-      if (grouped[effectiveStatus]) {
+      const effectiveStatus = optimisticMoves[req.id] ?? req.status;
+      if (grouped[effectiveStatus] !== undefined) {
         grouped[effectiveStatus].push({ ...req, status: effectiveStatus });
       }
     }
@@ -77,8 +93,20 @@ export function KanbanBoard({ requests, onStatusChange, onSelfAssign, currentUse
   }, [filteredRequests, optimisticMoves]);
 
   const activeRequest = activeId
-    ? requests.find((r) => r.id === activeId) || null
+    ? (filteredRequests.find((r) => r.id === activeId) ?? null)
     : null;
+
+  const getColumnForId = useCallback(
+    (id: string): RequestStatus | null => {
+      // Is it a column id?
+      if (COLUMNS.some((c) => c.status === id)) return id as RequestStatus;
+      // Is it a card id?
+      const req = filteredRequests.find((r) => r.id === id);
+      if (req) return optimisticMoves[req.id] ?? req.status;
+      return null;
+    },
+    [filteredRequests, optimisticMoves]
+  );
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -90,17 +118,8 @@ export function KanbanBoard({ requests, onStatusChange, onSelfAssign, currentUse
       setOverColumnId(null);
       return;
     }
-    // Check if hovering over a column directly
-    if (COLUMNS.some((c) => c.status === overId)) {
-      setOverColumnId(overId);
-    } else {
-      // Hovering over a card — find which column it belongs to
-      const overReq = requests.find((r) => r.id === overId);
-      if (overReq) {
-        const effectiveStatus = optimisticMoves[overReq.id] || overReq.status;
-        setOverColumnId(effectiveStatus);
-      }
-    }
+    const col = getColumnForId(overId);
+    setOverColumnId(col);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -111,43 +130,46 @@ export function KanbanBoard({ requests, onStatusChange, onSelfAssign, currentUse
     if (!over) return;
 
     const requestId = active.id as string;
-    let targetStatus: RequestStatus | null = null;
 
-    // Dropped on a column
-    if (COLUMNS.some((c) => c.status === over.id)) {
-      targetStatus = over.id as RequestStatus;
-    } else {
-      // Dropped on a card — find column
-      const overReq = requests.find((r) => r.id === over.id);
-      if (overReq) {
-        targetStatus = optimisticMoves[overReq.id] || overReq.status;
-      }
-    }
+    // Skip if already in-flight
+    if (movingIds.has(requestId)) return;
 
-    if (!targetStatus) return;
-
-    const draggedReq = requests.find((r) => r.id === requestId);
+    const draggedReq = filteredRequests.find((r) => r.id === requestId);
     if (!draggedReq) return;
 
-    const currentStatus = optimisticMoves[requestId] || draggedReq.status;
-    if (currentStatus === targetStatus) return;
+    const currentStatus = optimisticMoves[requestId] ?? draggedReq.status;
+    const targetStatus = getColumnForId(over.id as string);
+    if (!targetStatus || currentStatus === targetStatus) return;
 
-    // Optimistic update
-    setOptimisticMoves((prev) => ({ ...prev, [requestId]: targetStatus! }));
+    // ── Validate transition on FE before hitting API ──
+    if (!canTransition(currentStatus, targetStatus)) {
+      const fromLabel = t(`status.${currentStatus.charAt(0).toLowerCase() + currentStatus.slice(1)}`, currentStatus);
+      const toLabel   = t(`status.${targetStatus.charAt(0).toLowerCase() + targetStatus.slice(1)}`, targetStatus);
+      showErrorToast(t('kanban.invalidTransition', `Không thể chuyển từ "${fromLabel}" sang "${toLabel}".`).replace('{from}', fromLabel).replace('{to}', toLabel));
+      return;
+    }
+
+    // ── Optimistic update ──
+    setOptimisticMoves((prev) => ({ ...prev, [requestId]: targetStatus }));
+    setMovingIds((prev) => new Set(prev).add(requestId));
 
     try {
+      // onStatusChange must await fetchRequests() before resolving
       await onStatusChange(requestId, targetStatus);
-      // On success, remove from optimistic (real data will refresh)
+      // Success — remove optimistic (fresh data already loaded by the parent)
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message;
+      showErrorToast(msg || t('kanban.moveError', 'Không thể thay đổi trạng thái.'));
+    } finally {
+      // Always clean up — whether success or failure, fresh data determines card position
       setOptimisticMoves((prev) => {
         const next = { ...prev };
         delete next[requestId];
         return next;
       });
-    } catch {
-      // Revert optimistic
-      setOptimisticMoves((prev) => {
-        const next = { ...prev };
-        delete next[requestId];
+      setMovingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(requestId);
         return next;
       });
     }
@@ -169,20 +191,6 @@ export function KanbanBoard({ requests, onStatusChange, onSelfAssign, currentUse
           <option value="Medium">{t('priority.medium', 'Trung bình')}</option>
           <option value="Low">{t('priority.low', 'Thấp')}</option>
         </select>
-
-        {currentUserId && (
-          <button
-            onClick={() => setFilterMine(!filterMine)}
-            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
-              filterMine
-                ? 'border-[var(--accent-primary)]/30 bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
-                : 'border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--foreground)]'
-            }`}
-            id="kanban-filter-mine"
-          >
-            {t('kanban.myRequests', 'Của tôi')}
-          </button>
-        )}
 
         <span className="ml-auto text-[11px] text-[var(--text-muted)]">
           {filteredRequests.length} {t('kanban.total', 'yêu cầu')}
@@ -206,6 +214,7 @@ export function KanbanBoard({ requests, onStatusChange, onSelfAssign, currentUse
               isOver={overColumnId === col.status}
               onSelfAssign={onSelfAssign}
               isStaff={isStaff}
+              movingIds={movingIds}
             />
           ))}
         </div>

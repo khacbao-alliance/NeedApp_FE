@@ -13,6 +13,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import type { RequestDto, RequestStatus, RequestPriority, PaginatedResponse } from '@/types';
 import { formatDate, getTimeUrgency } from '@/lib/utils';
 import { KanbanBoard } from '@/components/requests/KanbanBoard';
+import { StatusGuide } from '@/components/requests/StatusGuide';
 import {
   PlusIcon,
   DocumentTextIcon,
@@ -64,6 +65,8 @@ export default function RequestsPage() {
   const toggleViewMode = (mode: ViewMode) => {
     setViewMode(mode);
     localStorage.setItem('needapp_view_mode', mode);
+    // Kanban shows all statuses as columns — reset any active status filter
+    if (mode === 'kanban') setStatusFilter('all');
   };
 
   // ── Advanced Filters ──
@@ -223,7 +226,8 @@ export default function RequestsPage() {
 
   const handleKanbanStatusChange = async (requestId: string, newStatus: RequestStatus) => {
     await requestService.updateStatus(requestId, newStatus);
-    fetchRequests();
+    // Await fetch so fresh data is loaded before KanbanBoard clears optimistic state
+    await fetchRequests();
   };
 
   return (
@@ -258,6 +262,8 @@ export default function RequestsPage() {
               </button>
             </div>
           )}
+          {/* Status Guide (Staff/Admin only) */}
+          {isStaffOrAdmin && <StatusGuide />}
           {isClient && (
             <Link href="/requests/new">
               <Button variant="gradient">
@@ -693,7 +699,7 @@ export default function RequestsPage() {
           </div>
         ) : (
           <KanbanBoard
-            requests={role === 'Staff' ? allRequests.filter(r => !r.assignedUser || r.assignedUser.id === user?.id) : allRequests}
+            requests={requests}
             onStatusChange={handleKanbanStatusChange}
             onSelfAssign={async (id) => { await requestService.selfAssign(id); fetchRequests(); }}
             currentUserId={user?.id}
@@ -706,6 +712,7 @@ export default function RequestsPage() {
 }
 
 function DeadlineBadge({ dueDate, isOverdue }: { dueDate: string | null; isOverdue: boolean }) {
+  const { t } = useTranslation();
   if (!dueDate) return null;
 
   const due = new Date(dueDate);
@@ -716,7 +723,7 @@ function DeadlineBadge({ dueDate, isOverdue }: { dueDate: string | null; isOverd
     return (
       <span className="inline-flex items-center gap-0.5 rounded-full bg-red-500/15 border border-red-500/25 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">
         <FireIcon className="h-3 w-3" />
-        <span className="hidden sm:inline">Quá hạn</span>
+        <span className="hidden sm:inline">{t('requests.list.overdue')}</span>
       </span>
     );
   }

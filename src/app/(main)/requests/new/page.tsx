@@ -124,9 +124,9 @@ export default function NewRequestPage() {
               <span className="font-medium text-[var(--text-secondary)]">
                 {(() => {
                   const h = slaHours[form.priority] || 72;
-                  if (h < 24) return `~${h} ${t('requests.new.hours', 'giờ')}`;
+                  if (h < 24) return `~${h} ${h === 1 ? t('requests.new.hour', 'giờ') : t('requests.new.hours', 'giờ')}`;
                   const d = Math.round(h / 24 * 10) / 10;
-                  return `~${d} ${t('requests.new.days', 'ngày')}`;
+                  return `~${d} ${d === 1 ? t('requests.new.day', 'ngày') : t('requests.new.days', 'ngày')}`;
                 })()}
               </span>
             </span>

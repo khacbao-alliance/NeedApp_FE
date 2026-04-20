@@ -22,13 +22,13 @@ interface ConfirmModalProps {
 
 const variantConfig: Record<
   ConfirmVariant,
-  { icon: string; iconBg: string; iconColor: string; btnVariant: 'danger' | 'primary' | 'secondary' }
+  { icon: string; iconBg: string; iconColor: string; btnVariant: 'danger' | 'destructive' | 'primary' | 'secondary' }
 > = {
   danger: {
     icon: '!',
     iconBg: 'bg-red-500/10',
     iconColor: 'text-red-400',
-    btnVariant: 'danger',
+    btnVariant: 'destructive' as const,
   },
   warning: {
     icon: '!',
@@ -91,11 +91,7 @@ export function ConfirmModal({
           </Button>
           <Button
             variant={config.btnVariant}
-            className={cn(
-              'flex-1',
-              variant === 'danger' &&
-                'bg-red-500 text-white hover:bg-red-600 border-0 shadow-lg shadow-red-500/20'
-            )}
+            className="flex-1"
             onClick={onConfirm}
             loading={loading}
           >

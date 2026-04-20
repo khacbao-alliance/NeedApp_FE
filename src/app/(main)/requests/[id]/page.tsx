@@ -729,6 +729,13 @@ export default function RequestChatPage() {
             {t('chat.adminObserverStatus', 'Bạn đang xem với tư cách Admin. Chỉ Staff được phân công mới có thể nhắn tin.')}
           </p>
         </div>
+      ) : role === 'Staff' && request?.assignedUser && request.assignedUser.id !== user?.id ? (
+        // Staff viewing a request assigned to another staff — cannot send messages
+        <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-center">
+          <p className="text-xs text-[var(--text-muted)]">
+            {t('chat.staffNotParticipant', 'Bạn không phải là staff được phân công cho yêu cầu này.')}
+          </p>
+        </div>
       ) : showMissingInfo ? (
         <MissingInfoComposer
           onSend={async (content, questions) => {

@@ -19,9 +19,10 @@ interface KanbanCardProps {
   request: RequestDto;
   onSelfAssign?: (id: string) => Promise<void>;
   isStaff?: boolean;
+  isMoving?: boolean;
 }
 
-export function KanbanCard({ request, onSelfAssign, isStaff }: KanbanCardProps) {
+export function KanbanCard({ request, onSelfAssign, isStaff, isMoving }: KanbanCardProps) {
   const { t } = useTranslation();
   const [assigning, setAssigning] = useState(false);
   const {
@@ -34,6 +35,7 @@ export function KanbanCard({ request, onSelfAssign, isStaff }: KanbanCardProps) 
   } = useSortable({
     id: request.id,
     data: { type: 'card', request },
+    disabled: isMoving, // Prevent re-dragging while in-flight
   });
 
   const style = {
@@ -47,12 +49,20 @@ export function KanbanCard({ request, onSelfAssign, isStaff }: KanbanCardProps) 
       style={style}
       {...attributes}
       {...listeners}
-      className={`group rounded-xl border bg-[var(--surface-1)] p-3 transition-all cursor-grab active:cursor-grabbing ${
-        isDragging
-          ? 'opacity-50 shadow-2xl border-[var(--accent-primary)]/50 scale-[1.02] z-50'
-          : 'border-[var(--border)] hover:border-[var(--glass-border)] hover:shadow-md'
+      className={`relative group rounded-xl border bg-[var(--surface-1)] p-3 transition-all ${
+        isMoving
+          ? 'cursor-wait opacity-60 border-[var(--accent-primary)]/30'
+          : isDragging
+          ? 'cursor-grabbing opacity-50 shadow-2xl border-[var(--accent-primary)]/50 scale-[1.02] z-50'
+          : 'cursor-grab active:cursor-grabbing border-[var(--border)] hover:border-[var(--glass-border)] hover:shadow-md'
       }`}
     >
+      {/* Moving indicator */}
+      {isMoving && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-[var(--surface-1)]/60 backdrop-blur-[1px] z-10">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--accent-primary)] border-t-transparent" />
+        </div>
+      )}
       {/* Title — clickable to navigate */}
       <Link
         href={`/requests/${request.id}`}
