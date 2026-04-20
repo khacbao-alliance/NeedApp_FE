@@ -652,8 +652,8 @@
     "digestDailyInfo": "Gửi mỗi ngày lúc 8:00 sáng (UTC)",
     "digestWeeklyInfo": "Gửi mỗi thứ Hai lúc 8:00 sáng (UTC)",
     "digestNone": "Không gửi",
-    "digestDaily": "Hàng ngày",
-    "digestWeekly": "Hàng tuần",
+    "digestDaily": "Hằng ngày",
+    "digestWeekly": "Hằng tuần",
     "note": "Email mời tham gia tổ chức sẽ luôn được gửi và không thể tắt. Thay đổi được lưu tự động."
   },
   "kanban": {

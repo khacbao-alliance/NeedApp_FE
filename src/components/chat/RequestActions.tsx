@@ -132,6 +132,9 @@ export function RequestStatusActions({
   const actions = STATUS_TRANSITIONS[request.status] ?? [];
   if (actions.length === 0) return null;
 
+  // Client dissolved — show locked state instead of action buttons
+  const isLocked = !request.isClientActive;
+
   const executeStatusChange = async (newStatus: RequestStatus) => {
     setUpdating(true);
     setError('');
@@ -158,26 +161,35 @@ export function RequestStatusActions({
 
   return (
     <>
-      <div className="flex items-center gap-1.5 flex-wrap">
-        {actions.map((action) => (
-          <button
-            key={action.status}
-            onClick={() => handleStatusChange(action.status)}
-            disabled={updating}
-            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${VARIANT_CLASSES[action.variant]} disabled:opacity-50`}
-          >
-            {updating ? (
-              <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              action.icon
-            )}
-            {action.label}
-          </button>
-        ))}
-        {error && (
-          <span className="text-[10px] text-red-400 animate-fade-in">{error}</span>
-        )}
-      </div>
+      {isLocked ? (
+        <div className="flex items-center gap-1.5 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-1.5">
+          <XMarkIcon className="h-3.5 w-3.5 text-red-400 flex-shrink-0" />
+          <span className="text-xs text-red-400 font-medium">
+            {t('requestActions.clientDissolved', 'Tổ chức đã giải thể — không thể thay đổi trạng thái')}
+          </span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {actions.map((action) => (
+            <button
+              key={action.status}
+              onClick={() => handleStatusChange(action.status)}
+              disabled={updating}
+              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${VARIANT_CLASSES[action.variant]} disabled:opacity-50`}
+            >
+              {updating ? (
+                <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                action.icon
+              )}
+              {action.label}
+            </button>
+          ))}
+          {error && (
+            <span className="text-[10px] text-red-400 animate-fade-in">{error}</span>
+          )}
+        </div>
+      )}
 
       {/* Confirm Modal */}
       <ConfirmModal

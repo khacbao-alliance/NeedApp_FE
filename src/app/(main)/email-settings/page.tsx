@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { userService } from '@/services/users';
@@ -23,16 +23,12 @@ export default function EmailSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState(false);
 
-  const fetchPrefs = useCallback(async () => {
-    try {
-      const data = await userService.getEmailPreferences();
-      setPrefs(data);
-    } catch { /* ignore */ } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    userService.getEmailPreferences()
+      .then(setPrefs)
+      .catch(() => { /* ignore */ })
+      .finally(() => setLoading(false));
   }, []);
-
-  useEffect(() => { fetchPrefs(); }, [fetchPrefs]);
 
   const update = async (patch: Partial<EmailPreferenceDto>) => {
     if (!prefs) return;

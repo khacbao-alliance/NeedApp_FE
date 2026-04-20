@@ -25,6 +25,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   ArrowPathIcon,
+  DocumentTextIcon,
   ExclamationTriangleIcon,
   SignalIcon,
   SignalSlashIcon,
@@ -58,6 +59,7 @@ export default function RequestChatPage() {
   const [showMissingInfo, setShowMissingInfo] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [staffNotAssigned, setStaffNotAssigned] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [newMsgCount, setNewMsgCount] = useState(0);
@@ -117,10 +119,11 @@ export default function RequestChatPage() {
       .getById(requestId)
       .then(setRequest)
       .catch((err: unknown) => {
-        // If 403 or 404, user doesn't have access
         const status = (err as { status?: number })?.status;
-        if (status === 403 || status === 404) {
+        if (status === 403) {
           setAccessDenied(true);
+        } else if (status === 404) {
+          setNotFound(true);
         }
       });
   }, [requestId]);
@@ -151,8 +154,10 @@ export default function RequestChatPage() {
         // BE returns 403 when staff is not yet a participant (not assigned).
         // Show the self-assign prompt instead of the generic access-denied screen.
         setStaffNotAssigned(true);
-      } else if (status === 403 || status === 404) {
+      } else if (status === 403) {
         setAccessDenied(true);
+      } else if (status === 404) {
+        setNotFound(true);
       }
     } finally {
       setLoading(false);
@@ -302,6 +307,30 @@ export default function RequestChatPage() {
   const intakeProgress = intakeMeta
     ? ((intakeMeta.orderIndex + 1) / intakeMeta.totalQuestions) * 100
     : 0;
+
+  // ── Not Found UI ──
+  if (notFound) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 p-8">
+        <div className="rounded-full bg-[var(--surface-2)] p-4">
+          <DocumentTextIcon className="h-8 w-8 text-[var(--text-muted)]" />
+        </div>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">
+          {t('errors.requestNotFound', 'Không tìm thấy yêu cầu')}
+        </h2>
+        <p className="text-sm text-[var(--text-muted)] text-center max-w-sm">
+          {t('errors.requestNotFoundDesc', 'Yêu cầu này không tồn tại hoặc đã bị xóa. Thông báo liên quan có thể đã lỗi thời.')}
+        </p>
+        <Link
+          href="/requests"
+          className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[var(--accent-primary)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          {t('common.backToRequests', 'Quay lại danh sách')}
+        </Link>
+      </div>
+    );
+  }
 
   // ── Access denied UI ──
   if (accessDenied) {
