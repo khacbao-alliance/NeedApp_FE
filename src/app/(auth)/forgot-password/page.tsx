@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { authService } from '@/services/auth';
 import { ApiRequestError } from '@/services/requests';
+import ReCAPTCHA from 'react-google-recaptcha';
 import {
   EnvelopeIcon,
   ShieldCheckIcon,
@@ -32,8 +33,10 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(0);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   // Countdown timer
   useEffect(() => {
@@ -53,13 +56,20 @@ export default function ForgotPasswordPage() {
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
+    if (!recaptchaToken) {
+      setError('Vui lòng xác minh bạn không phải là robot.');
+      return;
+    }
+    
     setError('');
     setLoading(true);
     try {
-      await authService.forgotPassword(email.trim());
+      await authService.forgotPassword(email.trim(), recaptchaToken);
       setStep('otp');
       setCountdown(60);
     } catch (err) {
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
       if (err instanceof ApiRequestError) {
         setError(err.message);
       } else {
@@ -119,20 +129,16 @@ export default function ForgotPasswordPage() {
   };
 
   // ── Resend OTP ──
-  const handleResend = async () => {
+  const handleResend = () => {
     if (countdown > 0) return;
     setError('');
-    setLoading(true);
-    try {
-      await authService.forgotPassword(email.trim());
-      setCountdown(60);
-      setOtp(['', '', '', '', '', '']);
-      otpRefs.current[0]?.focus();
-    } catch {
-      setError(t('auth.forgotPassword.cannotResend'));
-    } finally {
-      setLoading(false);
-    }
+    // Require a fresh recaptcha token for resend
+    setStep('email');
+    setRecaptchaToken(null);
+    setOtp(['', '', '', '', '', '']);
+    setTimeout(() => {
+      setError('Vui lòng hoàn thành reCAPTCHA để gửi lại mã.');
+    }, 100);
   };
 
   // ── OTP input handlers ──
@@ -239,6 +245,15 @@ export default function ForgotPasswordPage() {
                   <p className="text-sm text-red-400">{error}</p>
                 </div>
               )}
+
+              <div className="flex justify-center my-1">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
+                  onChange={(token) => setRecaptchaToken(token)}
+                  theme="light"
+                />
+              </div>
 
               <Button type="submit" loading={loading} variant="gradient" className="w-full mt-1" id="forgot-submit">
                 {t('auth.forgotPassword.sendOtp')}

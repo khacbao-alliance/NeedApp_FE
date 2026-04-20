@@ -58,6 +58,7 @@ export default function RequestChatPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showMissingInfo, setShowMissingInfo] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [replyToMessage, setReplyToMessage] = useState<MessageDto | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [staffNotAssigned, setStaffNotAssigned] = useState(false);
@@ -110,6 +111,12 @@ export default function RequestChatPage() {
         const filtered = prev.filter((r) => r.userId !== receipt.userId);
         return [...filtered, receipt];
       });
+    }, []),
+    onMessageEdited: useCallback((edited: MessageDto) => {
+      setMessages((prev) => prev.map((m) => m.id === edited.id ? { ...m, content: edited.content, isEdited: edited.isEdited, editedAt: edited.editedAt } : m));
+    }, []),
+    onMessagePinned: useCallback((messageId: string, isPinned: boolean) => {
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isPinned } : m));
     }, []),
   });
 
@@ -198,6 +205,30 @@ export default function RequestChatPage() {
     }
   );
 
+  // ── Fallback polling — when SignalR is not connected (non-intake) ──
+  // Detects pin/edit/new-message changes that SignalR missed.
+  usePolling(
+    useCallback(async () => {
+      try {
+        const res = await messageService.list(requestId, undefined, 50);
+        setMessages((prev) => {
+          const changed =
+            res.items.length !== prev.length ||
+            res.items.some((m) => {
+              const old = prev.find((p) => p.id === m.id);
+              return !old || old.isPinned !== m.isPinned || old.isEdited !== m.isEdited || old.content !== m.content;
+            });
+          return changed ? res.items : prev;
+        });
+      } catch { /* ignore */ }
+    }, [requestId]),
+    {
+      interval: 30000, // 30s fallback
+      enabled: !isIntake && !isConnected && !loading && !staffNotAssigned,
+      backgroundInterval: 120000,
+    }
+  );
+
   // ── Track scroll position ──
   useEffect(() => {
     const container = chatContainerRef.current;
@@ -244,13 +275,40 @@ export default function RequestChatPage() {
     }
   };
 
+  // ── Edit message ──
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    try {
+      const updated = await messageService.editMessage(requestId, messageId, newContent);
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, content: updated.content, isEdited: updated.isEdited, editedAt: updated.editedAt } : m));
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message;
+      showErrorToast(msg || t('common.error', 'Có lỗi xảy ra'));
+    }
+  };
+
+  // ── Pin message ──
+  const handlePinMessage = async (messageId: string) => {
+    // Optimistic toggle so the banner updates immediately
+    setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isPinned: !m.isPinned } : m));
+    try {
+      const updated = await messageService.pinMessage(requestId, messageId);
+      // Reconcile with server truth after API confirms
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isPinned: updated.isPinned } : m));
+    } catch (err: unknown) {
+      // Revert optimistic update
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isPinned: !m.isPinned } : m));
+      const msg = (err as { message?: string })?.message;
+      showErrorToast(msg || t('common.error', 'Có lỗi xảy ra'));
+    }
+  };
+
   // ── Send message ──
-  const handleSend = async (content: string) => {
+  const handleSend = async (content: string, replyToId?: string) => {
     if (!content.trim() || sending) return;
     setSending(true);
     try {
       const type = isIntake ? 'IntakeAnswer' : 'Text';
-      const sentMsg = await messageService.send(requestId, { content, type });
+      const sentMsg = await messageService.send(requestId, { content, type, replyToId });
 
       // For Intake: append locally + re-fetch for next question  
       // For Chat: append locally (SignalR will dedupe if it arrives again)
@@ -617,7 +675,38 @@ export default function RequestChatPage() {
           )}
         </div>
       ) : (
-      /* Messages */
+      <>
+      {/* Pinned messages banner */}
+      {(() => {
+        const pinned = messages.filter((m) => m.isPinned);
+        if (!pinned.length) return null;
+        return (
+          <div className="mx-4 mt-3 mb-1 bg-[var(--surface-1)] border border-[var(--border)] rounded-lg shadow-sm animate-fade-in flex flex-col overflow-hidden">
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border)] bg-[var(--surface-2)]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-[var(--text-muted)]">
+                <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
+                <path fillRule="evenodd" clipRule="evenodd" d="M13.5 17v5a1.5 1.5 0 0 1-3 0v-5h3Z" />
+              </svg>
+              <span className="text-[11px] font-semibold text-[var(--foreground)] uppercase tracking-wide">
+                {t('chat.pinnedMessages', 'Tin nhắn đã ghim')}
+              </span>
+              <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--surface-3)] text-[var(--text-secondary)] border border-[var(--border)]">
+                {pinned.length}
+              </span>
+            </div>
+            <div className="max-h-[80px] overflow-y-auto px-1 py-1 space-y-0.5 scrollbar-thin scrollbar-thumb-[var(--border)]">
+              {pinned.map((m) => (
+                <button key={m.id} onClick={() => document.getElementById(`msg-${m.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                  className="block w-full text-left text-sm hover:bg-[var(--surface-2)] px-2 py-1.5 rounded transition-colors group flex items-baseline gap-2">
+                  <span className="font-semibold text-[var(--text-secondary)] flex-shrink-0 text-[13px]">{m.sender?.name || 'Unknown'}:</span>
+                  <span className="text-[var(--text-muted)] group-hover:text-[var(--foreground)] line-clamp-1 break-all whitespace-normal text-[13px]">{m.content || '📎 File đính kèm'}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+      {/* Messages */}
       <div
         ref={chatContainerRef}
         className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-1"
@@ -676,10 +765,13 @@ export default function RequestChatPage() {
                   userId={user?.id}
                   readers={readers}
                   isLastOwnMessage={isLastOwnMessage}
+                  canPin={!isIntake}
+                  onReply={!isIntake ? (m) => setReplyToMessage(m) : undefined}
+                  onEdit={handleEditMessage}
+                  onPin={!isIntake ? handlePinMessage : undefined}
                   onReaction={async (messageId, emoji) => {
                     try {
                       const res = await messageService.toggleReaction(requestId, messageId, emoji);
-                      // Optimistic update
                       setMessages((prev) => prev.map((m) => {
                         if (m.id !== messageId) return m;
                         const currentReactions = m.reactions || [];
@@ -736,6 +828,7 @@ export default function RequestChatPage() {
           </button>
         )}
       </div>
+      </>
       )}
 
       {/* Input */}
@@ -787,6 +880,8 @@ export default function RequestChatPage() {
             onSend={handleSend}
             onFileUpload={handleFileUpload}
             onTyping={handleTypingInput}
+            replyToMessage={replyToMessage}
+            onCancelReply={() => setReplyToMessage(null)}
             placeholder={
               isIntake
                 ? currentIntakeQuestion?.metadata

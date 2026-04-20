@@ -62,6 +62,8 @@ export default function RequestsPage() {
     }
     return 'list';
   });
+  // Client users always use list view regardless of localStorage
+  const effectiveViewMode: ViewMode = isStaffOrAdmin ? viewMode : 'list';
   const toggleViewMode = (mode: ViewMode) => {
     setViewMode(mode);
     localStorage.setItem('needapp_view_mode', mode);
@@ -150,8 +152,8 @@ export default function RequestsPage() {
   const fetchRequests = useCallback(async () => {
     try {
       const params: GetRequestsParams = {
-        page: viewMode === 'kanban' ? 1 : page,
-        pageSize: viewMode === 'kanban' ? 100 : 10,
+        page: effectiveViewMode === 'kanban' ? 1 : page,
+        pageSize: effectiveViewMode === 'kanban' ? 100 : 10,
         search: search || undefined,
         status: statusFilter !== 'all' ? statusFilter : undefined,
         priority: priorityFilter || undefined,
@@ -485,7 +487,7 @@ export default function RequestsPage() {
         </div>
       )}
       {/* Status tabs + list content — only in list mode */}
-      {viewMode === 'list' && (
+      {effectiveViewMode === 'list' && (
         <>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {statusFilters.map((f) => (
@@ -704,7 +706,7 @@ export default function RequestsPage() {
       )}
 
       {/* ── Kanban View ── */}
-      {viewMode === 'kanban' && isStaffOrAdmin && (
+      {effectiveViewMode === 'kanban' && isStaffOrAdmin && (
         loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">

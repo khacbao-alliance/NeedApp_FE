@@ -105,7 +105,10 @@
       "mismatch": "Mật khẩu xác nhận không khớp",
       "cannotSend": "Không thể gửi yêu cầu. Vui lòng thử lại.",
       "cannotResend": "Không thể gửi lại mã. Vui lòng thử lại.",
-      "resetFailed": "Đặt lại mật khẩu thất bại. Vui lòng thử lại."
+      "resetFailed": "Đặt lại mật khẩu thất bại. Vui lòng thử lại.",
+      "emailNotFound": "Email này không tồn tại trong hệ thống.",
+      "googleAccount": "Tài khoản này được đăng nhập bằng Google và không có mật khẩu để đặt lại.",
+      "stepOtp": "Xác nhận"
     },
     "google": {
       "failed": "Google sign-in thất bại. Vui lòng thử lại.",
@@ -277,7 +280,11 @@
     },
     "searchMessages": "Tìm tin nhắn",
     "searchPlaceholder": "Tìm trong cuộc hội thoại...",
-    "noResults": "Không tìm thấy"
+    "noResults": "Không tìm thấy",
+    "pinned": "Đã ghim",
+    "pin": "Ghim",
+    "unpin": "Bỏ ghim",
+    "edited": "đã chỉnh sửa"
   },
   "requestActions": {
     "startProcessing": "Bắt đầu xử lý",

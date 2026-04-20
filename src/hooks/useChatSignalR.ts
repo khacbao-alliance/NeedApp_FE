@@ -22,6 +22,10 @@ interface UseChatSignalROptions {
   onMessageDeleted?: (messageId: string) => void;
   /** Called when a participant marks as read */
   onMessageRead?: (receipt: ReadReceiptDto) => void;
+  /** Called when a message is edited */
+  onMessageEdited?: (message: MessageDto) => void;
+  /** Called when a message is pinned/unpinned */
+  onMessagePinned?: (messageId: string, isPinned: boolean) => void;
 }
 
 interface TypingUser {
@@ -54,22 +58,28 @@ export function useChatSignalR({
   onStatusChanged,
   onMessageDeleted,
   onMessageRead,
+  onMessageEdited,
+  onMessagePinned,
 }: UseChatSignalROptions) {
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const connectionRef = useRef<HubConnection | null>(null);
   const typingTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
-  
+
   // Keep latest callbacks in refs to avoid re-creating connection on every render
   const onNewMessageRef = useRef(onNewMessage);
   const onStatusChangedRef = useRef(onStatusChanged);
   const onMessageDeletedRef = useRef(onMessageDeleted);
   const onMessageReadRef = useRef(onMessageRead);
+  const onMessageEditedRef = useRef(onMessageEdited);
+  const onMessagePinnedRef = useRef(onMessagePinned);
 
   useEffect(() => { onNewMessageRef.current = onNewMessage; }, [onNewMessage]);
   useEffect(() => { onStatusChangedRef.current = onStatusChanged; }, [onStatusChanged]);
   useEffect(() => { onMessageDeletedRef.current = onMessageDeleted; }, [onMessageDeleted]);
   useEffect(() => { onMessageReadRef.current = onMessageRead; }, [onMessageRead]);
+  useEffect(() => { onMessageEditedRef.current = onMessageEdited; }, [onMessageEdited]);
+  useEffect(() => { onMessagePinnedRef.current = onMessagePinned; }, [onMessagePinned]);
 
   // ── Build & manage connection ──
   useEffect(() => {
@@ -123,6 +133,14 @@ export function useChatSignalR({
         typingTimeoutsRef.current.delete(userId);
       }, 3000);
       typingTimeoutsRef.current.set(userId, timeout);
+    });
+
+    connection.on('MessageEdited', (message: MessageDto) => {
+      onMessageEditedRef.current?.(normalizeEnums(message));
+    });
+
+    connection.on('MessagePinned', ({ messageId, isPinned }: { messageId: string; isPinned: boolean }) => {
+      onMessagePinnedRef.current?.(messageId, isPinned);
     });
 
     connection.on('Error', (error: string) => {

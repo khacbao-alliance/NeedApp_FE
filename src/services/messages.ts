@@ -39,4 +39,10 @@ export const messageService = {
 
   markRead: (requestId: string) =>
     api.post<void>(`/requests/${requestId}/messages/read`, {}),
+
+  editMessage: (requestId: string, messageId: string, content: string) =>
+    api.put<MessageDto>(`/requests/${requestId}/messages/${messageId}`, { content }),
+
+  pinMessage: (requestId: string, messageId: string) =>
+    api.post<MessageDto>(`/requests/${requestId}/messages/${messageId}/pin`, {}),
 };

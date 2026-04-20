@@ -19,8 +19,8 @@ export const authService = {
 
   me: () => api.get<UserDto>('/auth/me'),
 
-  forgotPassword: (email: string) =>
-    api.post<{ message: string }>('/auth/forgot-password', { email }),
+  forgotPassword: (email: string, recaptchaToken: string) =>
+    api.post<{ message: string }>('/auth/forgot-password', { email, recaptchaToken }),
 
   resetPassword: (data: { email: string; otpCode: string; newPassword: string }) =>
     api.post<void>('/auth/reset-password', data),
