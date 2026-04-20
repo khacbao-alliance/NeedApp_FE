@@ -114,7 +114,7 @@ export function MissingInfoComposer({ onSend, onCancel }: MissingInfoComposerPro
         {/* Message input */}
         <div>
           <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
-            {t('chat.missingInfo.messageLabel')} <span className="normal-case font-normal">{t('chat.missingInfo.messageOptional')}</span>
+            {t('chat.missingInfo.messageLabel')} <span className="normal-case font-normal"></span>
           </label>
           <input
             value={content}

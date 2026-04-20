@@ -22,6 +22,14 @@ import {
   ClipboardDocumentListIcon,
   ExclamationCircleIcon,
   DocumentTextIcon,
+  PhotoIcon,
+  DocumentIcon,
+  TableCellsIcon,
+  ArchiveBoxIcon,
+  CogIcon,
+  UsersIcon,
+  CheckIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
@@ -55,14 +63,15 @@ function formatFileSize(bytes: number | null): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function fileIcon(contentType: string | null): string {
-  if (!contentType) return '📄';
-  if (contentType.startsWith('image/')) return '🖼️';
-  if (contentType === 'application/pdf') return '📕';
-  if (contentType.includes('word') || contentType.includes('document')) return '📝';
-  if (contentType.includes('sheet') || contentType.includes('excel')) return '📊';
-  if (contentType.includes('zip') || contentType.includes('rar')) return '🗜️';
-  return '📄';
+function fileIcon(contentType: string | null): React.ReactNode {
+  const cls = 'h-4 w-4 text-[var(--text-muted)]';
+  if (!contentType) return <DocumentIcon className={cls} />;
+  if (contentType.startsWith('image/')) return <PhotoIcon className={cls} />;
+  if (contentType === 'application/pdf') return <BookOpenIcon className={cls} />;
+  if (contentType.includes('word') || contentType.includes('document')) return <DocumentTextIcon className={cls} />;
+  if (contentType.includes('sheet') || contentType.includes('excel')) return <TableCellsIcon className={cls} />;
+  if (contentType.includes('zip') || contentType.includes('rar')) return <ArchiveBoxIcon className={cls} />;
+  return <DocumentIcon className={cls} />;
 }
 
 function roleBadgeClass(role: string | null): string {
@@ -102,11 +111,12 @@ function OverviewSection({ overview }: { overview: ConversationOverviewDto }) {
     return role ?? '—';
   };
 
+  const iconCls = 'h-4 w-4 text-[var(--accent-primary)]';
   const stats = [
-    { label: t('summary.messages'), value: overview.totalMessages, icon: '💬' },
-    { label: t('summary.files'), value: overview.totalFilesSent, icon: '📎' },
-    { label: t('summary.system'), value: overview.totalSystemMessages, icon: '⚙️' },
-    { label: t('summary.participants'), value: overview.participants.length, icon: '👥' },
+    { label: t('summary.messages'), value: overview.totalMessages, icon: <ChatBubbleLeftRightIcon className={iconCls} /> },
+    { label: t('summary.files'), value: overview.totalFilesSent, icon: <PaperClipIcon className={iconCls} /> },
+    { label: t('summary.system'), value: overview.totalSystemMessages, icon: <CogIcon className={iconCls} /> },
+    { label: t('summary.participants'), value: overview.participants.length, icon: <UsersIcon className={iconCls} /> },
   ];
 
   return (
@@ -119,7 +129,7 @@ function OverviewSection({ overview }: { overview: ConversationOverviewDto }) {
         <div className="grid grid-cols-2 gap-2">
           {stats.map((item) => (
             <div key={item.label} className="rounded-lg bg-[var(--surface-2)] px-3 py-2 flex items-center gap-2">
-              <span className="text-base">{item.icon}</span>
+              <span className="flex-shrink-0">{item.icon}</span>
               <div>
                 <div className="text-xs text-[var(--text-muted)]">{item.label}</div>
                 <div className="text-sm font-bold text-[var(--foreground)]">{item.value}</div>
@@ -205,7 +215,7 @@ function IntakeSection({ data }: { data: IntakeSummaryDto }) {
         badge={
           <span className={`text-[10px] font-semibold rounded-full px-2 py-0.5 ${allAnswered ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/15 text-amber-400 border border-amber-500/20'}`}>
             {data.answeredQuestions}/{data.totalQuestions}
-            {allAnswered && ' ✓'}
+            {allAnswered && <CheckIcon className="ml-0.5 inline h-3 w-3" />}
           </span>
         }
       />
@@ -343,7 +353,7 @@ function AttachmentsSection({ attachments }: { attachments: AttachmentSummaryDto
       <div className="divide-y divide-[var(--border)]">
         {attachments.map((a) => (
           <div key={a.id} className="px-4 py-2.5 flex items-center gap-3">
-            <span className="text-lg flex-shrink-0">{fileIcon(a.contentType)}</span>
+            <span className="flex-shrink-0">{fileIcon(a.contentType)}</span>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-medium text-[var(--foreground)] truncate">{a.fileName}</div>
               <div className="text-[10px] text-[var(--text-muted)]">

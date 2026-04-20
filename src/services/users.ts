@@ -41,5 +41,28 @@ export const userService = {
 
   updateProfile: (data: UpdateProfileRequest) =>
     api.patch<UserDto>('/auth/me', data),
+
+  getEmailPreferences: () =>
+    api.get<EmailPreferenceDto>('/email-preferences'),
+
+  updateEmailPreferences: (data: UpdateEmailPreferenceRequest) =>
+    api.put<EmailPreferenceDto>('/email-preferences', data),
 };
 
+// ── Email Preference types ──
+
+export interface EmailPreferenceDto {
+  onAssignment: boolean;
+  onStatusChange: boolean;
+  onOverdue: boolean;
+  onNewRequest: boolean;
+  digestFrequency: 'None' | 'Daily' | 'Weekly';
+}
+
+export interface UpdateEmailPreferenceRequest {
+  onAssignment: boolean;
+  onStatusChange: boolean;
+  onOverdue: boolean;
+  onNewRequest: boolean;
+  digestFrequency: 'None' | 'Daily' | 'Weekly';
+}

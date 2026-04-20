@@ -14,7 +14,7 @@ export function EmptyState({ icon, title, description, action, className }: Empt
       {icon && (
         <div className="relative mb-5">
           {/* Glow ring */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[var(--accent-violet)]/10 to-[var(--accent-indigo)]/10 blur-xl scale-150" />
+          <div className="absolute inset-0 rounded-full bg-[var(--accent-primary)]/5 blur-xl scale-150" />
           <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-5 text-[var(--text-muted)]">
             {icon}
           </div>

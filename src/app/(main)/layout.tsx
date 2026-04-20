@@ -42,7 +42,7 @@ export default function MainLayout({
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--accent-violet)] border-t-transparent" />
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--accent-primary)] border-t-transparent" />
           <p className="text-sm text-[var(--text-muted)]">{t('common.loading')}</p>
         </div>
       </div>

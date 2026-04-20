@@ -49,7 +49,7 @@ export function NotificationItem({ notification, onClick, compact }: Notificatio
     <button
       onClick={onClick}
       className={cn(
-        'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors duration-150',
+        'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors duration-150 cursor-pointer',
         'hover:bg-[var(--surface-hover)]',
         !notification.isRead && 'bg-[var(--accent-indigo)]/[0.03]',
         compact && 'py-2.5'

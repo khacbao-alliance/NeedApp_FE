@@ -1,16 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { requestService } from '@/services/requestsApi';
+import { slaConfigService } from '@/services/slaConfigApi';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { ApiRequestError } from '@/services/requests';
 import type { RequestPriority } from '@/types';
-import { ArrowLeftIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, PaperAirplaneIcon, ClockIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
 export default function NewRequestPage() {
@@ -30,6 +31,17 @@ export default function NewRequestPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slaHours, setSlaHours] = useState<Record<string, number>>({
+    Urgent: 4, High: 24, Medium: 72, Low: 168,
+  });
+
+  useEffect(() => {
+    slaConfigService.getAll().then((configs) => {
+      const map: Record<string, number> = { ...slaHours };
+      configs.forEach((c) => { map[c.priority] = c.deadlineHours; });
+      setSlaHours(map);
+    }).catch(() => { /* use defaults */ });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +116,21 @@ export default function NewRequestPage() {
               }))
             }
           />
+          {/* SLA hint based on selected priority */}
+          <div className="flex items-center gap-1.5 -mt-3 pl-1">
+            <ClockIcon className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+            <span className="text-xs text-[var(--text-muted)]">
+              {t('requests.new.estimatedDeadline', 'Thời hạn dự kiến')}:{' '}
+              <span className="font-medium text-[var(--text-secondary)]">
+                {(() => {
+                  const h = slaHours[form.priority] || 72;
+                  if (h < 24) return `~${h} ${h === 1 ? t('requests.new.hour', 'giờ') : t('requests.new.hours', 'giờ')}`;
+                  const d = Math.round(h / 24 * 10) / 10;
+                  return `~${d} ${d === 1 ? t('requests.new.day', 'ngày') : t('requests.new.days', 'ngày')}`;
+                })()}
+              </span>
+            </span>
+          </div>
 
           {error && (
             <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3">

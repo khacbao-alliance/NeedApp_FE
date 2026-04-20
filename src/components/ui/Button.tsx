@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { ButtonHTMLAttributes, forwardRef } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'gradient';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'destructive' | 'gradient';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
 }
@@ -19,13 +19,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        'bg-[var(--accent-indigo)] text-white hover:bg-[var(--accent-violet)] shadow-lg shadow-[var(--accent-indigo)]/20 hover:shadow-[var(--accent-violet)]/30',
+        'bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary-hover)] shadow-sm hover:shadow-md',
       secondary:
         'bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-3)] border border-[var(--border)]',
       ghost:
         'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]',
       danger:
         'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20',
+      destructive:
+        'bg-red-500 text-white hover:bg-red-600 active:bg-red-700 border border-red-400/20 shadow-md shadow-red-500/20 font-semibold',
       gradient: 'btn-gradient',
     };
 
