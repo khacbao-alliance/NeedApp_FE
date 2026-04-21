@@ -4,13 +4,13 @@ import type { FileAttachmentDto } from '@/types';
 import { cn } from '@/lib/utils';
 import {
   DocumentIcon,
-  PhotoIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 
 interface FileAttachmentProps {
   file: FileAttachmentDto;
   isOwn?: boolean;
+  onImageLoad?: () => void;
 }
 
 function formatFileSize(bytes: number | null): string {
@@ -24,7 +24,7 @@ function isImage(contentType: string | null): boolean {
   return !!contentType?.startsWith('image/');
 }
 
-export function FileAttachment({ file, isOwn = false }: FileAttachmentProps) {
+export function FileAttachment({ file, isOwn = false, onImageLoad }: FileAttachmentProps) {
   if (isImage(file.contentType)) {
     return (
       <a
@@ -36,6 +36,7 @@ export function FileAttachment({ file, isOwn = false }: FileAttachmentProps) {
         <img
           src={file.url}
           alt={file.fileName}
+          onLoad={onImageLoad}
           className="max-h-48 w-auto rounded-lg object-cover transition-transform hover:scale-105"
         />
       </a>
@@ -94,3 +95,4 @@ export function FileAttachment({ file, isOwn = false }: FileAttachmentProps) {
     </a>
   );
 }
+

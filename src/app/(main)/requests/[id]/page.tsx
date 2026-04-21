@@ -77,6 +77,7 @@ export default function RequestChatPage() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const isFirstLoad = useRef(true);
   const wasNearBottomRef = useRef(true);
+  const shouldScrollRef = useRef(false); // tracks whether we want auto-scroll (for ResizeObserver)
 
   // Determine if currently in intake flow
   const isIntake = request?.status === 'Intake';
@@ -252,12 +253,32 @@ export default function RequestChatPage() {
       return;
     }
     if (wasNearBottomRef.current) {
+      // User was near bottom → auto-scroll to new message
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      setNewMsgCount(0);
+      // Let ResizeObserver keep scrolling for up to 2s (for images loading)
+      shouldScrollRef.current = true;
+      const t = setTimeout(() => { shouldScrollRef.current = false; }, 2000);
+      return () => clearTimeout(t);
     } else {
-      // User is scrolled up — increment new message count
+      // User is scrolled up reading old messages → show badge, don’t disturb
       setNewMsgCount((c) => c + 1);
+      shouldScrollRef.current = false;
     }
   }, [messages]);
+
+  // ── ResizeObserver: cuộn đến cuối khi ảnh/nội dung load xong làm tăng chiều cao container ──
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(() => {
+      if (shouldScrollRef.current) {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
 
   // ── Load older messages ──
   const loadMore = async () => {
@@ -706,10 +727,11 @@ export default function RequestChatPage() {
           </div>
         );
       })()}
-      {/* Messages */}
-      <div
-        ref={chatContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-1"
+      {/* Messages + FAB scroll button wrapper */}
+      <div className="relative flex-1 min-h-0 flex flex-col">
+        <div
+          ref={chatContainerRef}
+          className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-1"
       >
         {/* Load More */}
         {hasMore && (
@@ -788,6 +810,7 @@ export default function RequestChatPage() {
                       }));
                     } catch { /* ignore */ }
                   }}
+                  onImageLoad={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
                 />
               </div>
             );
@@ -809,15 +832,16 @@ export default function RequestChatPage() {
         )}
 
         <div ref={messagesEndRef} />
+      </div>
 
-        {/* Scroll to bottom FAB */}
-        {showScrollBtn && (
-          <button
-            onClick={() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-              setNewMsgCount(0);
-            }}
-            className="absolute bottom-4 right-4 z-10 flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-xs font-medium text-[var(--foreground)] shadow-xl transition-all hover:bg-[var(--surface-2)] animate-fade-in"
+      {/* Scroll to bottom FAB — shows when user scrolls up */}
+      {showScrollBtn && (
+        <button
+          onClick={() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            setNewMsgCount(0);
+          }}
+          className="absolute bottom-6 right-6 z-20 flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-1)] shadow-2xl shadow-black/20 px-3.5 py-2.5 text-xs font-medium text-[var(--foreground)] transition-all hover:bg-[var(--surface-2)] hover:shadow-black/30 animate-fade-in backdrop-blur-sm"
           >
             <ChevronDownIcon className="h-4 w-4" />
             {newMsgCount > 0 && (

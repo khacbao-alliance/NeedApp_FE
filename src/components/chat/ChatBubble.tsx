@@ -48,6 +48,7 @@ interface ChatBubbleProps {
   onReply?: (message: MessageDto) => void;
   onEdit?: (messageId: string, newContent: string) => Promise<void>;
   onPin?: (messageId: string) => Promise<void>;
+  onImageLoad?: () => void;
   /** Whether the current user can pin (Staff/Admin) */
   canPin?: boolean;
 }
@@ -320,6 +321,7 @@ export function ChatBubble({
   onReply,
   onEdit,
   onPin,
+  onImageLoad,
   canPin = false,
   readers = [],
   isLastOwnMessage = false,
@@ -513,7 +515,7 @@ export function ChatBubble({
               {files.length > 0 && (
                 <div className="mt-2 space-y-1.5">
                   {files.map((file) => (
-                    <FileAttachment key={file.id} file={file} isOwn={isOwnMessage} />
+                    <FileAttachment key={file.id} file={file} isOwn={isOwnMessage} onImageLoad={onImageLoad} />
                   ))}
                 </div>
               )}
