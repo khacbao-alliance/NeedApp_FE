@@ -6,6 +6,7 @@ pipeline {
         CONTAINER_NAME = 'needapp-fe'
         GG_CHAT_WEBHOOK = 'https://chat.googleapis.com/v1/spaces/AAQAyJg5xoU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=bPFiBiw7I06p8wFaPtA0Jr300iUTinPept8BH77KAik'
         JENKINS_URL_PUBLIC = 'http://42.119.236.229:9090'
+        THREAD_FILE = "/tmp/gchat_thread_${BUILD_NUMBER}"
     }
 
     triggers {
@@ -16,9 +17,10 @@ pipeline {
         stage('Checkout') {
             steps {
                 sh """
-                    curl -s -X POST '${GG_CHAT_WEBHOOK}' \
-                    -H 'Content-Type: application/json' \
-                    -d '{"text": "🚀 *NeedApp FE - Deployment Started*\\nBuild: #${BUILD_NUMBER}\\nBranch: ${GIT_BRANCH}\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                    RESPONSE=\$(curl -s -X POST '${GG_CHAT_WEBHOOK}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD' \
+                        -H 'Content-Type: application/json' \
+                        -d '{"text": "🚀 *NeedApp FE - Deployment Started*\\nBuild: #${BUILD_NUMBER}\\nBranch: ${GIT_BRANCH}\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}')
+                    echo \$RESPONSE | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['thread']['name'])" > ${THREAD_FILE} 2>/dev/null || true
                 """
                 checkout scm
             }
@@ -27,10 +29,15 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh """
+                    THREAD_NAME=\$(cat ${THREAD_FILE} 2>/dev/null || echo "")
                     MSG=\$(git log -1 --pretty=%s | cut -c1-60)
-                    curl -s -X POST '${GG_CHAT_WEBHOOK}' \
-                    -H 'Content-Type: application/json' \
-                    -d "{\\"text\\": \\"🔨 *[NeedApp FE - 1/3] Building Docker image...*\\\\nCommit: ${GIT_COMMIT.take(7)} - \$MSG\\"}"
+                    BODY="{\\"text\\": \\"🔨 *[NeedApp FE - 1/3] Building Docker image...*\\\\nCommit: ${GIT_COMMIT.take(7)} - \$MSG\\"}"
+                    if [ -n "\$THREAD_NAME" ]; then
+                        BODY="{\\"text\\": \\"🔨 *[NeedApp FE - 1/3] Building Docker image...*\\\\nCommit: ${GIT_COMMIT.take(7)} - \$MSG\\", \\"thread\\": {\\"name\\": \\"\$THREAD_NAME\\"}}"
+                    fi
+                    curl -s -X POST '${GG_CHAT_WEBHOOK}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD' \
+                        -H 'Content-Type: application/json' \
+                        -d "\$BODY"
                 """
                 withCredentials([
                     string(credentialsId: 'NEXT_PUBLIC_API_URL', variable: 'API_URL'),
@@ -51,9 +58,14 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh """
-                    curl -s -X POST '${GG_CHAT_WEBHOOK}' \
-                    -H 'Content-Type: application/json' \
-                    -d '{"text": "📦 *[NeedApp FE - 2/3] Deploying container...*"}'
+                    THREAD_NAME=\$(cat ${THREAD_FILE} 2>/dev/null || echo "")
+                    BODY='{"text": "📦 *[NeedApp FE - 2/3] Deploying container...*"}'
+                    if [ -n "\$THREAD_NAME" ]; then
+                        BODY="{\\"text\\": \\"📦 *[NeedApp FE - 2/3] Deploying container...*\\", \\"thread\\": {\\"name\\": \\"\$THREAD_NAME\\"}}"
+                    fi
+                    curl -s -X POST '${GG_CHAT_WEBHOOK}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD' \
+                        -H 'Content-Type: application/json' \
+                        -d "\$BODY"
                 """
                 withCredentials([
                     string(credentialsId: 'NEXT_PUBLIC_API_URL', variable: 'API_URL'),
@@ -72,9 +84,14 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh """
-                    curl -s -X POST '${GG_CHAT_WEBHOOK}' \
-                    -H 'Content-Type: application/json' \
-                    -d '{"text": "🩺 *[NeedApp FE - 3/3] Running health check...*"}'
+                    THREAD_NAME=\$(cat ${THREAD_FILE} 2>/dev/null || echo "")
+                    BODY='{"text": "🩺 *[NeedApp FE - 3/3] Running health check...*"}'
+                    if [ -n "\$THREAD_NAME" ]; then
+                        BODY="{\\"text\\": \\"🩺 *[NeedApp FE - 3/3] Running health check...*\\", \\"thread\\": {\\"name\\": \\"\$THREAD_NAME\\"}}"
+                    fi
+                    curl -s -X POST '${GG_CHAT_WEBHOOK}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD' \
+                        -H 'Content-Type: application/json' \
+                        -d "\$BODY"
                 """
                 sh '''
                     echo "Waiting for container to start..."
@@ -102,23 +119,41 @@ pipeline {
     post {
         success {
             sh """
-                curl -s -X POST '${GG_CHAT_WEBHOOK}' \
-                -H 'Content-Type: application/json' \
-                -d '{"text": "✅ *NeedApp FE - Deployment Successful*\\nBuild: #${BUILD_NUMBER}\\nCommit: ${GIT_COMMIT.take(7)}\\nURL: http://localhost:3000\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                THREAD_NAME=\$(cat ${THREAD_FILE} 2>/dev/null || echo "")
+                BODY='{"text": "✅ *NeedApp FE - Deployment Successful*\\nBuild: #${BUILD_NUMBER}\\nCommit: ${GIT_COMMIT.take(7)}\\nURL: http://localhost:3000\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                if [ -n "\$THREAD_NAME" ]; then
+                    BODY="{\\"text\\": \\"✅ *NeedApp FE - Deployment Successful*\\\\nBuild: #${BUILD_NUMBER}\\\\nCommit: ${GIT_COMMIT.take(7)}\\\\nURL: http://localhost:3000\\\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console\\", \\"thread\\": {\\"name\\": \\"\$THREAD_NAME\\"}}"
+                fi
+                curl -s -X POST '${GG_CHAT_WEBHOOK}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD' \
+                    -H 'Content-Type: application/json' \
+                    -d "\$BODY"
+                rm -f ${THREAD_FILE}
             """
         }
         failure {
             sh """
-                curl -s -X POST '${GG_CHAT_WEBHOOK}' \
-                -H 'Content-Type: application/json' \
-                -d '{"text": "❌ *NeedApp FE - Deployment Failed*\\nBuild: #${BUILD_NUMBER}\\nCommit: ${GIT_COMMIT.take(7)}\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                THREAD_NAME=\$(cat ${THREAD_FILE} 2>/dev/null || echo "")
+                BODY='{"text": "❌ *NeedApp FE - Deployment Failed*\\nBuild: #${BUILD_NUMBER}\\nCommit: ${GIT_COMMIT.take(7)}\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                if [ -n "\$THREAD_NAME" ]; then
+                    BODY="{\\"text\\": \\"❌ *NeedApp FE - Deployment Failed*\\\\nBuild: #${BUILD_NUMBER}\\\\nCommit: ${GIT_COMMIT.take(7)}\\\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console\\", \\"thread\\": {\\"name\\": \\"\$THREAD_NAME\\"}}"
+                fi
+                curl -s -X POST '${GG_CHAT_WEBHOOK}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD' \
+                    -H 'Content-Type: application/json' \
+                    -d "\$BODY"
+                rm -f ${THREAD_FILE}
             """
         }
         aborted {
             sh """
-                curl -s -X POST '${GG_CHAT_WEBHOOK}' \
-                -H 'Content-Type: application/json' \
-                -d '{"text": "⚠️ *NeedApp FE - Deployment Aborted*\\nBuild: #${BUILD_NUMBER}\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                THREAD_NAME=\$(cat ${THREAD_FILE} 2>/dev/null || echo "")
+                BODY='{"text": "⚠️ *NeedApp FE - Deployment Aborted*\\nBuild: #${BUILD_NUMBER}\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                if [ -n "\$THREAD_NAME" ]; then
+                    BODY="{\\"text\\": \\"⚠️ *NeedApp FE - Deployment Aborted*\\\\nBuild: #${BUILD_NUMBER}\\\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console\\", \\"thread\\": {\\"name\\": \\"\$THREAD_NAME\\"}}"
+                fi
+                curl -s -X POST '${GG_CHAT_WEBHOOK}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD' \
+                    -H 'Content-Type: application/json' \
+                    -d "\$BODY"
+                rm -f ${THREAD_FILE}
             """
         }
     }
