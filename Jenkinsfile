@@ -18,7 +18,7 @@ pipeline {
                 sh """
                     curl -s -X POST '${GG_CHAT_WEBHOOK}' \
                     -H 'Content-Type: application/json' \
-                    -d '{"text": "🚀 *NeedApp FE - Bat dau deploy*\\nBuild: #${BUILD_NUMBER}\\nBranch: ${GIT_BRANCH}\\nXem log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                    -d '{"text": "🚀 *NeedApp FE - Deployment Started*\\nBuild: #${BUILD_NUMBER}\\nBranch: ${GIT_BRANCH}\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
                 """
                 checkout scm
             }
@@ -30,7 +30,7 @@ pipeline {
                     MSG=\$(git log -1 --pretty=%s | cut -c1-60)
                     curl -s -X POST '${GG_CHAT_WEBHOOK}' \
                     -H 'Content-Type: application/json' \
-                    -d "{\\"text\\": \\"🔨 *[1/3] Build Docker image...*\\\\nCommit: ${GIT_COMMIT.take(7)} - \$MSG\\"}"
+                    -d "{\\"text\\": \\"🔨 *[NeedApp FE - 1/3] Building Docker image...*\\\\nCommit: ${GIT_COMMIT.take(7)} - \$MSG\\"}"
                 """
                 withCredentials([
                     string(credentialsId: 'NEXT_PUBLIC_API_URL', variable: 'API_URL'),
@@ -53,7 +53,7 @@ pipeline {
                 sh """
                     curl -s -X POST '${GG_CHAT_WEBHOOK}' \
                     -H 'Content-Type: application/json' \
-                    -d '{"text": "📦 *[2/3] Deploy container...*"}'
+                    -d '{"text": "📦 *[NeedApp FE - 2/3] Deploying container...*"}'
                 """
                 withCredentials([
                     string(credentialsId: 'NEXT_PUBLIC_API_URL', variable: 'API_URL'),
@@ -74,7 +74,7 @@ pipeline {
                 sh """
                     curl -s -X POST '${GG_CHAT_WEBHOOK}' \
                     -H 'Content-Type: application/json' \
-                    -d '{"text": "🩺 *[3/3] Health check...*"}'
+                    -d '{"text": "🩺 *[NeedApp FE - 3/3] Running health check...*"}'
                 """
                 sh '''
                     echo "Waiting for container to start..."
@@ -104,21 +104,21 @@ pipeline {
             sh """
                 curl -s -X POST '${GG_CHAT_WEBHOOK}' \
                 -H 'Content-Type: application/json' \
-                -d '{"text": "✅ *NeedApp FE Deploy THANH CONG*\\nBuild: #${BUILD_NUMBER}\\nCommit: ${GIT_COMMIT.take(7)}\\nURL: http://localhost:3000\\nXem log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                -d '{"text": "✅ *NeedApp FE - Deployment Successful*\\nBuild: #${BUILD_NUMBER}\\nCommit: ${GIT_COMMIT.take(7)}\\nURL: http://localhost:3000\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
             """
         }
         failure {
             sh """
                 curl -s -X POST '${GG_CHAT_WEBHOOK}' \
                 -H 'Content-Type: application/json' \
-                -d '{"text": "❌ *NeedApp FE Deploy THAT BAI*\\nBuild: #${BUILD_NUMBER}\\nCommit: ${GIT_COMMIT.take(7)}\\nXem log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                -d '{"text": "❌ *NeedApp FE - Deployment Failed*\\nBuild: #${BUILD_NUMBER}\\nCommit: ${GIT_COMMIT.take(7)}\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
             """
         }
         aborted {
             sh """
                 curl -s -X POST '${GG_CHAT_WEBHOOK}' \
                 -H 'Content-Type: application/json' \
-                -d '{"text": "⚠️ *NeedApp FE Deploy BI HUY*\\nBuild: #${BUILD_NUMBER}\\nXem log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
+                -d '{"text": "⚠️ *NeedApp FE - Deployment Aborted*\\nBuild: #${BUILD_NUMBER}\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}'
             """
         }
     }
