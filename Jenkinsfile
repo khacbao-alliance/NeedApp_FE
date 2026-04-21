@@ -17,7 +17,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 sh """
-                    RESPONSE=\$(curl -s -X POST '${GG_CHAT_WEBHOOK}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD' \
+                    RESPONSE=\$(curl -s -X POST '${GG_CHAT_WEBHOOK}' \
                         -H 'Content-Type: application/json' \
                         -d '{"text": "🚀 *NeedApp FE - Deployment Started*\\nBuild: #${BUILD_NUMBER}\\nBranch: ${GIT_BRANCH}\\nView log: ${JENKINS_URL_PUBLIC}/job/needapp-fe/${BUILD_NUMBER}/console"}')
                     echo \$RESPONSE | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['thread']['name'])" > ${THREAD_FILE} 2>/dev/null || true
