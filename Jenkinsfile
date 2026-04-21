@@ -34,12 +34,14 @@ pipeline {
                 """
                 withCredentials([
                     string(credentialsId: 'NEXT_PUBLIC_API_URL', variable: 'API_URL'),
-                    string(credentialsId: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID', variable: 'GOOGLE_CLIENT_ID')
+                    string(credentialsId: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID', variable: 'GOOGLE_CLIENT_ID'),
+                    string(credentialsId: 'NEXT_PUBLIC_RECAPTCHA_SITE_KEY', variable: 'RECAPTCHA_SITE_KEY')
                 ]) {
                     sh """
                         docker build \
                             --build-arg NEXT_PUBLIC_API_URL=\${API_URL} \
                             --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=\${GOOGLE_CLIENT_ID} \
+                            --build-arg NEXT_PUBLIC_RECAPTCHA_SITE_KEY=\${RECAPTCHA_SITE_KEY} \
                             -t \${IMAGE_NAME}:latest \
                             -t \${IMAGE_NAME}:${BUILD_NUMBER} \
                             .
@@ -57,12 +59,14 @@ pipeline {
                 """
                 withCredentials([
                     string(credentialsId: 'NEXT_PUBLIC_API_URL', variable: 'API_URL'),
-                    string(credentialsId: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID', variable: 'GOOGLE_CLIENT_ID')
+                    string(credentialsId: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID', variable: 'GOOGLE_CLIENT_ID'),
+                    string(credentialsId: 'NEXT_PUBLIC_RECAPTCHA_SITE_KEY', variable: 'RECAPTCHA_SITE_KEY')
                 ]) {
                     sh """
                         docker rm -f ${CONTAINER_NAME} 2>/dev/null || true
                         NEXT_PUBLIC_API_URL=\${API_URL} \
                         NEXT_PUBLIC_GOOGLE_CLIENT_ID=\${GOOGLE_CLIENT_ID} \
+                        NEXT_PUBLIC_RECAPTCHA_SITE_KEY=\${RECAPTCHA_SITE_KEY} \
                         docker compose up -d --no-build
                     """
                 }
