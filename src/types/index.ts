@@ -141,6 +141,12 @@ export interface RequestDto {
 }
 
 // ── Message ────────────────────────────────────────────
+export interface MessageReplyDto {
+  id: string;
+  content: string | null;
+  senderName: string | null;
+}
+
 export interface MessageDto {
   id: string;
   type: MessageType;
@@ -148,9 +154,13 @@ export interface MessageDto {
   sender: MessageSenderDto | null;
   metadata: IntakeQuestionMetadata | MissingInfoMetadata | null;
   replyToId: string | null;
+  replyTo?: MessageReplyDto | null;
   files: FileAttachmentDto[];
   createdAt: string;
   reactions?: ReactionSummaryDto[] | null;
+  isEdited?: boolean;
+  editedAt?: string | null;
+  isPinned?: boolean;
 }
 
 export interface ReactionSummaryDto {

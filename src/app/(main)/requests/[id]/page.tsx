@@ -25,6 +25,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   ArrowPathIcon,
+  DocumentTextIcon,
   ExclamationTriangleIcon,
   SignalIcon,
   SignalSlashIcon,
@@ -57,7 +58,9 @@ export default function RequestChatPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showMissingInfo, setShowMissingInfo] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [replyToMessage, setReplyToMessage] = useState<MessageDto | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [staffNotAssigned, setStaffNotAssigned] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [newMsgCount, setNewMsgCount] = useState(0);
@@ -74,6 +77,7 @@ export default function RequestChatPage() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const isFirstLoad = useRef(true);
   const wasNearBottomRef = useRef(true);
+  const shouldScrollRef = useRef(false); // tracks whether we want auto-scroll (for ResizeObserver)
 
   // Determine if currently in intake flow
   const isIntake = request?.status === 'Intake';
@@ -109,6 +113,12 @@ export default function RequestChatPage() {
         return [...filtered, receipt];
       });
     }, []),
+    onMessageEdited: useCallback((edited: MessageDto) => {
+      setMessages((prev) => prev.map((m) => m.id === edited.id ? { ...m, content: edited.content, isEdited: edited.isEdited, editedAt: edited.editedAt } : m));
+    }, []),
+    onMessagePinned: useCallback((messageId: string, isPinned: boolean) => {
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isPinned } : m));
+    }, []),
   });
 
   // ── Fetch request details ──
@@ -117,10 +127,11 @@ export default function RequestChatPage() {
       .getById(requestId)
       .then(setRequest)
       .catch((err: unknown) => {
-        // If 403 or 404, user doesn't have access
         const status = (err as { status?: number })?.status;
-        if (status === 403 || status === 404) {
+        if (status === 403) {
           setAccessDenied(true);
+        } else if (status === 404) {
+          setNotFound(true);
         }
       });
   }, [requestId]);
@@ -151,8 +162,10 @@ export default function RequestChatPage() {
         // BE returns 403 when staff is not yet a participant (not assigned).
         // Show the self-assign prompt instead of the generic access-denied screen.
         setStaffNotAssigned(true);
-      } else if (status === 403 || status === 404) {
+      } else if (status === 403) {
         setAccessDenied(true);
+      } else if (status === 404) {
+        setNotFound(true);
       }
     } finally {
       setLoading(false);
@@ -193,6 +206,30 @@ export default function RequestChatPage() {
     }
   );
 
+  // ── Fallback polling — when SignalR is not connected (non-intake) ──
+  // Detects pin/edit/new-message changes that SignalR missed.
+  usePolling(
+    useCallback(async () => {
+      try {
+        const res = await messageService.list(requestId, undefined, 50);
+        setMessages((prev) => {
+          const changed =
+            res.items.length !== prev.length ||
+            res.items.some((m) => {
+              const old = prev.find((p) => p.id === m.id);
+              return !old || old.isPinned !== m.isPinned || old.isEdited !== m.isEdited || old.content !== m.content;
+            });
+          return changed ? res.items : prev;
+        });
+      } catch { /* ignore */ }
+    }, [requestId]),
+    {
+      interval: 30000, // 30s fallback
+      enabled: !isIntake && !isConnected && !loading && !staffNotAssigned,
+      backgroundInterval: 120000,
+    }
+  );
+
   // ── Track scroll position ──
   useEffect(() => {
     const container = chatContainerRef.current;
@@ -216,12 +253,32 @@ export default function RequestChatPage() {
       return;
     }
     if (wasNearBottomRef.current) {
+      // User was near bottom → auto-scroll to new message
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      setNewMsgCount(0);
+      // Let ResizeObserver keep scrolling for up to 2s (for images loading)
+      shouldScrollRef.current = true;
+      const t = setTimeout(() => { shouldScrollRef.current = false; }, 2000);
+      return () => clearTimeout(t);
     } else {
-      // User is scrolled up — increment new message count
+      // User is scrolled up reading old messages → show badge, don’t disturb
       setNewMsgCount((c) => c + 1);
+      shouldScrollRef.current = false;
     }
   }, [messages]);
+
+  // ── ResizeObserver: cuộn đến cuối khi ảnh/nội dung load xong làm tăng chiều cao container ──
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(() => {
+      if (shouldScrollRef.current) {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
 
   // ── Load older messages ──
   const loadMore = async () => {
@@ -239,13 +296,40 @@ export default function RequestChatPage() {
     }
   };
 
+  // ── Edit message ──
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    try {
+      const updated = await messageService.editMessage(requestId, messageId, newContent);
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, content: updated.content, isEdited: updated.isEdited, editedAt: updated.editedAt } : m));
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message;
+      showErrorToast(msg || t('common.error', 'Có lỗi xảy ra'));
+    }
+  };
+
+  // ── Pin message ──
+  const handlePinMessage = async (messageId: string) => {
+    // Optimistic toggle so the banner updates immediately
+    setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isPinned: !m.isPinned } : m));
+    try {
+      const updated = await messageService.pinMessage(requestId, messageId);
+      // Reconcile with server truth after API confirms
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isPinned: updated.isPinned } : m));
+    } catch (err: unknown) {
+      // Revert optimistic update
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isPinned: !m.isPinned } : m));
+      const msg = (err as { message?: string })?.message;
+      showErrorToast(msg || t('common.error', 'Có lỗi xảy ra'));
+    }
+  };
+
   // ── Send message ──
-  const handleSend = async (content: string) => {
+  const handleSend = async (content: string, replyToId?: string) => {
     if (!content.trim() || sending) return;
     setSending(true);
     try {
       const type = isIntake ? 'IntakeAnswer' : 'Text';
-      const sentMsg = await messageService.send(requestId, { content, type });
+      const sentMsg = await messageService.send(requestId, { content, type, replyToId });
 
       // For Intake: append locally + re-fetch for next question  
       // For Chat: append locally (SignalR will dedupe if it arrives again)
@@ -302,6 +386,30 @@ export default function RequestChatPage() {
   const intakeProgress = intakeMeta
     ? ((intakeMeta.orderIndex + 1) / intakeMeta.totalQuestions) * 100
     : 0;
+
+  // ── Not Found UI ──
+  if (notFound) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 p-8">
+        <div className="rounded-full bg-[var(--surface-2)] p-4">
+          <DocumentTextIcon className="h-8 w-8 text-[var(--text-muted)]" />
+        </div>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">
+          {t('errors.requestNotFound', 'Không tìm thấy yêu cầu')}
+        </h2>
+        <p className="text-sm text-[var(--text-muted)] text-center max-w-sm">
+          {t('errors.requestNotFoundDesc', 'Yêu cầu này không tồn tại hoặc đã bị xóa. Thông báo liên quan có thể đã lỗi thời.')}
+        </p>
+        <Link
+          href="/requests"
+          className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[var(--accent-primary)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          {t('common.backToRequests', 'Quay lại danh sách')}
+        </Link>
+      </div>
+    );
+  }
 
   // ── Access denied UI ──
   if (accessDenied) {
@@ -588,10 +696,42 @@ export default function RequestChatPage() {
           )}
         </div>
       ) : (
-      /* Messages */
-      <div
-        ref={chatContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-1"
+      <>
+      {/* Pinned messages banner */}
+      {(() => {
+        const pinned = messages.filter((m) => m.isPinned);
+        if (!pinned.length) return null;
+        return (
+          <div className="mx-4 mt-3 mb-1 bg-[var(--surface-1)] border border-[var(--border)] rounded-lg shadow-sm animate-fade-in flex flex-col overflow-hidden">
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border)] bg-[var(--surface-2)]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-[var(--text-muted)]">
+                <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
+                <path fillRule="evenodd" clipRule="evenodd" d="M13.5 17v5a1.5 1.5 0 0 1-3 0v-5h3Z" />
+              </svg>
+              <span className="text-[11px] font-semibold text-[var(--foreground)] uppercase tracking-wide">
+                {t('chat.pinnedMessages', 'Tin nhắn đã ghim')}
+              </span>
+              <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--surface-3)] text-[var(--text-secondary)] border border-[var(--border)]">
+                {pinned.length}
+              </span>
+            </div>
+            <div className="max-h-[80px] overflow-y-auto px-1 py-1 space-y-0.5 scrollbar-thin scrollbar-thumb-[var(--border)]">
+              {pinned.map((m) => (
+                <button key={m.id} onClick={() => document.getElementById(`msg-${m.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                  className="block w-full text-left text-sm hover:bg-[var(--surface-2)] px-2 py-1.5 rounded transition-colors group flex items-baseline gap-2">
+                  <span className="font-semibold text-[var(--text-secondary)] flex-shrink-0 text-[13px]">{m.sender?.name || 'Unknown'}:</span>
+                  <span className="text-[var(--text-muted)] group-hover:text-[var(--foreground)] line-clamp-1 break-all whitespace-normal text-[13px]">{m.content || '📎 File đính kèm'}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+      {/* Messages + FAB scroll button wrapper */}
+      <div className="relative flex-1 min-h-0 flex flex-col">
+        <div
+          ref={chatContainerRef}
+          className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-1"
       >
         {/* Load More */}
         {hasMore && (
@@ -647,10 +787,13 @@ export default function RequestChatPage() {
                   userId={user?.id}
                   readers={readers}
                   isLastOwnMessage={isLastOwnMessage}
+                  canPin={!isIntake}
+                  onReply={!isIntake ? (m) => setReplyToMessage(m) : undefined}
+                  onEdit={handleEditMessage}
+                  onPin={!isIntake ? handlePinMessage : undefined}
                   onReaction={async (messageId, emoji) => {
                     try {
                       const res = await messageService.toggleReaction(requestId, messageId, emoji);
-                      // Optimistic update
                       setMessages((prev) => prev.map((m) => {
                         if (m.id !== messageId) return m;
                         const currentReactions = m.reactions || [];
@@ -667,6 +810,7 @@ export default function RequestChatPage() {
                       }));
                     } catch { /* ignore */ }
                   }}
+                  onImageLoad={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
                 />
               </div>
             );
@@ -688,15 +832,16 @@ export default function RequestChatPage() {
         )}
 
         <div ref={messagesEndRef} />
+      </div>
 
-        {/* Scroll to bottom FAB */}
-        {showScrollBtn && (
-          <button
-            onClick={() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-              setNewMsgCount(0);
-            }}
-            className="absolute bottom-4 right-4 z-10 flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-xs font-medium text-[var(--foreground)] shadow-xl transition-all hover:bg-[var(--surface-2)] animate-fade-in"
+      {/* Scroll to bottom FAB — shows when user scrolls up */}
+      {showScrollBtn && (
+        <button
+          onClick={() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            setNewMsgCount(0);
+          }}
+          className="absolute bottom-6 right-6 z-20 flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-1)] shadow-2xl shadow-black/20 px-3.5 py-2.5 text-xs font-medium text-[var(--foreground)] transition-all hover:bg-[var(--surface-2)] hover:shadow-black/30 animate-fade-in backdrop-blur-sm"
           >
             <ChevronDownIcon className="h-4 w-4" />
             {newMsgCount > 0 && (
@@ -707,6 +852,7 @@ export default function RequestChatPage() {
           </button>
         )}
       </div>
+      </>
       )}
 
       {/* Input */}
@@ -758,6 +904,8 @@ export default function RequestChatPage() {
             onSend={handleSend}
             onFileUpload={handleFileUpload}
             onTyping={handleTypingInput}
+            replyToMessage={replyToMessage}
+            onCancelReply={() => setReplyToMessage(null)}
             placeholder={
               isIntake
                 ? currentIntakeQuestion?.metadata

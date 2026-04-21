@@ -24,6 +24,17 @@ export function formatDate(dateStr: string, locale: string = 'vi'): string {
   return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+/**
+ * Converts an ISO date string (yyyy-MM-dd from <input type="date">) to
+ * locale display format: dd/MM/yyyy for Vietnamese, MM/dd/yyyy for English.
+ */
+export function formatDateFilter(isoDate: string, locale: string = 'vi'): string {
+  if (!isoDate) return '';
+  const [year, month, day] = isoDate.split('-');
+  if (!year || !month || !day) return isoDate;
+  return locale === 'en' ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
+}
+
 type UrgencyLevel = 'normal' | 'warning' | 'urgent';
 
 const TERMINAL_STATUSES = ['Done', 'Cancelled'];

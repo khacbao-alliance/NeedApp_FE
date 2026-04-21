@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Avatar } from '@/components/ui/Avatar';
 import type { RequestDto, RequestStatus, RequestPriority, PaginatedResponse } from '@/types';
-import { formatDate, getTimeUrgency } from '@/lib/utils';
+import { formatDate, formatDateFilter, getTimeUrgency } from '@/lib/utils';
 import { KanbanBoard } from '@/components/requests/KanbanBoard';
 import { StatusGuide } from '@/components/requests/StatusGuide';
 import {
@@ -62,6 +62,8 @@ export default function RequestsPage() {
     }
     return 'list';
   });
+  // Client users always use list view regardless of localStorage
+  const effectiveViewMode: ViewMode = isStaffOrAdmin ? viewMode : 'list';
   const toggleViewMode = (mode: ViewMode) => {
     setViewMode(mode);
     localStorage.setItem('needapp_view_mode', mode);
@@ -150,8 +152,8 @@ export default function RequestsPage() {
   const fetchRequests = useCallback(async () => {
     try {
       const params: GetRequestsParams = {
-        page: viewMode === 'kanban' ? 1 : page,
-        pageSize: viewMode === 'kanban' ? 100 : 10,
+        page: effectiveViewMode === 'kanban' ? 1 : page,
+        pageSize: effectiveViewMode === 'kanban' ? 100 : 10,
         search: search || undefined,
         status: statusFilter !== 'all' ? statusFilter : undefined,
         priority: priorityFilter || undefined,
@@ -203,14 +205,16 @@ export default function RequestsPage() {
 
   // #8 — Auto-refresh every 30s
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fetchRequestsRef = useRef(fetchRequests);
+  useEffect(() => { fetchRequestsRef.current = fetchRequests; }, [fetchRequests]);
   useEffect(() => {
     intervalRef.current = setInterval(() => {
-      fetchRequests();
+      fetchRequestsRef.current();
     }, 30000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [fetchRequests]);
+  }, []);
 
   const handleSelfAssign = async (id: string) => {
     setSelfAssigning(id);
@@ -387,11 +391,14 @@ export default function RequestsPage() {
             <div>
               <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
                 {t('requests.filter.dateFrom', 'Từ ngày')}
+                <span className="ml-1 font-normal normal-case text-[var(--text-muted)]/70">
+                  ({language === 'en' ? 'mm/dd/yyyy' : 'dd/mm/yyyy'})
+                </span>
               </label>
-              <input
-                type="date"
+              <LocaleDateInput
                 value={dateFrom}
-                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                onChange={(iso) => { setDateFrom(iso); setPage(1); }}
+                locale={language}
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-[var(--accent-indigo)]"
               />
             </div>
@@ -400,11 +407,14 @@ export default function RequestsPage() {
             <div>
               <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
                 {t('requests.filter.dateTo', 'Đến ngày')}
+                <span className="ml-1 font-normal normal-case text-[var(--text-muted)]/70">
+                  ({language === 'en' ? 'mm/dd/yyyy' : 'dd/mm/yyyy'})
+                </span>
               </label>
-              <input
-                type="date"
+              <LocaleDateInput
                 value={dateTo}
-                onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                onChange={(iso) => { setDateTo(iso); setPage(1); }}
+                locale={language}
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-[var(--accent-indigo)]"
               />
             </div>
@@ -457,6 +467,13 @@ export default function RequestsPage() {
                 >
                   <BookmarkIcon className="h-3 w-3" />
                   {f.name}
+                  {(f.dateFrom || f.dateTo) && (
+                    <span className="text-[var(--text-muted)] font-normal">
+                      {f.dateFrom && formatDateFilter(f.dateFrom, language)}
+                      {f.dateFrom && f.dateTo && ' – '}
+                      {f.dateTo && formatDateFilter(f.dateTo, language)}
+                    </span>
+                  )}
                   <span
                     onClick={(e) => { e.stopPropagation(); deleteFilter(i); }}
                     className="ml-0.5 hidden rounded-full p-0.5 text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-400 group-hover:inline-flex transition-colors"
@@ -470,7 +487,7 @@ export default function RequestsPage() {
         </div>
       )}
       {/* Status tabs + list content — only in list mode */}
-      {viewMode === 'list' && (
+      {effectiveViewMode === 'list' && (
         <>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {statusFilters.map((f) => (
@@ -689,7 +706,7 @@ export default function RequestsPage() {
       )}
 
       {/* ── Kanban View ── */}
-      {viewMode === 'kanban' && isStaffOrAdmin && (
+      {effectiveViewMode === 'kanban' && isStaffOrAdmin && (
         loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
@@ -738,4 +755,106 @@ function DeadlineBadge({ dueDate, isOverdue }: { dueDate: string | null; isOverd
   }
 
   return null;
+}
+
+// ── LocaleDateInput ──────────────────────────────────────────────────────────
+// Text input that displays dd/mm/yyyy (VI) or mm/dd/yyyy (EN) while keeping
+// state as ISO yyyy-MM-dd. A hidden native date picker overlays the calendar
+// icon so users can still pick visually.
+function LocaleDateInput({
+  value,
+  onChange,
+  locale,
+  className = '',
+}: {
+  value: string;              // ISO yyyy-MM-dd or ''
+  onChange: (iso: string) => void;
+  locale: string;
+  className?: string;
+}) {
+  const isEn = locale === 'en';
+  const placeholder = isEn ? 'mm/dd/yyyy' : 'dd/mm/yyyy';
+
+  /** ISO yyyy-MM-dd → locale display string */
+  const isoToDisplay = (iso: string): string => {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+    const [y, m, d] = iso.split('-');
+    return isEn ? `${m}/${d}/${y}` : `${d}/${m}/${y}`;
+  };
+
+  /** locale display (dd/mm/yyyy or mm/dd/yyyy) → ISO yyyy-MM-dd, '' if invalid */
+  const displayToISO = (text: string): string => {
+    const parts = text.split('/');
+    if (parts.length !== 3) return '';
+    const [a, b, c] = parts;
+    if (!c || c.length !== 4) return '';
+    const [day, month] = isEn ? [b, a] : [a, b];
+    const iso = `${c}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : '';
+  };
+
+  const [text, setText] = useState(() => isoToDisplay(value));
+
+  // Re-sync when value or locale changes from outside (e.g. clear button, loadFilter)
+  useEffect(() => {
+    setText(isoToDisplay(value));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, isEn]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    // User is erasing — don't auto-format, let them delete freely
+    if (raw.length < text.length) {
+      setText(raw);
+      if (!raw) onChange('');
+      return;
+    }
+    // Auto-insert slashes as digits are typed
+    const digits = raw.replace(/\D/g, '').slice(0, 8);
+    let formatted = digits;
+    if (digits.length > 4) {
+      formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+    } else if (digits.length > 2) {
+      formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+    setText(formatted);
+    if (digits.length === 8) {
+      const iso = displayToISO(formatted);
+      if (iso) onChange(iso);
+    } else if (!formatted) {
+      onChange('');
+    }
+  };
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={text}
+        placeholder={placeholder}
+        onChange={handleChange}
+        maxLength={10}
+        inputMode="numeric"
+        className={`${className} pr-7`}
+      />
+      {/* Calendar icon (pointer-events-none so the native input below receives clicks) */}
+      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+        </svg>
+      </div>
+      {/* Hidden native date picker overlays only the icon area — clicking the icon opens the system picker */}
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setText(isoToDisplay(e.target.value));
+        }}
+        className="absolute right-0 top-0 h-full w-8 cursor-pointer opacity-0"
+        tabIndex={-1}
+        aria-hidden
+      />
+    </div>
+  );
 }

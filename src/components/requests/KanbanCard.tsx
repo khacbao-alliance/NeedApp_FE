@@ -5,8 +5,10 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/hooks/useLanguage';
 import { PriorityBadge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
+import { formatDate } from '@/lib/utils';
 import type { RequestDto } from '@/types';
 import {
   FireIcon,
@@ -24,7 +26,10 @@ interface KanbanCardProps {
 
 export function KanbanCard({ request, onSelfAssign, isStaff, isMoving }: KanbanCardProps) {
   const { t } = useTranslation();
+  const { language } = useLanguage();
   const [assigning, setAssigning] = useState(false);
+  const isDissolved = !request.isClientActive;
+
   const {
     attributes,
     listeners,
@@ -35,7 +40,7 @@ export function KanbanCard({ request, onSelfAssign, isStaff, isMoving }: KanbanC
   } = useSortable({
     id: request.id,
     data: { type: 'card', request },
-    disabled: isMoving, // Prevent re-dragging while in-flight
+    disabled: isMoving || isDissolved, // Prevent dragging while in-flight OR dissolved
   });
 
   const style = {
@@ -50,7 +55,9 @@ export function KanbanCard({ request, onSelfAssign, isStaff, isMoving }: KanbanC
       {...attributes}
       {...listeners}
       className={`relative group rounded-xl border bg-[var(--surface-1)] p-3 transition-all ${
-        isMoving
+        isDissolved
+          ? 'cursor-default opacity-70 border-red-500/20 bg-red-500/5'
+          : isMoving
           ? 'cursor-wait opacity-60 border-[var(--accent-primary)]/30'
           : isDragging
           ? 'cursor-grabbing opacity-50 shadow-2xl border-[var(--accent-primary)]/50 scale-[1.02] z-50'
@@ -73,24 +80,39 @@ export function KanbanCard({ request, onSelfAssign, isStaff, isMoving }: KanbanC
         {request.title}
       </Link>
 
-      {/* Meta row */}
+      {/* Meta row: priority + deadline + msg count | created time */}
       <div className="mt-2.5 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
           <PriorityBadge priority={request.priority} />
           <DeadlineIndicator dueDate={request.dueDate} isOverdue={request.isOverdue} />
+          {request.messageCount > 0 && (
+            <span className="flex items-center gap-0.5 text-[10px] text-[var(--text-muted)]">
+              <ChatBubbleLeftRightIcon className="h-3 w-3" />
+              {request.messageCount}
+            </span>
+          )}
         </div>
-        {request.messageCount > 0 && (
-          <span className="flex items-center gap-0.5 text-[10px] text-[var(--text-muted)] flex-shrink-0">
-            <ChatBubbleLeftRightIcon className="h-3 w-3" />
-            {request.messageCount}
-          </span>
-        )}
+        {/* createdAt — hover to see exact datetime, helps verify sort order */}
+        <span
+          className="flex items-center gap-0.5 text-[10px] text-[var(--text-muted)] flex-shrink-0"
+          title={new Date(request.createdAt).toLocaleString(language === 'en' ? 'en-US' : 'vi-VN')}
+        >
+          <ClockIcon className="h-3 w-3" />
+          {formatDate(request.createdAt, language)}
+        </span>
       </div>
 
       {/* Bottom: client + assignee */}
       <div className="mt-2 flex items-center justify-between gap-2">
         {request.client ? (
-          <span className="text-[10px] text-[var(--text-muted)] truncate max-w-[120px]">
+          <span className={`flex items-center gap-1 text-[10px] truncate max-w-[120px] ${
+            isDissolved ? 'text-red-400' : 'text-[var(--text-muted)]'
+          }`}>
+            {isDissolved && (
+              <span className="inline-flex items-center rounded-full bg-red-500/15 border border-red-500/25 px-1 py-0.5 text-[9px] font-semibold text-red-400 flex-shrink-0 mr-0.5">
+                {t('requests.list.clientDissolved', 'Giải thể')}
+              </span>
+            )}
             {request.client.name}
           </span>
         ) : (
@@ -104,7 +126,7 @@ export function KanbanCard({ request, onSelfAssign, isStaff, isMoving }: KanbanC
               size="xs"
             />
           </div>
-        ) : isStaff && onSelfAssign ? (
+        ) : isStaff && onSelfAssign && !isDissolved ? (
           <button
             onClick={async (e) => {
               e.stopPropagation();
