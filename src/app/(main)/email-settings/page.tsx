@@ -190,8 +190,8 @@ export default function EmailSettingsPage() {
                     {prefs.digestFrequency === 'None'
                       ? t('emailSettings.digestOff', 'Bạn chưa bật email tóm tắt')
                       : prefs.digestFrequency === 'Daily'
-                      ? t('emailSettings.digestDailyInfo', 'Gửi mỗi ngày lúc 8:00 sáng (UTC)')
-                      : t('emailSettings.digestWeeklyInfo', 'Gửi mỗi thứ Hai lúc 8:00 sáng (UTC)')}
+                      ? t('emailSettings.digestDailyInfo', 'Gửi mỗi ngày lúc 8:00 sáng (UTC +7)')
+                      : t('emailSettings.digestWeeklyInfo', 'Gửi mỗi thứ Hai lúc 8:00 sáng (UTC +7)')}
                   </p>
                 </div>
                 <select
