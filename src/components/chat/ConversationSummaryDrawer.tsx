@@ -8,7 +8,6 @@ import type {
   ConversationOverviewDto,
   IntakeSummaryDto,
   MissingInfoSummaryDto,
-  ConversationHighlightDto,
   AttachmentSummaryDto,
 } from '@/types';
 import {
@@ -287,54 +286,6 @@ function MissingInfoSection({ items }: { items: MissingInfoSummaryDto[] }) {
   );
 }
 
-// ── Conversation Highlights ──
-function HighlightsSection({ highlights }: { highlights: ConversationHighlightDto[] }) {
-  const { t, i18n } = useTranslation();
-
-  const roleLabel = (role: string | null) => {
-    if (role === 'Admin') return 'Admin';
-    if (role === 'Staff') return 'Staff';
-    if (role === 'Client') return t('summary.roleClient');
-    return role ?? '—';
-  };
-
-  return (
-    <SectionCard>
-      <SectionHeader
-        icon={<ChatBubbleLeftRightIcon className="h-4 w-4" />}
-        title={t('summary.highlights')}
-      />
-      <div className="divide-y divide-[var(--border)]">
-        {highlights.map((h, i) => (
-          <div key={i} className="px-4 py-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-full bg-[var(--surface-3)] flex items-center justify-center text-[10px] font-bold text-[var(--foreground)]">
-                {(h.senderName ?? '?').charAt(0).toUpperCase()}
-              </div>
-              <span className="text-xs font-medium text-[var(--foreground)]">{h.senderName ?? t('summary.unknown')}</span>
-              <span className={`text-[10px] rounded-full px-1.5 py-0.5 font-medium ${roleBadgeClass(h.senderRole)}`}>
-                {roleLabel(h.senderRole)}
-              </span>
-            </div>
-            <ul className="space-y-1 pl-8">
-              {h.recentMessages.map((m, j) => (
-                <li key={j} className="flex items-start gap-2">
-                  <span className="mt-0.5 text-[var(--accent-violet)] text-[10px] flex-shrink-0">•</span>
-                  <div className="min-w-0">
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-2">
-                      &ldquo;{m.content ?? ''}&rdquo;
-                    </p>
-                    <span className="text-[10px] text-[var(--text-muted)]">{formatDate(m.sentAt, i18n.language)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </SectionCard>
-  );
-}
 
 // ── Attachments ──
 function AttachmentsSection({ attachments }: { attachments: AttachmentSummaryDto[] }) {
@@ -350,17 +301,23 @@ function AttachmentsSection({ attachments }: { attachments: AttachmentSummaryDto
           </span>
         }
       />
-      <div className="divide-y divide-[var(--border)]">
+      <div className="divide-y divide-[var(--border)] group">
         {attachments.map((a) => (
-          <div key={a.id} className="px-4 py-2.5 flex items-center gap-3">
+          <a 
+            key={a.id} 
+            href={a.fileUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="px-4 py-2.5 flex items-center gap-3 hover:bg-[var(--surface-2)] transition-colors group/item block w-full text-left"
+          >
             <span className="flex-shrink-0">{fileIcon(a.contentType)}</span>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-medium text-[var(--foreground)] truncate">{a.fileName}</div>
+              <div className="text-xs font-medium text-[var(--foreground)] truncate group-hover/item:text-[var(--accent-primary)] transition-colors">{a.fileName}</div>
               <div className="text-[10px] text-[var(--text-muted)]">
                 {formatFileSize(a.fileSize)} · {a.uploadedBy ?? t('summary.unknown')} · {formatDate(a.uploadedAt, i18n.language)}
               </div>
             </div>
-          </div>
+          </a>
         ))}
       </div>
     </SectionCard>
@@ -441,10 +398,6 @@ function SummaryContent({ summary }: { summary: ConversationSummaryDto }) {
 
       {summary.missingInfoRequests.length > 0 && (
         <MissingInfoSection items={summary.missingInfoRequests} />
-      )}
-
-      {summary.conversationHighlights.length > 0 && (
-        <HighlightsSection highlights={summary.conversationHighlights} />
       )}
 
       {summary.attachments.length > 0 && (

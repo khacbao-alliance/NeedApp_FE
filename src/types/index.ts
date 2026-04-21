@@ -305,7 +305,6 @@ export interface ConversationSummaryDto {
   overview: ConversationOverviewDto;
   intakeSummary: IntakeSummaryDto | null;
   missingInfoRequests: MissingInfoSummaryDto[];
-  conversationHighlights: ConversationHighlightDto[];
   attachments: AttachmentSummaryDto[];
   aiSummary: string | null;
   generatedAt: string;
@@ -347,20 +346,10 @@ export interface MissingInfoSummaryDto {
   isResolved: boolean;
 }
 
-export interface ConversationHighlightDto {
-  senderName: string | null;
-  senderRole: UserRole | null;
-  recentMessages: MessageHighlightDto[];
-}
-
-export interface MessageHighlightDto {
-  content: string | null;
-  sentAt: string;
-}
-
 export interface AttachmentSummaryDto {
   id: string;
   fileName: string;
+  fileUrl: string;
   contentType: string | null;
   fileSize: number | null;
   uploadedBy: string | null;
