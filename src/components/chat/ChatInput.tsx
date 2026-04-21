@@ -13,7 +13,7 @@ import {
 
 interface ChatInputProps {
   onSend: (content: string, replyToId?: string) => void;
-  onFileUpload?: (files: File[]) => void;
+  onFileUpload?: (files: File[]) => Promise<void> | void;
   onTyping?: () => void;
   placeholder?: string;
   disabled?: boolean;
@@ -36,6 +36,8 @@ export function ChatInput({
   const effectivePlaceholder = placeholder ?? t('chat.messagePlaceholder');
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -46,26 +48,33 @@ export function ChatInput({
     }
   }, [disabled, replyToMessage]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = content.trim();
-    if (!trimmed && selectedFiles.length === 0) return;
+    const filesToSend = [...selectedFiles];
+    if (!trimmed && filesToSend.length === 0) return;
+    if (isSending) return;
 
-    if (selectedFiles.length > 0 && onFileUpload) {
-      onFileUpload(selectedFiles);
-      setSelectedFiles([]);
-    }
+    // ── Clear the input IMMEDIATELY so user sees feedback right away ──
+    setContent('');
+    setSelectedFiles([]);
+    onCancelReply?.();
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
-    if (trimmed) {
-      onSend(trimmed, replyToMessage?.id);
-      setContent('');
-      onCancelReply?.();
+    setIsSending(true);
+    try {
+      // Upload files first, wait for completion, so they appear in chat before text
+      if (filesToSend.length > 0 && onFileUpload) {
+        await onFileUpload(filesToSend);
+      }
+      // Then send text message
+      if (trimmed) {
+        onSend(trimmed, replyToMessage?.id);
+      }
+    } finally {
+      setIsSending(false);
+      setTimeout(() => textareaRef.current?.focus(), 0);
     }
-
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
-    setTimeout(() => textareaRef.current?.focus(), 0);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -87,10 +96,13 @@ export function ChatInput({
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setSelectedFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...Array.from(files)]);
     }
-    e.target.value = '';
+    // Increment key to force-remount the input, allowing re-selection
+    // of the same file or re-opening dialog after cancel
+    setFileInputKey((k) => k + 1);
   };
 
   const removeFile = (index: number) => {
@@ -153,7 +165,7 @@ export function ChatInput({
               >
                 <PaperClipIcon className="h-5 w-5" />
               </button>
-              <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
+              <input key={fileInputKey} ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
             </>
           )}
 
@@ -182,16 +194,20 @@ export function ChatInput({
           {/* Send button */}
           <button
             type="submit"
-            disabled={disabled || (!content.trim() && selectedFiles.length === 0)}
+            disabled={disabled || isSending || (!content.trim() && selectedFiles.length === 0)}
             className={cn(
               'flex-shrink-0 h-[40px] w-[40px] flex items-center justify-center rounded-xl transition-all duration-200',
-              content.trim() || selectedFiles.length > 0
+              (content.trim() || selectedFiles.length > 0) && !isSending
                 ? 'btn-gradient text-white'
                 : 'bg-[var(--surface-2)] text-[var(--text-muted)]'
             )}
             id="send-message"
           >
-            <PaperAirplaneIcon className="h-5 w-5" />
+            {isSending ? (
+              <div className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
+            ) : (
+              <PaperAirplaneIcon className="h-5 w-5" />
+            )}
           </button>
         </form>
       </div>

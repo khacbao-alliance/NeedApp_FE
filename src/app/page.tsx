@@ -138,27 +138,67 @@ export default function LandingPage() {
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.4, ease: [0.21, 0.47, 0.32, 0.98] }}
               >
-                <div className="gradient-border rounded-2xl">
-                  <div className="rounded-2xl bg-[var(--surface-1)] p-1">
-                    <div className="rounded-xl bg-[var(--background)] p-4 sm:p-6">
-                      {/* Mock Chat UI */}
-                      <StaggerContainer staggerDelay={0.12} delayStart={0.5} className="flex flex-col gap-3">
-                        <StaggerItem>
-                          <MockMessage align="left" name={t('landing.mockChat.senderSystem')} text={t('landing.mockChat.msg1')} isSystem />
-                        </StaggerItem>
-                        <StaggerItem>
-                          <MockMessage align="right" name={t('landing.mockChat.senderUser')} text={t('landing.mockChat.msg2')} />
-                        </StaggerItem>
-                        <StaggerItem>
-                          <MockMessage align="left" name={t('landing.mockChat.senderSystem')} text={t('landing.mockChat.msg3')} isSystem />
-                        </StaggerItem>
-                        <StaggerItem>
-                          <MockMessage align="right" name={t('landing.mockChat.senderUser')} text={t('landing.mockChat.msg4')} />
-                        </StaggerItem>
-                        <StaggerItem>
-                          <MockMessage align="left" name={t('landing.mockChat.senderStaff')} text={t('landing.mockChat.msg5')} isStaff />
-                        </StaggerItem>
-                      </StaggerContainer>
+                <div className="gradient-border rounded-3xl shadow-2xl shadow-[var(--accent-primary)]/10">
+                  <div className="rounded-[1.5rem] bg-[var(--surface-1)] p-1 sm:p-2">
+                    <div className="rounded-2xl bg-[var(--background)] flex flex-col overflow-hidden border border-[var(--border)]">
+                      {/* Chat Header */}
+                      <div className="border-b border-[var(--border)] bg-[var(--surface-1)]/50 px-4 py-3 sm:px-5 sm:py-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] rounded-lg">
+                            <ChatBubbleLeftRightIcon className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-semibold text-[var(--foreground)]">REQ-1042: System Access</h3>
+                            <p className="text-xs text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5">
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              </span>
+                              Active
+                            </p>
+                          </div>
+                        </div>
+                        <div className="hidden sm:flex text-xs font-medium text-[var(--text-muted)] border border-[var(--border)] px-2.5 py-1 rounded-md bg-[var(--surface-2)]">
+                          High Priority
+                        </div>
+                      </div>
+
+                      {/* Mock Chat UI body */}
+                      <div className="p-4 sm:p-6 bg-gradient-to-b from-[var(--background)] to-[var(--surface-1)]/30">
+                        <StaggerContainer staggerDelay={0.12} delayStart={0.5} className="flex flex-col gap-4 sm:gap-6">
+                          <StaggerItem>
+                            <MockMessage align="left" name={t('landing.mockChat.senderSystem')} text={t('landing.mockChat.msg1')} isSystem />
+                          </StaggerItem>
+                          <StaggerItem>
+                            <MockMessage align="right" name={t('landing.mockChat.senderUser')} text={t('landing.mockChat.msg2')} />
+                          </StaggerItem>
+                          <StaggerItem>
+                            <MockMessage align="left" name={t('landing.mockChat.senderSystem')} text={t('landing.mockChat.msg3')} isSystem />
+                          </StaggerItem>
+                          <StaggerItem>
+                            <MockMessage align="right" name={t('landing.mockChat.senderUser')} text={t('landing.mockChat.msg4')} />
+                          </StaggerItem>
+                          <StaggerItem>
+                            <MockMessage align="left" name={t('landing.mockChat.senderStaff')} text={t('landing.mockChat.msg5')} isStaff />
+                          </StaggerItem>
+                        </StaggerContainer>
+                      </div>
+
+                      {/* Mock Chat Input */}
+                      <div className="border-t border-[var(--border)] bg-[var(--surface-1)]/50 p-3 sm:p-4">
+                        <div className="flex items-center gap-3 bg-[var(--background)] border border-[var(--border)] px-5 py-3 rounded-full shadow-sm">
+                          <div className="flex-1 text-sm text-[var(--text-muted)] opacity-70">
+                            Type a reply...
+                          </div>
+                          <div className="flex items-center gap-2 text-[var(--text-muted)]">
+                            <DocumentTextIcon className="h-5 w-5" />
+                            <div className="w-px h-5 bg-[var(--border)] mx-1"></div>
+                            <div className="bg-[var(--accent-primary)] text-white p-2 rounded-full shadow-sm">
+                              <ChevronRightIcon className="h-4 w-4" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -358,21 +398,60 @@ function MockMessage({
   isSystem?: boolean;
   isStaff?: boolean;
 }) {
+  const isRight = align === 'right';
+  const initial = name ? name.charAt(0).toUpperCase() : 'U';
+
   return (
-    <div className={`flex ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
-      <div
-          className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${align === 'right'
-            ? 'bg-[var(--accent-primary)] text-white'
-            : isStaff
-              ? 'bg-blue-500/10 border border-blue-500/20 text-[var(--foreground)]'
-              : 'bg-[var(--surface-2)] text-[var(--foreground)]'
-          }`}
-      >
-        <p className={`text-[10px] font-medium mb-0.5 ${align === 'right' ? 'text-white/70' : isStaff ? 'text-blue-400' : 'text-[var(--text-muted)]'
-          }`}>
-          {name}
-        </p>
-        <p className="text-sm leading-relaxed">{text}</p>
+    <div className={`flex w-full py-1 animate-fade-in group ${isRight ? 'justify-end' : 'justify-start'}`}>
+      <div className={`max-w-[85%] sm:max-w-[80%] flex flex-col ${isRight ? 'items-end' : 'items-start'}`}>
+        
+        <div className={`flex items-end gap-2 group ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
+          {/* Avatar (Only for left side, like real chat) */}
+          {!isRight && (
+            <div className={`flex-shrink-0 h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs font-semibold shadow-sm ${
+              isStaff
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 ring-1 ring-inset ring-blue-500/20'
+                : 'bg-[var(--surface-3)] text-[var(--text-secondary)] border border-[var(--border)]'
+            }`}>
+              {isSystem ? <SparklesIcon className="h-4 w-4 text-[var(--accent-violet)]" /> : initial}
+            </div>
+          )}
+
+          {/* Bubble */}
+          <div className="min-w-0">
+            <div
+              className={`px-5 py-3 text-sm leading-relaxed rounded-3xl ${
+                isRight
+                  ? 'bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-indigo)] text-white rounded-br-md shadow-md shadow-[var(--accent-primary)]/20'
+                  : 'bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] rounded-bl-md shadow-sm'
+              }`}
+            >
+              {/* Name (Inside bubble for left side, like real chat) */}
+              {!isRight && (
+                <div className="mb-0.5 flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-[var(--accent-violet)]">{name}</span>
+                  {(isSystem || isStaff) && (
+                    <span className="text-[9px] font-medium uppercase tracking-wider text-[var(--accent-violet)]/70 px-1 py-[1px] bg-[var(--accent-violet)]/10 rounded">
+                      {isSystem ? 'Bot' : 'Staff'}
+                    </span>
+                  )}
+                </div>
+              )}
+              {text}
+            </div>
+          </div>
+        </div>
+
+        {/* Timestamp & Read Receipt */}
+        <div className={`mt-1 flex items-center gap-1 text-[10px] text-[var(--text-muted)] w-full px-1 ${isRight ? 'justify-end' : 'justify-start'}`}>
+          <span>Vừa xong</span>
+          {isRight && (
+            <span className="ml-0.5 font-bold tracking-tight text-[var(--accent-violet)] relative w-3 h-3 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-2.5 h-2.5 absolute left-0"><polyline points="20 6 9 17 4 12" /></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-2.5 h-2.5 absolute left-[3px]"><polyline points="20 6 9 17 4 12" /></svg>
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
