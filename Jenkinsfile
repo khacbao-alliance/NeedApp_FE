@@ -49,9 +49,10 @@ pipeline {
                     string(credentialsId: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID', variable: 'GOOGLE_CLIENT_ID')
                 ]) {
                     sh """
+                        docker rm -f ${CONTAINER_NAME} || true
                         NEXT_PUBLIC_API_URL=\${API_URL} \
                         NEXT_PUBLIC_GOOGLE_CLIENT_ID=\${GOOGLE_CLIENT_ID} \
-                        docker compose up -d --no-build --force-recreate
+                        docker compose up -d --no-build
                     """
                 }
             }
