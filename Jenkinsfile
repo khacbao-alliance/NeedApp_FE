@@ -82,13 +82,14 @@ pipeline {
                     for i in $(seq 1 12); do
                         STATUS=$(docker inspect --format="{{.State.Status}}" ${CONTAINER_NAME} 2>/dev/null || echo "not_found")
                         if [ "$STATUS" = "running" ]; then
-                            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 2>/dev/null || echo "000")
+                            HTTP_CODE=$(docker exec ${CONTAINER_NAME} wget -q -O /dev/null -S http://localhost:3000 2>&1 | grep "HTTP/" | awk "{print \$2}" | tail -1)
+                            HTTP_CODE=${HTTP_CODE:-000}
                             if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "404" ]; then
                                 echo "Container is running (HTTP $HTTP_CODE)"
                                 exit 0
                             fi
                         fi
-                        echo "Attempt $i/12: waiting..."
+                        echo "Attempt $i/12: HTTP $HTTP_CODE, waiting..."
                         sleep 5
                     done
                     echo "Health check failed"
