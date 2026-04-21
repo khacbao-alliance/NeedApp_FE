@@ -4,9 +4,20 @@ pipeline {
     environment {
         IMAGE_NAME = 'needapp-fe'
         CONTAINER_NAME = 'needapp-fe'
+        GCHAT_WEBHOOK = 'https://chat.googleapis.com/v1/spaces/AAQAyJg5xoU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=bPFiBiw7I06p8wFaPtA0Jr300iUTinPept8BH77KAik'
     }
 
     stages {
+        stage('Notify Start') {
+            steps {
+                bat """
+                    curl -s -X POST "%GCHAT_WEBHOOK%" ^
+                        -H "Content-Type: application/json" ^
+                        -d "{\"text\": \"🚀 *[NeedApp FE]* Build #%BUILD_NUMBER% bat dau\\nBranch: %GIT_BRANCH%\\nTriggered by: %BUILD_USER_ID%\"}"
+                """
+            }
+        }
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -49,10 +60,18 @@ pipeline {
 
     post {
         success {
-            echo "Deploy thanh cong - Build #${BUILD_NUMBER}"
+            bat """
+                curl -s -X POST "%GCHAT_WEBHOOK%" ^
+                    -H "Content-Type: application/json" ^
+                    -d "{\"text\": \"✅ *[NeedApp FE]* Build #%BUILD_NUMBER% thanh cong\\nBranch: %GIT_BRANCH%\\nDuration: %BUILD_DURATION%\"}"
+            """
         }
         failure {
-            echo "Deploy that bai - Build #${BUILD_NUMBER}"
+            bat """
+                curl -s -X POST "%GCHAT_WEBHOOK%" ^
+                    -H "Content-Type: application/json" ^
+                    -d "{\"text\": \"❌ *[NeedApp FE]* Build #%BUILD_NUMBER% that bai\\nBranch: %GIT_BRANCH%\\nXem log: %BUILD_URL%console\"}"
+            """
         }
     }
 }
