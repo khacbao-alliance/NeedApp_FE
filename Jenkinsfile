@@ -51,7 +51,7 @@ pipeline {
                     sh """
                         NEXT_PUBLIC_API_URL=\${API_URL} \
                         NEXT_PUBLIC_GOOGLE_CLIENT_ID=\${GOOGLE_CLIENT_ID} \
-                        docker compose up -d --no-build
+                        docker compose up -d --no-build --force-recreate
                     """
                 }
             }
