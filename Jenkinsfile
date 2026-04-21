@@ -82,7 +82,7 @@ pipeline {
                     for i in $(seq 1 12); do
                         STATUS=$(docker inspect --format="{{.State.Status}}" ${CONTAINER_NAME} 2>/dev/null || echo "not_found")
                         if [ "$STATUS" = "running" ]; then
-                            if docker exec ${CONTAINER_NAME} wget -O /dev/null http://localhost:3000 2>&1; then
+                            if docker exec ${CONTAINER_NAME} wget -O /dev/null http://127.0.0.1:3000 2>&1; then
                                 echo "Health check passed"
                                 exit 0
                             fi
