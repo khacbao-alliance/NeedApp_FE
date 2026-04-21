@@ -82,14 +82,12 @@ pipeline {
                     for i in $(seq 1 12); do
                         STATUS=$(docker inspect --format="{{.State.Status}}" ${CONTAINER_NAME} 2>/dev/null || echo "not_found")
                         if [ "$STATUS" = "running" ]; then
-                            docker exec ${CONTAINER_NAME} wget -q -O /dev/null http://localhost:3000 2>/dev/null
-                            EXIT=$?
-                            if [ $EXIT -eq 0 ] || [ $EXIT -eq 8 ]; then
-                                echo "Health check passed (wget exit $EXIT)"
+                            if docker exec ${CONTAINER_NAME} wget -O /dev/null http://localhost:3000 2>&1; then
+                                echo "Health check passed"
                                 exit 0
                             fi
                         fi
-                        echo "Attempt $i/12: container=$STATUS, wget_exit=${EXIT:-?}, waiting..."
+                        echo "Attempt $i/12: container=$STATUS, waiting..."
                         sleep 5
                     done
                     echo "Health check failed"
