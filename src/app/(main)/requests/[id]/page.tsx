@@ -873,6 +873,24 @@ export default function RequestChatPage() {
       </>
       )}
 
+      {/* Intake Form Panel - Always visible if questions exist */}
+      {messages.some(m => m.type === 'IntakeQuestion') && (
+        <IntakeFormPanel
+          messages={messages}
+          requestId={requestId}
+          isReadOnly={request?.status === 'Done' || request?.status === 'Cancelled'}
+          onAnswerSubmit={async (content, questionMessageId) => {
+            const sentMsg = await messageService.send(requestId, {
+              content,
+              type: 'IntakeAnswer',
+              replyToId: questionMessageId,
+            });
+            setMessages((prev) => [...prev, sentMsg]);
+          }}
+          onAnswerEdit={handleEditMessage}
+        />
+      )}
+
       {/* Input */}
       {staffNotAssigned ? null : request?.status === 'Done' || request?.status === 'Cancelled' ? (
         <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-center">
@@ -918,23 +936,6 @@ export default function RequestChatPage() {
         />
       ) : (
         <div className="flex flex-col flex-shrink-0">
-          {messages.some(m => m.type === 'IntakeQuestion') && (
-            <IntakeFormPanel
-              messages={messages}
-              requestId={requestId}
-              // Issue 4: Always show intake panel — only lock on terminal states
-              isReadOnly={request?.status === 'Done' || request?.status === 'Cancelled'}
-              onAnswerSubmit={async (content, questionMessageId) => {
-                const sentMsg = await messageService.send(requestId, {
-                  content,
-                  type: 'IntakeAnswer',
-                  replyToId: questionMessageId,
-                });
-                setMessages((prev) => [...prev, sentMsg]);
-              }}
-              onAnswerEdit={handleEditMessage}
-            />
-          )}
           <ChatInput
             onSend={handleSend}
             onFileUpload={handleFileUpload}
