@@ -203,6 +203,29 @@ export default function RequestsPage() {
     return filtered;
   })();
 
+  // ── Issue 3: Status counts from allRequests for tab pills ──
+  const statusCounts = allRequests.reduce<Record<string, number>>((acc, req) => {
+    acc[req.status] = (acc[req.status] || 0) + 1;
+    return acc;
+  }, {});
+
+  // ── Issue 7: Auto-generate filter name from active filters ──
+  useEffect(() => {
+    if (filterName.trim()) return; // don't overwrite if user typed something
+    const parts: string[] = [];
+    if (priorityFilter) {
+      const labels: Record<string, string> = { Urgent: 'Khẩn', High: 'Cao', Medium: 'TB', Low: 'Thấp' };
+      parts.push(labels[priorityFilter] || priorityFilter);
+    }
+    if (statusFilter !== 'all') parts.push(statusFilter);
+    if (overdueOnly) parts.push('Quá hạn');
+    if (dateFrom && !dateTo) parts.push(`Từ ${dateFrom.slice(5)}`);
+    if (dateTo && !dateFrom) parts.push(`Đến ${dateTo.slice(5)}`);
+    if (dateFrom && dateTo) parts.push(`${dateFrom.slice(5)}–${dateTo.slice(5)}`);
+    if (parts.length > 0) setFilterName(parts.join(' · '));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [priorityFilter, statusFilter, overdueOnly, dateFrom, dateTo]);
+
   // #8 — Auto-refresh every 30s
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fetchRequestsRef = useRef(fetchRequests);
@@ -490,18 +513,29 @@ export default function RequestsPage() {
       {effectiveViewMode === 'list' && (
         <>
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {statusFilters.map((f) => (
+        {statusFilters.map((f) => {
+          const count = f.value === 'all'
+            ? allRequests.length
+            : (statusCounts[f.value] || 0);
+          return (
           <button
             key={f.value}
             onClick={() => { setStatusFilter(f.value); setPage(1); }}
-            className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${statusFilter === f.value
+            className={`whitespace-nowrap inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${statusFilter === f.value
                 ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]'
                 : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
           >
             {f.label}
+            {count > 0 && (
+              <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-1 ${
+                statusFilter === f.value
+                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
+                  : 'bg-[var(--surface-3)] text-[var(--text-muted)]'
+              }`}>{count}</span>
+            )}
           </button>
-        ))}
+        );})}
       </div>
 
       {/* Urgency Legend */}
@@ -529,25 +563,61 @@ export default function RequestsPage() {
           ))}
         </div>
       ) : requests.length === 0 ? (
-        <EmptyState
-          icon={<DocumentTextIcon className="h-8 w-8" />}
-          title={search || statusFilter !== 'all' ? t('requests.list.noResults') : t('requests.list.empty')}
-          description={
-            search || statusFilter !== 'all'
-              ? t('requests.list.noResultsDesc')
-              : t('requests.list.emptyDesc')
-          }
-          action={
-            !search && statusFilter === 'all' && isClient ? (
-              <Link href="/requests/new">
-                <Button variant="gradient">
-                  <PlusIcon className="h-4 w-4" />
-                  {t('requests.list.createRequest')}
-                </Button>
-              </Link>
-            ) : undefined
-          }
-        />
+        // ── Issue 6: Rich empty state ──
+        (search || statusFilter !== 'all' || activeAdvancedCount > 0) ? (
+          <EmptyState
+            icon={<DocumentTextIcon className="h-8 w-8" />}
+            title={t('requests.list.noResults')}
+            description={t('requests.list.noResultsDesc')}
+          />
+        ) : isClient ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center animate-fade-in">
+            {/* Glow icon */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 rounded-full bg-[var(--accent-primary)]/10 blur-2xl scale-150" />
+              <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-6 text-[var(--text-muted)]">
+                <DocumentTextIcon className="h-10 w-10" />
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-[var(--foreground)] mb-1">{t('requests.list.empty')}</h3>
+            <p className="text-sm text-[var(--text-muted)] mb-8 max-w-xs">{t('requests.list.emptyDesc')}</p>
+            {/* 3-step guide */}
+            <div className="flex items-start gap-3 sm:gap-6 mb-8">
+              {[
+                { step: '1', label: t('requests.list.emptyStep1', 'Tạo yêu cầu'), icon: '📝' },
+                { step: '2', label: t('requests.list.emptyStep2', 'Trả lời câu hỏi'), icon: '💬' },
+                { step: '3', label: t('requests.list.emptyStep3', 'Nhận phản hồi trong 24h'), icon: '✅' },
+              ].map((item, idx, arr) => (
+                <div key={item.step} className="flex items-center gap-3 sm:gap-6">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--accent-primary)]/30 bg-[var(--accent-primary)]/5 text-lg">
+                      {item.icon}
+                    </div>
+                    <span className="text-[11px] font-medium text-[var(--text-secondary)] text-center max-w-[70px] sm:max-w-[90px] leading-tight">{item.label}</span>
+                  </div>
+                  {idx < arr.length - 1 && (
+                    <div className="hidden sm:block h-px w-8 bg-[var(--border)] flex-shrink-0 -mt-5" />
+                  )}
+                </div>
+              ))}
+            </div>
+            <Link href="/requests/new">
+              <Button variant="gradient" className="px-6 py-2.5 text-sm animate-pulse-glow">
+                <PlusIcon className="h-4 w-4" />
+                {t('requests.list.createRequest')}
+              </Button>
+            </Link>
+            <p className="mt-4 text-xs text-[var(--text-muted)]">
+              {t('requests.list.emptyReassurance', 'Đội ngũ chuyên gia sẽ phản hồi trong vòng 24 giờ')}
+            </p>
+          </div>
+        ) : (
+          <EmptyState
+            icon={<DocumentTextIcon className="h-8 w-8" />}
+            title={t('requests.list.empty')}
+            description={t('requests.list.emptyDesc')}
+          />
+        )
       ) : (
         <div className="space-y-3">
           {requests.map((req, i) => {
@@ -567,8 +637,8 @@ export default function RequestsPage() {
               }`}
               style={{ animationDelay: `${i * 50}ms` }}
             >
-              {/* Creator Avatar */}
-              <div className="flex-shrink-0 hidden xs:block sm:block">
+              {/* Creator Avatar — always visible */}
+              <div className="flex-shrink-0">
                 <Avatar
                   src={req.createdByUser?.avatarUrl ?? undefined}
                   name={req.createdByUser?.name || req.client?.name || '?'}
@@ -592,7 +662,7 @@ export default function RequestsPage() {
                 <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[var(--text-secondary)]">
                   {req.client && (
                     <>
-                      <span className={`font-medium truncate max-w-[120px] sm:max-w-none ${!req.isClientActive ? 'line-through text-[var(--text-muted)]' : ''}`}>{req.client.name}</span>
+                      <span className={`font-medium truncate max-w-[90px] sm:max-w-none ${!req.isClientActive ? 'line-through text-[var(--text-muted)]' : ''}`}>{req.client.name}</span>
                       {!req.isClientActive && (
                         <span className="inline-flex items-center gap-0.5 rounded-full bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 text-[10px] font-medium text-red-400">
                           {t('requests.list.clientDissolved')}

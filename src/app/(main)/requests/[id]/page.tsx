@@ -16,6 +16,7 @@ import { showErrorToast } from '@/components/ui/ErrorToast';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { MissingInfoComposer } from '@/components/chat/MissingInfoComposer';
+import { IntakeFormPanel } from '@/components/chat/IntakeFormPanel';
 import { RequestStatusActions, AssignStaffAction, SelfAssignAction } from '@/components/chat/RequestActions';
 import { ConversationSummaryDrawer } from '@/components/chat/ConversationSummaryDrawer';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
@@ -65,6 +66,7 @@ export default function RequestChatPage() {
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [newMsgCount, setNewMsgCount] = useState(0);
   const [readers, setReaders] = useState<ReadReceiptDto[]>([]);
+  const [showHeaderMeta, setShowHeaderMeta] = useState(false); // Issue 8: mobile header meta toggle
 
   // ── In-chat search ──
   const [chatSearchOpen, setChatSearchOpen] = useState(false);
@@ -90,7 +92,7 @@ export default function RequestChatPage() {
   // ══════════════════════════════════════════════════════
   const { isConnected, typingUsers, sendTyping } = useChatSignalR({
     requestId,
-    enabled: !isIntake && !loading && !staffNotAssigned, // Only connect after intake + initial load + assigned
+    enabled: !loading && !staffNotAssigned, // Connect as soon as page loads — active in ALL phases
     onNewMessage: useCallback((message: MessageDto) => {
       setMessages((prev) => {
         // Dedupe by ID (may already exist from REST response)
@@ -201,7 +203,7 @@ export default function RequestChatPage() {
     },
     {
       interval: 8000,
-      enabled: isIntake && !loading && !staffNotAssigned, // Only poll during Intake phase
+      enabled: false, // SignalR now handles intake phase too — this polling is no longer needed
       backgroundInterval: 60000,
     }
   );
@@ -224,8 +226,8 @@ export default function RequestChatPage() {
       } catch { /* ignore */ }
     }, [requestId]),
     {
-      interval: 30000, // 30s fallback
-      enabled: !isIntake && !isConnected && !loading && !staffNotAssigned,
+      interval: 30000, // 30s fallback for any missed SignalR events (edits, pins, new messages)
+      enabled: !isConnected && !loading && !staffNotAssigned,
       backgroundInterval: 120000,
     }
   );
@@ -453,11 +455,25 @@ export default function RequestChatPage() {
         </Link>
 
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-[var(--foreground)]">
-            {request?.title || t('common.loading')}
-          </h1>
-          {/* Meta row: badges + client→staff + date pushed right */}
-          <div className="mt-0.5 flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <h1 className="truncate text-sm font-semibold text-[var(--foreground)]">
+              {request?.title || t('common.loading')}
+            </h1>
+            {/* Mobile: toggle meta row */}
+            {request && (
+              <button
+                onClick={() => setShowHeaderMeta(!showHeaderMeta)}
+                className="md:hidden flex-shrink-0 rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
+                title={showHeaderMeta ? 'Ẩn chi tiết' : 'Xem chi tiết'}
+              >
+                <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform ${showHeaderMeta ? 'rotate-180' : ''}`} />
+              </button>
+            )}
+          </div>
+          {/* Meta row: visible always on desktop (md+), toggle on mobile */}
+          <div className={`mt-0.5 flex items-center gap-2 flex-wrap ${
+            showHeaderMeta ? 'flex' : 'hidden md:flex'
+          }`}>
             {request && (
               <>
                 <StatusBadge status={request.status} />
@@ -760,12 +776,14 @@ export default function RequestChatPage() {
             <p className="text-sm text-[var(--text-muted)]">{t('chat.empty')}</p>
           </div>
         ) : (
-          messages.map((msg, idx) => {
+          messages
+            .filter((m) => m.type !== 'IntakeQuestion' && m.type !== 'IntakeAnswer')
+            .map((msg, idx, filteredArray) => {
             // Determine if this is the last message sent by the current user
             // (only last own message shows the seen tick)
             const isLastOwnMessage =
               msg.sender?.id === user?.id &&
-              !messages.slice(idx + 1).some((m) => m.sender?.id === user?.id);
+              !filteredArray.slice(idx + 1).some((m) => m.sender?.id === user?.id);
             const isSearchMatch = searchResults.includes(msg.id);
             const isCurrentSearchTarget = searchResults[searchIndex] === msg.id;
             return (
@@ -787,10 +805,10 @@ export default function RequestChatPage() {
                   userId={user?.id}
                   readers={readers}
                   isLastOwnMessage={isLastOwnMessage}
-                  canPin={!isIntake}
-                  onReply={!isIntake ? (m) => setReplyToMessage(m) : undefined}
+                  canPin={true} // Since Intake messages are separated, we can always allow pinning for text messages
+                  onReply={(m) => setReplyToMessage(m)}
                   onEdit={handleEditMessage}
-                  onPin={!isIntake ? handlePinMessage : undefined}
+                  onPin={handlePinMessage}
                   onReaction={async (messageId, emoji) => {
                     try {
                       const res = await messageService.toggleReaction(requestId, messageId, emoji);
@@ -899,22 +917,33 @@ export default function RequestChatPage() {
           onCancel={() => setShowMissingInfo(false)}
         />
       ) : (
-        <>
+        <div className="flex flex-col flex-shrink-0">
+          {messages.some(m => m.type === 'IntakeQuestion') && (
+            <IntakeFormPanel
+              messages={messages}
+              requestId={requestId}
+              // Issue 4: Always show intake panel — only lock on terminal states
+              isReadOnly={request?.status === 'Done' || request?.status === 'Cancelled'}
+              onAnswerSubmit={async (content, questionMessageId) => {
+                const sentMsg = await messageService.send(requestId, {
+                  content,
+                  type: 'IntakeAnswer',
+                  replyToId: questionMessageId,
+                });
+                setMessages((prev) => [...prev, sentMsg]);
+              }}
+              onAnswerEdit={handleEditMessage}
+            />
+          )}
           <ChatInput
             onSend={handleSend}
             onFileUpload={handleFileUpload}
             onTyping={handleTypingInput}
             replyToMessage={replyToMessage}
             onCancelReply={() => setReplyToMessage(null)}
-            placeholder={
-              isIntake
-                ? currentIntakeQuestion?.metadata
-                  ? ((currentIntakeQuestion.metadata as { placeholder?: string }).placeholder || t('chat.answerPlaceholder'))
-                  : t('chat.answerPlaceholder')
-                : t('chat.messagePlaceholder')
-            }
+            placeholder={t('chat.messagePlaceholder')}
             disabled={sending}
-            isIntake={isIntake}
+            isIntake={false}
           />
           {/* Missing Info toggle — Staff only, not Admin, not during Intake */}
           {role === 'Staff' && !isIntake && (
@@ -928,7 +957,7 @@ export default function RequestChatPage() {
               </button>
             </div>
           )}
-        </>
+        </div>
       )}
       {/* Conversation Summary Drawer */}
       {showSummary && (

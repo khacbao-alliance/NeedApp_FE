@@ -196,6 +196,13 @@ export interface MessageListResponse {
   readers?: ReadReceiptDto[] | null;
 }
 
+export interface MessageEditHistoryDto {
+  id: string;
+  previousContent: string;
+  editedAt: string;
+  editedByName: string | null;
+}
+
 export interface SendMessageRequest {
   content: string;
   type?: MessageType;
@@ -357,7 +364,7 @@ export interface AttachmentSummaryDto {
 }
 
 // ── Notification ──────────────────────────────────────────
-export type NotificationType = 'NewMessage' | 'MissingInfo' | 'StatusChange' | 'Assignment' | 'NewRequest' | 'Invitation';
+export type NotificationType = 'NewMessage' | 'MissingInfo' | 'StatusChange' | 'Assignment' | 'NewRequest' | 'Invitation' | 'IntakeAnswerEdited';
 
 export interface NotificationDto {
   id: string;
