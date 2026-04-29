@@ -214,13 +214,21 @@ export default function RequestsPage() {
     if (filterName.trim()) return; // don't overwrite if user typed something
     const parts: string[] = [];
     if (priorityFilter) {
-      const labels: Record<string, string> = { Urgent: 'Khẩn', High: 'Cao', Medium: 'TB', Low: 'Thấp' };
+      const labels: Record<string, string> = {
+        Urgent: t('priority.urgent', 'Khẩn'),
+        High: t('priority.high', 'Cao'),
+        Medium: t('priority.medium', 'TB'),
+        Low: t('priority.low', 'Thấp')
+      };
       parts.push(labels[priorityFilter] || priorityFilter);
     }
-    if (statusFilter !== 'all') parts.push(statusFilter);
-    if (overdueOnly) parts.push('Quá hạn');
-    if (dateFrom && !dateTo) parts.push(`Từ ${dateFrom.slice(5)}`);
-    if (dateTo && !dateFrom) parts.push(`Đến ${dateTo.slice(5)}`);
+    if (statusFilter !== 'all') {
+      const statusLabel = statusFilters.find(f => f.value === statusFilter)?.label || statusFilter;
+      parts.push(statusLabel);
+    }
+    if (overdueOnly) parts.push(t('requests.list.overdue', 'Quá hạn'));
+    if (dateFrom && !dateTo) parts.push(`${t('common.from', 'Từ')} ${dateFrom.slice(5)}`);
+    if (dateTo && !dateFrom) parts.push(`${t('common.to', 'Đến')} ${dateTo.slice(5)}`);
     if (dateFrom && dateTo) parts.push(`${dateFrom.slice(5)}–${dateTo.slice(5)}`);
     if (parts.length > 0) setFilterName(parts.join(' · '));
   // eslint-disable-next-line react-hooks/exhaustive-deps

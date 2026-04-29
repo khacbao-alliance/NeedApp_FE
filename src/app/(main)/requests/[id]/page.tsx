@@ -464,7 +464,7 @@ export default function RequestChatPage() {
               <button
                 onClick={() => setShowHeaderMeta(!showHeaderMeta)}
                 className="md:hidden flex-shrink-0 rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
-                title={showHeaderMeta ? 'Ẩn chi tiết' : 'Xem chi tiết'}
+                title={showHeaderMeta ? t('chat.hideDetails', 'Ẩn chi tiết') : t('chat.showDetails', 'Xem chi tiết')}
               >
                 <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform ${showHeaderMeta ? 'rotate-180' : ''}`} />
               </button>

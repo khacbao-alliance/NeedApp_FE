@@ -17,7 +17,9 @@
     "page": "Page",
     "email": "Email",
     "password": "Password",
-    "name": "Name"
+    "name": "Name",
+    "from": "From",
+    "to": "To"
   },
   "guide": {
     "title": "Status Management Guide",
@@ -266,6 +268,8 @@
     "intakeQuestion": "Intake question",
     "requiredMark": "*Required",
     "answer": "Answer",
+    "hideDetails": "Hide details",
+    "showDetails": "Show details",
     "missingInfo": {
       "title": "Request missing information",
       "clientReceive": "— Client will receive a list of questions",

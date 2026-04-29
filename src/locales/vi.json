@@ -17,7 +17,9 @@
     "page": "Trang",
     "email": "Email",
     "password": "Mật khẩu",
-    "name": "Tên"
+    "name": "Tên",
+    "from": "Từ",
+    "to": "Đến"
   },
   "guide": {
     "title": "Hướng dẫn quản lý trạng thái",
@@ -269,6 +271,8 @@
     "intakeQuestion": "Câu hỏi tiếp nhận",
     "requiredMark": "*Bắt buộc",
     "answer": "Trả lời",
+    "hideDetails": "Ẩn chi tiết",
+    "showDetails": "Xem chi tiết",
     "missingInfo": {
       "title": "Yêu cầu bổ sung thông tin",
       "clientReceive": "— Client sẽ nhận được danh sách câu hỏi",
