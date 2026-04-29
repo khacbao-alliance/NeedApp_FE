@@ -153,7 +153,16 @@
     "missingInfo": "Missing Info",
     "inProgress": "In Progress",
     "done": "Done",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "tooltip": {
+      "draft": "This request is in draft state",
+      "intake": "The system is collecting more information from you to understand your request",
+      "pending": "Your request has been submitted and is waiting for a team member to pick it up",
+      "missingInfo": "Our team needs more information from you — please check and respond",
+      "inProgress": "A team member is actively working on your request",
+      "done": "Your request has been completed",
+      "cancelled": "This request has been cancelled"
+    }
   },
   "priority": {
     "low": "Low",
@@ -196,7 +205,11 @@
       "legendWarning": "4-24 hours - follow up soon",
       "legendNormal": "Under 4 hours - on time",
       "clientDissolved": "Organization dissolved",
-      "overdue": "Overdue"
+      "overdue": "Overdue",
+      "emptyStep1": "Create a request",
+      "emptyStep2": "Answer questions",
+      "emptyStep3": "Get a response within 24h",
+      "emptyReassurance": "Our team of experts will respond within 24 hours"
     },
     "new": {
       "title": "New request",
@@ -209,6 +222,7 @@
       "submit": "Submit request",
       "back": "Back",
       "error": "Unable to create request. Please try again.",
+      "successToast": "Request created! Please answer the questions below.",
       "priorityLow": "Low",
       "priorityMedium": "Medium",
       "priorityHigh": "High",
@@ -281,7 +295,26 @@
     "pinned": "Pinned",
     "pin": "Pin",
     "unpin": "Unpin",
-    "edited": "edited"
+    "edited": "edited",
+    "intakeForm": {
+      "title": "Intake Questions",
+      "subtitle": "Answer in any order — edit anytime",
+      "required": "Required",
+      "answered": "Answered",
+      "editAnswer": "Edit",
+      "viewHistory": "View history",
+      "submitAnswer": "Submit",
+      "saving": "Saving...",
+      "editPlaceholder": "Edit your answer...",
+      "historyTitle": "Edit History",
+      "noHistory": "No edit history yet",
+      "restore": "Restore",
+      "latestVersion": "Current",
+      "historyNote": "History saved on server · Visible to both Client and Staff",
+      "completionHint": "Please answer all required questions to continue",
+      "allDone": "You've answered all questions!",
+      "allDoneDesc": "Our team will review and respond as soon as possible."
+    }
   },
   "requestActions": {
     "startProcessing": "Start processing",
@@ -557,7 +590,8 @@
       "StatusChange": "Request status updated",
       "Assignment": "New assignment",
       "NewRequest": "New request",
-      "Invitation": "Invitation to join"
+      "Invitation": "Invitation to join",
+      "IntakeAnswerEdited": "Intake answer updated"
     },
     "typeContent": {
       "NewMessage": "New message in \"{{requestTitle}}\": {{messagePreview}}",
@@ -566,7 +600,8 @@
       "AssignmentToMe": "Request \"{{requestTitle}}\" has been assigned to you",
       "AssignmentSelfAccept": "\"{{staffName}}\" accepted request \"{{requestTitle}}\"",
       "NewRequest": "New request: \"{{requestTitle}}\"",
-      "Invitation": "{{inviterName}} invited you to join \"{{clientName}}\" as {{role}}"
+      "Invitation": "{{inviterName}} invited you to join \"{{clientName}}\" as {{role}}",
+      "IntakeAnswerEdited": "\"{{editorName}}\" updated an intake answer in \"{{requestTitle}}\": {{questionPreview}}"
     }
   },
   "members": {

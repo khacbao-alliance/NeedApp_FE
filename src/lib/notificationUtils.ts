@@ -62,6 +62,9 @@ export function getNotificationContent(
     case 'Invitation':
       return t('notifications.typeContent.Invitation', meta);
 
+    case 'IntakeAnswerEdited':
+      return t('notifications.typeContent.IntakeAnswerEdited', meta);
+
     default:
       return notification.content;
   }

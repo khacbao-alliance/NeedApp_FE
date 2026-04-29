@@ -14,7 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import type { NotificationDto, NotificationType } from '@/types';
 
 const NOTIFICATION_TYPE_MAP: NotificationType[] = [
-  'NewMessage', 'MissingInfo', 'StatusChange', 'Assignment', 'NewRequest', 'Invitation',
+  'NewMessage', 'MissingInfo', 'StatusChange', 'Assignment', 'NewRequest', 'Invitation', 'IntakeAnswerEdited',
 ];
 
 function normalizeNotification(raw: Record<string, unknown>): NotificationDto {
