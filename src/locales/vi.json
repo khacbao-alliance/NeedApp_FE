@@ -434,7 +434,9 @@
     "leaveClientTitle": "Rời tổ chức?",
     "leaveClientDesc": "Bạn sẽ không còn thấy các yêu cầu của tổ chức này. Bạn có thể được mời lại sau.",
     "leaveClientConfirm": "Rời tổ chức",
-    "clientActionError": "Có lỗi xảy ra. Vui lòng thử lại."
+    "clientActionError": "Có lỗi xảy ra. Vui lòng thử lại.",
+    "emailSettingsLink": "Cài đặt Email",
+    "emailSettingsLinkDesc": "Tùy chỉnh email thông báo"
   },
   "confirm": {
     "logout": {

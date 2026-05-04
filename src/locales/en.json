@@ -431,7 +431,9 @@
     "leaveClientTitle": "Leave organization?",
     "leaveClientDesc": "You will no longer see this organization's requests. You can be re-invited later.",
     "leaveClientConfirm": "Leave organization",
-    "clientActionError": "An error occurred. Please try again."
+    "clientActionError": "An error occurred. Please try again.",
+    "emailSettingsLink": "Email Settings",
+    "emailSettingsLinkDesc": "Customize notification emails"
   },
   "confirm": {
     "logout": {
