@@ -476,11 +476,14 @@ const STATUS_COLORS: Record<string, string> = {
 
 function StatusPieChartRecharts({ data }: { data: { status: string; count: number }[] }) {
   const { t } = useTranslation();
-  const chartData = data.filter(d => d.count > 0).map(d => ({
-    name: d.status,
-    value: d.count,
-    fill: STATUS_COLORS[d.status] || '#6B7280',
-  }));
+  const chartData = data.filter(d => d.count > 0).map(d => {
+    const statusKey = `status.${d.status.charAt(0).toLowerCase() + d.status.slice(1)}`;
+    return {
+      name: t(statusKey, d.status),
+      value: d.count,
+      fill: STATUS_COLORS[d.status] || '#6B7280',
+    };
+  });
 
   if (chartData.length === 0) {
     return <p className="text-sm text-[var(--text-muted)] text-center py-8">{t('dashboard.noData')}</p>;
@@ -586,8 +589,9 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 function PriorityBarChart({ data }: { data: { priority: string; count: number }[] }) {
+  const { t } = useTranslation();
   const chartData = data.map(d => ({
-    name: d.priority,
+    name: t(`priority.${d.priority.toLowerCase()}`, d.priority),
     value: d.count,
     fill: PRIORITY_COLORS[d.priority] || '#6B7280',
   }));

@@ -712,6 +712,8 @@
     "total": "requests",
     "moveSuccess": "Status updated",
     "moveError": "Failed to update status",
-    "invalidTransition": "Cannot move from {from} to {to}"
+    "invalidTransition": "Cannot move from {from} to {to}",
+    "showDissolved": "Show dissolved",
+    "hideDissolved": "Hide dissolved"
   }
 }

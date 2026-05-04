@@ -715,6 +715,8 @@
     "total": "yêu cầu",
     "moveSuccess": "Đã chuyển trạng thái",
     "moveError": "Không thể chuyển trạng thái",
-    "invalidTransition": "Không thể chuyển từ {from} sang {to}"
+    "invalidTransition": "Không thể chuyển từ {from} sang {to}",
+    "showDissolved": "Hiện giải thể",
+    "hideDissolved": "Ẩn giải thể"
   }
 }
