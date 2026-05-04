@@ -548,7 +548,7 @@ export default function RequestChatPage() {
           {request && (
             <button
               onClick={() => setShowSummary(true)}
-              title="Xem tóm tắt cuộc hội thoại"
+              title={t('chat.summaryTooltip', 'Xem tóm tắt cuộc hội thoại')}
               className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--accent-primary)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20 transition-colors border border-[var(--accent-primary)]/20"
             >
               <ChartBarIcon className="h-3.5 w-3.5" />

@@ -266,6 +266,7 @@
     "clientDissolvedStatus": " Tổ chức khách hàng đã giải thể — không thể chat",
     "missingInfoToggle": "Yêu cầu bổ sung thông tin",
     "summary": "Tóm tắt",
+    "summaryTooltip": "Xem tóm tắt cuộc hội thoại",
     "live": "Live",
     "connecting": "Đang kết nối...",
     "intakeQuestion": "Câu hỏi tiếp nhận",
@@ -273,6 +274,8 @@
     "answer": "Trả lời",
     "hideDetails": "Ẩn chi tiết",
     "showDetails": "Xem chi tiết",
+    "notAssignedTitle": "Yêu cầu chưa được nhận xử lí",
+    "notAssignedDesc": "Bạn cần nhận xử lí yêu cầu này để xem tin nhắn và tham gia cuộc hội thoại.",
     "missingInfo": {
       "title": "Yêu cầu bổ sung thông tin",
       "clientReceive": "— Client sẽ nhận được danh sách câu hỏi",
