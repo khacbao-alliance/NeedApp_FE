@@ -17,7 +17,10 @@
     "page": "Trang",
     "email": "Email",
     "password": "Mật khẩu",
-    "name": "Tên"
+    "name": "Tên",
+    "from": "Từ",
+    "to": "Đến",
+    "edit": "Chỉnh sửa"
   },
   "guide": {
     "title": "Hướng dẫn quản lý trạng thái",
@@ -156,7 +159,16 @@
     "missingInfo": "Thiếu thông tin",
     "inProgress": "Đang xử lý",
     "done": "Hoàn thành",
-    "cancelled": "Đã hủy"
+    "cancelled": "Đã hủy",
+    "tooltip": {
+      "draft": "Yêu cầu đang ở trạng thái nháp",
+      "intake": "Hệ thống đang thu thập thêm thông tin từ bạn để hiểu rõ yêu cầu",
+      "pending": "Yêu cầu đã được gửi và đang chờ nhân viên tiếp nhận",
+      "missingInfo": "Nhân viên cần bổ sung thêm thông tin — vui lòng kiểm tra và phản hồi",
+      "inProgress": "Nhân viên đang tích cực xử lý yêu cầu của bạn",
+      "done": "Yêu cầu đã được xử lý hoàn tất",
+      "cancelled": "Yêu cầu đã bị hủy"
+    }
   },
   "priority": {
     "low": "Thấp",
@@ -199,7 +211,11 @@
       "legendWarning": "4–24 giờ — nên theo dõi sớm",
       "legendNormal": "Dưới 4 giờ — đúng tiến độ",
       "clientDissolved": "Tổ chức đã giải thể",
-      "overdue": "Quá hạn"
+      "overdue": "Quá hạn",
+      "emptyStep1": "Tạo yêu cầu",
+      "emptyStep2": "Trả lời câu hỏi",
+      "emptyStep3": "Nhận phản hồi trong 24h",
+      "emptyReassurance": "Đội ngũ chuyên gia sẽ phản hồi trong vòng 24 giờ"
     },
     "new": {
       "title": "Tạo yêu cầu mới",
@@ -212,6 +228,7 @@
       "submit": "Gửi yêu cầu",
       "back": "Quay lại",
       "error": "Không thể tạo yêu cầu. Vui lòng thử lại.",
+      "successToast": "Yêu cầu đã được tạo! Hãy trả lời các câu hỏi bên dưới.",
       "priorityLow": "Thấp",
       "priorityMedium": "Trung bình",
       "priorityHigh": "Cao",
@@ -243,18 +260,26 @@
     "typing": "đang nhập...",
     "answerPlaceholder": "Nhập câu trả lời...",
     "messagePlaceholder": "Nhập tin nhắn...",
-    "doneStatus": " Yêu cầu đã hoàn tất",
+    "doneStatus": "Yêu cầu đã hoàn tất",
     "adminObserverStatus": "Bạn đang xem với tư cách Admin. Chỉ Staff được phân công mới có thể nhắn tin.",
     "staffNotParticipant": "Bạn không phải là staff được phân công cho yêu cầu này.",
-    "cancelledStatus": " Yêu cầu đã bị hủy",
-    "clientDissolvedStatus": " Tổ chức khách hàng đã giải thể — không thể chat",
+    "cancelledStatus": "Yêu cầu đã bị hủy",
+    "clientDissolvedStatus": "Tổ chức khách hàng đã giải thể — không thể chat",
     "missingInfoToggle": "Yêu cầu bổ sung thông tin",
+    "missingInfoBanner": "Vui lòng bổ sung thông tin được yêu cầu bên dưới để tiếp tục xử lí.",
+    "fileAttachment": "File đính kèm",
+    "goToOriginal": "Đi tới tin nhắn gốc",
     "summary": "Tóm tắt",
+    "summaryTooltip": "Xem tóm tắt cuộc hội thoại",
     "live": "Live",
     "connecting": "Đang kết nối...",
     "intakeQuestion": "Câu hỏi tiếp nhận",
     "requiredMark": "*Bắt buộc",
     "answer": "Trả lời",
+    "hideDetails": "Ẩn chi tiết",
+    "showDetails": "Xem chi tiết",
+    "notAssignedTitle": "Yêu cầu chưa được nhận xử lí",
+    "notAssignedDesc": "Bạn cần nhận xử lí yêu cầu này để xem tin nhắn và tham gia cuộc hội thoại.",
     "missingInfo": {
       "title": "Yêu cầu bổ sung thông tin",
       "clientReceive": "— Client sẽ nhận được danh sách câu hỏi",
@@ -269,7 +294,10 @@
       "needOneQuestion": "Cần ít nhất 1 câu hỏi",
       "questionCount": "{{count}} câu hỏi",
       "questionPlaceholder": "VD: Logo công ty có sẵn chưa?",
-      "questionNPlaceholder": "Câu hỏi {{n}}..."
+      "questionNPlaceholder": "Câu hỏi {{n}}...",
+      "requestedBy": "Yêu cầu bởi {{name}}",
+      "allDone": "Đã trả lời tất cả câu hỏi bổ sung!",
+      "answerPlaceholder": "Nhập câu trả lời..."
     },
     "systemMsg": {
       "statusChanged": "Trạng thái đã thay đổi từ \"{{from}}\" sang \"{{to}}\"",
@@ -284,7 +312,26 @@
     "pinned": "Đã ghim",
     "pin": "Ghim",
     "unpin": "Bỏ ghim",
-    "edited": "đã chỉnh sửa"
+    "edited": "đã chỉnh sửa",
+    "intakeForm": {
+      "title": "Câu hỏi tiếp nhận",
+      "subtitle": "Trả lời theo thứ tự bất kỳ — có thể chỉnh sửa bất cứ lúc nào",
+      "required": "Bắt buộc",
+      "answered": "Đã trả lời",
+      "editAnswer": "Chỉnh sửa",
+      "viewHistory": "Xem lịch sử",
+      "submitAnswer": "Gửi",
+      "saving": "Đang lưu...",
+      "editPlaceholder": "Chỉnh sửa câu trả lời...",
+      "historyTitle": "Lịch sử chỉnh sửa",
+      "noHistory": "Chưa có lịch sử chỉnh sửa",
+      "restore": "Khôi phục",
+      "latestVersion": "Hiện tại",
+      "historyNote": "Lịch sử lưu trên server · Staff và Client đều xem được",
+      "completionHint": "Vui lòng trả lời tất cả câu hỏi bắt buộc để tiếp tục",
+      "allDone": "Bạn đã trả lời tất cả câu hỏi!",
+      "allDoneDesc": "Đội ngũ của chúng tôi sẽ xem xét và phản hồi sớm nhất."
+    }
   },
   "requestActions": {
     "startProcessing": "Bắt đầu xử lý",
@@ -394,7 +441,9 @@
     "leaveClientTitle": "Rời tổ chức?",
     "leaveClientDesc": "Bạn sẽ không còn thấy các yêu cầu của tổ chức này. Bạn có thể được mời lại sau.",
     "leaveClientConfirm": "Rời tổ chức",
-    "clientActionError": "Có lỗi xảy ra. Vui lòng thử lại."
+    "clientActionError": "Có lỗi xảy ra. Vui lòng thử lại.",
+    "emailSettingsLink": "Cài đặt Email",
+    "emailSettingsLinkDesc": "Tùy chỉnh email thông báo"
   },
   "confirm": {
     "logout": {
@@ -560,7 +609,8 @@
       "StatusChange": "Trạng thái yêu cầu đã thay đổi",
       "Assignment": "Phân công mới",
       "NewRequest": "Yêu cầu mới",
-      "Invitation": "Lời mời tham gia"
+      "Invitation": "Lời mời tham gia",
+      "IntakeAnswerEdited": "Câu trả lời intake đã được sửa"
     },
     "typeContent": {
       "NewMessage": "Tin nhắn mới trong \"{{requestTitle}}\": {{messagePreview}}",
@@ -569,7 +619,8 @@
       "AssignmentToMe": "Yêu cầu \"{{requestTitle}}\" đã được giao cho bạn",
       "AssignmentSelfAccept": "\"{{staffName}}\" đã nhận xử lý yêu cầu \"{{requestTitle}}\"",
       "NewRequest": "Yêu cầu mới: \"{{requestTitle}}\"",
-      "Invitation": "{{inviterName}} mời bạn tham gia \"{{clientName}}\" với vai trò {{role}}"
+      "Invitation": "{{inviterName}} mời bạn tham gia \"{{clientName}}\" với vai trò {{role}}",
+      "IntakeAnswerEdited": "\"{{editorName}}\" đã sửa câu trả lời intake trong \"{{requestTitle}}\": {{questionPreview}}"
     }
   },
   "members": {
@@ -673,6 +724,8 @@
     "total": "yêu cầu",
     "moveSuccess": "Đã chuyển trạng thái",
     "moveError": "Không thể chuyển trạng thái",
-    "invalidTransition": "Không thể chuyển từ {from} sang {to}"
+    "invalidTransition": "Không thể chuyển từ {from} sang {to}",
+    "showDissolved": "Hiện giải thể",
+    "hideDissolved": "Ẩn giải thể"
   }
 }

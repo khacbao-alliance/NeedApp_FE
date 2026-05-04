@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { ApiRequestError } from '@/services/requests';
+import { showSuccessToast } from '@/components/ui/ErrorToast';
 import type { RequestPriority } from '@/types';
 import { ArrowLeftIcon, PaperAirplaneIcon, ClockIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -54,6 +55,7 @@ export default function NewRequestPage() {
         description: form.description || undefined,
         priority: form.priority,
       });
+      showSuccessToast(t('requests.new.successToast', 'Yêu cầu đã được tạo! Hãy trả lời các câu hỏi bên dưới.'));
       // If firstQuestion exists, go to chat; otherwise go to request detail
       router.push(`/requests/${res.requestId}`);
     } catch (err) {

@@ -58,6 +58,7 @@ const typeConfig: Record<NotificationType, { icon: string; color: string; bg: st
   Assignment:   { icon: svgIcon(ICON_PATHS.user),      color: 'var(--accent-primary)',  bg: 'rgba(59, 130, 246, 0.12)' },
   NewRequest:   { icon: svgIcon(ICON_PATHS.clipboard), color: 'var(--status-pending)', bg: 'rgba(59, 130, 246, 0.12)' },
   Invitation:   { icon: svgIcon(ICON_PATHS.envelope),  color: 'var(--status-intake)',  bg: 'rgba(245, 158, 11, 0.12)' },
+  IntakeAnswerEdited: { icon: svgIcon(ICON_PATHS.clipboard), color: 'var(--status-intake)', bg: 'rgba(245, 158, 11, 0.12)' },
 };
 
 interface Toast {

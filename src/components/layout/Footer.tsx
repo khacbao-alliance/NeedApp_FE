@@ -39,11 +39,11 @@ export function Footer() {
                   {t('footer.howItWorks')}
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/register" className="text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors">
                   {t('footer.register')}
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 

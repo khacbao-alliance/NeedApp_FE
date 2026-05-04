@@ -26,20 +26,21 @@ export function Badge({ children, variant = 'default', className }: BadgeProps) 
 
 export function StatusBadge({ status }: { status: RequestStatus }) {
   const { t } = useTranslation();
-  const statusConfig: Record<RequestStatus, { label: string; className: string }> = {
-    Draft: { label: t('status.draft'), className: 'status-draft' },
-    Intake: { label: t('status.intake'), className: 'status-intake' },
-    Pending: { label: t('status.pending'), className: 'status-pending' },
-    MissingInfo: { label: t('status.missingInfo'), className: 'status-missinginfo' },
-    InProgress: { label: t('status.inProgress'), className: 'status-inprogress' },
-    Done: { label: t('status.done'), className: 'status-done' },
-    Cancelled: { label: t('status.cancelled'), className: 'status-cancelled' },
+  const statusConfig: Record<RequestStatus, { label: string; className: string; tooltip: string }> = {
+    Draft: { label: t('status.draft'), className: 'status-draft', tooltip: t('status.tooltip.draft') },
+    Intake: { label: t('status.intake'), className: 'status-intake', tooltip: t('status.tooltip.intake') },
+    Pending: { label: t('status.pending'), className: 'status-pending', tooltip: t('status.tooltip.pending') },
+    MissingInfo: { label: t('status.missingInfo'), className: 'status-missinginfo', tooltip: t('status.tooltip.missingInfo') },
+    InProgress: { label: t('status.inProgress'), className: 'status-inprogress', tooltip: t('status.tooltip.inProgress') },
+    Done: { label: t('status.done'), className: 'status-done', tooltip: t('status.tooltip.done') },
+    Cancelled: { label: t('status.cancelled'), className: 'status-cancelled', tooltip: t('status.tooltip.cancelled') },
   };
   const config = statusConfig[status];
   return (
     <span
+      title={config.tooltip}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold',
+        'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold cursor-help',
         config.className
       )}
     >

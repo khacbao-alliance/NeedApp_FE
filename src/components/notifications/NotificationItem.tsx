@@ -8,6 +8,7 @@ import {
   UserPlusIcon,
   DocumentPlusIcon,
   EnvelopeIcon,
+  PencilSquareIcon,
 } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { getNotificationContent } from '@/lib/notificationUtils';
@@ -26,6 +27,7 @@ const typeConfig: Record<NotificationType, { icon: typeof ChatBubbleLeftEllipsis
   Assignment: { icon: UserPlusIcon, color: 'text-purple-400 bg-purple-500/10' },
   NewRequest: { icon: DocumentPlusIcon, color: 'text-indigo-400 bg-indigo-500/10' },
   Invitation: { icon: EnvelopeIcon, color: 'text-pink-400 bg-pink-500/10' },
+  IntakeAnswerEdited: { icon: PencilSquareIcon, color: 'text-amber-400 bg-amber-500/10' },
 };
 
 export function NotificationItem({ notification, onClick, compact }: NotificationItemProps) {

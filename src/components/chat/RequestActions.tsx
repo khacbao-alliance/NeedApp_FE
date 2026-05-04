@@ -236,10 +236,10 @@ export function SelfAssignAction({
   const [assigning, setAssigning] = useState(false);
   const [error, setError] = useState('');
 
-  // Only show for Staff on unassigned requests
+  // Only show for Staff on unassigned requests (all non-terminal statuses)
   if (role !== 'Staff') return null;
   if (request.assignedUser) return null;
-  if (request.status === 'Done' || request.status === 'Cancelled' || request.status === 'Intake') return null;
+  if (request.status === 'Done' || request.status === 'Cancelled') return null;
 
   const handleSelfAssign = async () => {
     setAssigning(true);
@@ -296,8 +296,8 @@ export function AssignStaffAction({
   // Only Admin can assign
   if (role !== 'Admin') return null;
 
-  // Don't show for terminal or intake statuses
-  if (request.status === 'Done' || request.status === 'Cancelled' || request.status === 'Intake' || request.status === 'Draft') return null;
+  // Don't show for terminal statuses (Draft is handled server-side; Intake requests CAN be assigned)
+  if (request.status === 'Done' || request.status === 'Cancelled' || request.status === 'Draft') return null;
 
   const loadStaff = async () => {
     if (staffList.length > 0) return; // Already loaded
