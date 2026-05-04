@@ -35,6 +35,8 @@ interface AnswerItem {
 interface IntakeFormPanelProps {
   messages: MessageDto[];
   requestId: string;
+  isOpen: boolean;
+  onClose: () => void;
   isReadOnly?: boolean; // kept for future use (e.g. cancelled/done requests)
   onAnswerSubmit: (content: string, questionMessageId: string) => Promise<void>;
   onAnswerEdit: (messageId: string, newContent: string) => Promise<void>;
@@ -263,8 +265,8 @@ function QuestionCard({
                 {answer!.content}
               </p>
               {answer!.isEdited && (
-                <p className="mt-1 text-[10px] text-[var(--text-muted)]">
-                  ✏️ {t('chat.edited', 'đã chỉnh sửa')}
+                <p className="mt-1 flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
+                  <PencilSquareIcon className="h-3 w-3" /> {t('chat.edited', 'đã chỉnh sửa')}
                 </p>
               )}
             </div>
@@ -355,6 +357,8 @@ function QuestionCard({
 export function IntakeFormPanel({
   messages,
   requestId,
+  isOpen,
+  onClose,
   isReadOnly,
   onAnswerSubmit,
   onAnswerEdit,
@@ -363,7 +367,6 @@ export function IntakeFormPanel({
   const { questions, answers: serverAnswers } = parseIntakeData(messages);
   // Optimistic answers: keyed by questionId, overrides serverAnswers while saving
   const [optimisticAnswers, setOptimisticAnswers] = useState<Map<string, string>>(new Map());
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Merge server answers with optimistic ones (server answers win once they arrive)
   const answers = new Map(serverAnswers);
@@ -380,93 +383,113 @@ export function IntakeFormPanel({
   const totalCount = questions.length;
   const progress = totalCount > 0 ? (answeredCount / totalCount) * 100 : 0;
 
-  if (questions.length === 0) return null;
+  if (questions.length === 0 || !isOpen) return null;
 
   return (
-    <div className="border-t border-[var(--border)] bg-[var(--surface-1)] flex flex-col flex-shrink-0 transition-all duration-300">
-      {/* Panel Header */}
-      <button 
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-2)] flex-shrink-0 hover:bg-[var(--surface-3)] transition-colors text-left"
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          {answeredCount === totalCount ? (
-            <div className="flex-shrink-0 rounded-lg bg-emerald-500/10 p-1.5">
-              <CheckCircleIcon className="h-4 w-4 text-emerald-400" />
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-fade-in"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none">
+        <div 
+          className="pointer-events-auto w-full md:max-w-[600px] max-h-[90vh] md:max-h-[80vh] bg-[var(--surface-1)] md:rounded-2xl rounded-t-2xl border border-[var(--border)] shadow-2xl shadow-black/30 flex flex-col animate-slide-up overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Modal Header */}
+          <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-[var(--border)] bg-[var(--surface-2)] flex-shrink-0">
+            <div className="flex items-center gap-3 min-w-0">
+              {answeredCount === totalCount ? (
+                <div className="flex-shrink-0 rounded-xl bg-emerald-500/10 p-2">
+                  <CheckCircleIcon className="h-5 w-5 text-emerald-400" />
+                </div>
+              ) : (
+                <div className="flex-shrink-0 rounded-xl bg-[var(--accent-primary)]/10 p-2">
+                  <ExclamationCircleIcon className="h-5 w-5 text-[var(--accent-primary)]" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-[var(--foreground)]">
+                  {t('chat.intakeForm.title', 'Câu hỏi tiếp nhận')}
+                </p>
+                <p className="text-[11px] text-[var(--text-muted)] font-normal">
+                  {t('chat.intakeForm.subtitle', 'Không bắt buộc — có thể điền bất cứ lúc nào')}
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="flex-shrink-0 rounded-lg bg-[var(--accent-primary)]/10 p-1.5">
-              <ExclamationCircleIcon className="h-4 w-4 text-[var(--accent-primary)]" />
+
+            <div className="flex items-center gap-2.5 flex-shrink-0">
+              <span className={cn(
+                'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold',
+                answeredCount === totalCount
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] border border-[var(--accent-primary)]/20'
+              )}>
+                {answeredCount === totalCount ? (
+                  <CheckCircleIcon className="h-3.5 w-3.5" />
+                ) : null}
+                {answeredCount}/{totalCount}
+              </span>
+              <button
+                onClick={onClose}
+                className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--foreground)] transition-colors"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
             </div>
-          )}
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-[var(--foreground)]">
-              {t('chat.intakeForm.title', 'Câu hỏi tiếp nhận')}
-            </p>
-            <p className="text-[11px] text-[var(--text-muted)] font-normal">
-              {t('chat.intakeForm.subtitle', 'Không bắt buộc — có thể điền bất cứ lúc nào')}
-            </p>
+          </div>
+
+          {/* Progress bar */}
+          <div className="h-1 bg-[var(--surface-3)] flex-shrink-0">
+            <div
+              className="h-full bg-[var(--accent-primary)] transition-all duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          {/* Question cards — scrollable */}
+          <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-2.5">
+            {questions.map((q, idx) => (
+              <QuestionCard
+                key={q.questionId}
+                question={q}
+                answer={answers.get(q.questionId)}
+                questionNumber={idx + 1}
+                requestId={requestId}
+                isReadOnly={isReadOnly}
+                onOptimisticAnswer={(questionId, content) => {
+                  setOptimisticAnswers((prev) => new Map(prev).set(questionId, content));
+                }}
+                onSubmit={async (content) => {
+                  await onAnswerSubmit(content, q.messageId);
+                }}
+                onEdit={async (messageId, newContent) => {
+                  await onAnswerEdit(messageId, newContent);
+                }}
+              />
+            ))}
+
+            {answeredCount === totalCount && (
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-center animate-fade-in mt-4">
+                <p className="text-sm font-medium text-emerald-400 flex items-center justify-center gap-1.5">
+                  <CheckCircleIcon className="h-5 w-5" />
+                  {t('chat.intakeForm.allDone', 'Bạn đã trả lời tất cả câu hỏi!')}
+                </p>
+              </div>
+            )}
           </div>
         </div>
-
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <span className={cn(
-            'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold',
-            answeredCount === totalCount
-              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-              : 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] border border-[var(--accent-primary)]/20'
-          )}>
-            {answeredCount === totalCount ? (
-              <CheckCircleIcon className="h-3.5 w-3.5" />
-            ) : null}
-            {answeredCount}/{totalCount}
-          </span>
-          <span className="text-[10px] font-medium text-[var(--text-muted)] bg-[var(--surface-3)] px-2 py-1 rounded-md">
-            {isCollapsed ? t('common.expand', 'Mở rộng') : t('common.collapse', 'Thu gọn')}
-          </span>
-        </div>
-      </button>
-
-      {/* Progress bar */}
-      <div className="h-1 bg-[var(--surface-3)] flex-shrink-0">
-        <div
-          className="h-full bg-[var(--accent-primary)] transition-all duration-500 ease-out"
-          style={{ width: `${progress}%` }}
-        />
       </div>
-
-      {/* Question cards — scrollable */}
-      {!isCollapsed && (
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-2.5" style={{ maxHeight: '40vh' }}>
-          {questions.map((q, idx) => (
-            <QuestionCard
-              key={q.questionId}
-              question={q}
-              answer={answers.get(q.questionId)}
-              questionNumber={idx + 1}
-              requestId={requestId}
-              isReadOnly={isReadOnly}
-              onOptimisticAnswer={(questionId, content) => {
-                setOptimisticAnswers((prev) => new Map(prev).set(questionId, content));
-              }}
-              onSubmit={async (content) => {
-                await onAnswerSubmit(content, q.messageId);
-              }}
-              onEdit={async (messageId, newContent) => {
-                await onAnswerEdit(messageId, newContent);
-              }}
-            />
-          ))}
-
-          {answeredCount === totalCount && (
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-center animate-fade-in mt-4">
-              <p className="text-sm font-medium text-emerald-400">
-                🎉 {t('chat.intakeForm.allDone', 'Bạn đã trả lời tất cả câu hỏi!')}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    </>
   );
+}
+
+// ── Helper: compute intake stats from messages (used by trigger button) ──
+export function getIntakeStats(messages: MessageDto[]): { answeredCount: number; totalCount: number; hasQuestions: boolean } {
+  const { questions, answers } = parseIntakeData(messages);
+  const answeredCount = questions.filter((q) => answers.has(q.questionId)).length;
+  return { answeredCount, totalCount: questions.length, hasQuestions: questions.length > 0 };
 }

@@ -26,6 +26,8 @@ interface UseChatSignalROptions {
   onMessageEdited?: (message: MessageDto) => void;
   /** Called when a message is pinned/unpinned */
   onMessagePinned?: (messageId: string, isPinned: boolean) => void;
+  /** Called when a reaction is toggled on a message */
+  onReactionToggled?: (messageId: string, emoji: string, count: number, userIds: string[]) => void;
 }
 
 interface TypingUser {
@@ -60,6 +62,7 @@ export function useChatSignalR({
   onMessageRead,
   onMessageEdited,
   onMessagePinned,
+  onReactionToggled,
 }: UseChatSignalROptions) {
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
@@ -73,6 +76,7 @@ export function useChatSignalR({
   const onMessageReadRef = useRef(onMessageRead);
   const onMessageEditedRef = useRef(onMessageEdited);
   const onMessagePinnedRef = useRef(onMessagePinned);
+  const onReactionToggledRef = useRef(onReactionToggled);
 
   useEffect(() => { onNewMessageRef.current = onNewMessage; }, [onNewMessage]);
   useEffect(() => { onStatusChangedRef.current = onStatusChanged; }, [onStatusChanged]);
@@ -80,6 +84,7 @@ export function useChatSignalR({
   useEffect(() => { onMessageReadRef.current = onMessageRead; }, [onMessageRead]);
   useEffect(() => { onMessageEditedRef.current = onMessageEdited; }, [onMessageEdited]);
   useEffect(() => { onMessagePinnedRef.current = onMessagePinned; }, [onMessagePinned]);
+  useEffect(() => { onReactionToggledRef.current = onReactionToggled; }, [onReactionToggled]);
 
   // ── Build & manage connection ──
   useEffect(() => {
@@ -145,6 +150,10 @@ export function useChatSignalR({
 
     connection.on('Error', (error: string) => {
       console.error('[SignalR] Hub error:', error);
+    });
+
+    connection.on('ReactionToggled', (data: { messageId: string; emoji: string; count: number; userIds: string[] }) => {
+      onReactionToggledRef.current?.(data.messageId, data.emoji, data.count, data.userIds);
     });
 
     connection.on('MessageRead', (data: { userId: string; lastReadAt: string }) => {

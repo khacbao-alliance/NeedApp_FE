@@ -51,4 +51,10 @@ export const messageService = {
     api.get<MessageEditHistoryDto[]>(
       `/requests/${requestId}/messages/${messageId}/history`
     ),
+
+  answerMissingInfo: (requestId: string, messageId: string, questionId: string, answer: string) =>
+    api.post<MessageDto>(
+      `/requests/${requestId}/messages/${messageId}/answer-missing-info`,
+      { questionId, answer }
+    ),
 };

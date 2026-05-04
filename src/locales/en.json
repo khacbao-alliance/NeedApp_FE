@@ -19,7 +19,8 @@
     "password": "Password",
     "name": "Name",
     "from": "From",
-    "to": "To"
+    "to": "To",
+    "edit": "Edit"
   },
   "guide": {
     "title": "Status Management Guide",
@@ -259,9 +260,12 @@
     "doneStatus": "Request completed",
     "adminObserverStatus": "You are viewing as Admin. Only the assigned Staff member can send messages.",
     "staffNotParticipant": "You are not the assigned staff for this request.",
-    "cancelledStatus": "❌ Request cancelled",
-    "clientDissolvedStatus": "🚫 Client organization dissolved — chat disabled",
+    "cancelledStatus": "Request cancelled",
+    "clientDissolvedStatus": "Client organization dissolved — chat disabled",
     "missingInfoToggle": "Request missing information",
+    "missingInfoBanner": "Please provide the requested information below to continue processing.",
+    "fileAttachment": "File attachment",
+    "goToOriginal": "Go to original message",
     "summary": "Summary",
     "summaryTooltip": "View conversation summary",
     "live": "Live",
@@ -287,7 +291,10 @@
       "needOneQuestion": "At least 1 question is required",
       "questionCount": "{{count}} questions",
       "questionPlaceholder": "e.g. Is the company logo ready?",
-      "questionNPlaceholder": "Question {{n}}..."
+      "questionNPlaceholder": "Question {{n}}...",
+      "requestedBy": "Requested by {{name}}",
+      "allDone": "All supplementary questions have been answered!",
+      "answerPlaceholder": "Enter your answer..."
     },
     "systemMsg": {
       "statusChanged": "Status changed from \"{{from}}\" to \"{{to}}\"",
