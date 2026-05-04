@@ -19,7 +19,8 @@
     "password": "Mật khẩu",
     "name": "Tên",
     "from": "Từ",
-    "to": "Đến"
+    "to": "Đến",
+    "edit": "Chỉnh sửa"
   },
   "guide": {
     "title": "Hướng dẫn quản lý trạng thái",
@@ -259,12 +260,15 @@
     "typing": "đang nhập...",
     "answerPlaceholder": "Nhập câu trả lời...",
     "messagePlaceholder": "Nhập tin nhắn...",
-    "doneStatus": " Yêu cầu đã hoàn tất",
+    "doneStatus": "Yêu cầu đã hoàn tất",
     "adminObserverStatus": "Bạn đang xem với tư cách Admin. Chỉ Staff được phân công mới có thể nhắn tin.",
     "staffNotParticipant": "Bạn không phải là staff được phân công cho yêu cầu này.",
-    "cancelledStatus": " Yêu cầu đã bị hủy",
-    "clientDissolvedStatus": " Tổ chức khách hàng đã giải thể — không thể chat",
+    "cancelledStatus": "Yêu cầu đã bị hủy",
+    "clientDissolvedStatus": "Tổ chức khách hàng đã giải thể — không thể chat",
     "missingInfoToggle": "Yêu cầu bổ sung thông tin",
+    "missingInfoBanner": "Vui lòng bổ sung thông tin được yêu cầu bên dưới để tiếp tục xử lí.",
+    "fileAttachment": "File đính kèm",
+    "goToOriginal": "Đi tới tin nhắn gốc",
     "summary": "Tóm tắt",
     "summaryTooltip": "Xem tóm tắt cuộc hội thoại",
     "live": "Live",
@@ -290,7 +294,10 @@
       "needOneQuestion": "Cần ít nhất 1 câu hỏi",
       "questionCount": "{{count}} câu hỏi",
       "questionPlaceholder": "VD: Logo công ty có sẵn chưa?",
-      "questionNPlaceholder": "Câu hỏi {{n}}..."
+      "questionNPlaceholder": "Câu hỏi {{n}}...",
+      "requestedBy": "Yêu cầu bởi {{name}}",
+      "allDone": "Đã trả lời tất cả câu hỏi bổ sung!",
+      "answerPlaceholder": "Nhập câu trả lời..."
     },
     "systemMsg": {
       "statusChanged": "Trạng thái đã thay đổi từ \"{{from}}\" sang \"{{to}}\"",

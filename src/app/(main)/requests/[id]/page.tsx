@@ -16,7 +16,8 @@ import { showErrorToast } from '@/components/ui/ErrorToast';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { MissingInfoComposer } from '@/components/chat/MissingInfoComposer';
-import { IntakeFormPanel } from '@/components/chat/IntakeFormPanel';
+import { IntakeFormPanel, getIntakeStats } from '@/components/chat/IntakeFormPanel';
+import { MissingInfoFormPanel, getMissingInfoStats } from '@/components/chat/MissingInfoFormPanel';
 import { RequestStatusActions, AssignStaffAction, SelfAssignAction } from '@/components/chat/RequestActions';
 import { ConversationSummaryDrawer } from '@/components/chat/ConversationSummaryDrawer';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
@@ -39,6 +40,8 @@ import {
   FireIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
+  ClipboardDocumentListIcon,
+  InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 
 export default function RequestChatPage() {
@@ -58,6 +61,8 @@ export default function RequestChatPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showMissingInfo, setShowMissingInfo] = useState(false);
+  const [showIntakeModal, setShowIntakeModal] = useState(false);
+  const [showMissingInfoForm, setShowMissingInfoForm] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<MessageDto | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -116,10 +121,28 @@ export default function RequestChatPage() {
       });
     }, []),
     onMessageEdited: useCallback((edited: MessageDto) => {
-      setMessages((prev) => prev.map((m) => m.id === edited.id ? { ...m, content: edited.content, isEdited: edited.isEdited, editedAt: edited.editedAt } : m));
+      setMessages((prev) => prev.map((m) => m.id === edited.id ? { ...m, content: edited.content, metadata: edited.metadata, isEdited: edited.isEdited, editedAt: edited.editedAt } : m));
     }, []),
     onMessagePinned: useCallback((messageId: string, isPinned: boolean) => {
       setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isPinned } : m));
+    }, []),
+    onReactionToggled: useCallback((messageId: string, emoji: string, count: number, userIds: string[]) => {
+      setMessages((prev) => prev.map((m) => {
+        if (m.id !== messageId) return m;
+        const existing = m.reactions || [];
+        if (count === 0) {
+          // Reaction removed entirely
+          return { ...m, reactions: existing.filter((r) => r.emoji !== emoji) };
+        }
+        const idx = existing.findIndex((r) => r.emoji === emoji);
+        const updated = { emoji, count, userIds };
+        if (idx >= 0) {
+          const newReactions = [...existing];
+          newReactions[idx] = updated;
+          return { ...m, reactions: newReactions };
+        }
+        return { ...m, reactions: [...existing, updated] };
+      }));
     }, []),
   });
 
@@ -330,23 +353,14 @@ export default function RequestChatPage() {
     if (!content.trim() || sending) return;
     setSending(true);
     try {
-      const type = isIntake ? 'IntakeAnswer' : 'Text';
-      const sentMsg = await messageService.send(requestId, { content, type, replyToId });
+      // ChatInput always sends 'Text' — IntakeAnswer is handled by IntakeFormPanel modal
+      const sentMsg = await messageService.send(requestId, { content, type: 'Text', replyToId });
 
-      // For Intake: append locally + re-fetch for next question  
-      // For Chat: append locally (SignalR will dedupe if it arrives again)
+      // Append locally (SignalR will dedupe if it arrives again)
       setMessages((prev) => {
         if (prev.some((m) => m.id === sentMsg.id)) return prev;
         return [...prev, sentMsg];
       });
-
-      if (type === 'IntakeAnswer') {
-        setTimeout(async () => {
-          await fetchMessages();
-          const updatedReq = await requestService.getById(requestId);
-          setRequest(updatedReq);
-        }, 1000);
-      }
     } catch (err: unknown) {
       const msg = (err as { message?: string })?.message;
       showErrorToast(msg || t('common.error', 'Có lỗi xảy ra'));
@@ -665,21 +679,7 @@ export default function RequestChatPage() {
         </div>
       )}
 
-      {/* Intake Progress Bar */}
-      {isIntake && intakeMeta && (
-        <div className="border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-2">
-          <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
-            <span>{t('chat.intakeProgress')}</span>
-            <span>{t('chat.intakeOf', { current: intakeMeta.orderIndex + 1, total: intakeMeta.totalQuestions })}</span>
-          </div>
-          <div className="mt-1.5 h-1.5 rounded-full bg-[var(--surface-3)] overflow-hidden">
-            <div
-              className="h-full rounded-full bg-[var(--accent-primary)] transition-all duration-500"
-              style={{ width: `${intakeProgress}%` }}
-            />
-          </div>
-        </div>
-      )}
+
 
       {/* #7 — Missing Info Banner (Client sees a prompt to provide info) */}
       {request?.status === 'MissingInfo' && role === 'Client' && (
@@ -778,6 +778,7 @@ export default function RequestChatPage() {
         ) : (
           messages
             .filter((m) => m.type !== 'IntakeQuestion' && m.type !== 'IntakeAnswer')
+            .filter((m) => !(m.type === 'System' && m.content?.startsWith('All intake questions have been answered')))
             .map((msg, idx, filteredArray) => {
             // Determine if this is the last message sent by the current user
             // (only last own message shows the seen tick)
@@ -873,23 +874,91 @@ export default function RequestChatPage() {
       </>
       )}
 
-      {/* Intake Form Panel - Always visible if questions exist */}
-      {messages.some(m => m.type === 'IntakeQuestion') && (
-        <IntakeFormPanel
-          messages={messages}
-          requestId={requestId}
-          isReadOnly={request?.status === 'Done' || request?.status === 'Cancelled'}
-          onAnswerSubmit={async (content, questionMessageId) => {
-            const sentMsg = await messageService.send(requestId, {
-              content,
-              type: 'IntakeAnswer',
-              replyToId: questionMessageId,
-            });
-            setMessages((prev) => [...prev, sentMsg]);
-          }}
-          onAnswerEdit={handleEditMessage}
-        />
-      )}
+
+
+      {/* Trigger buttons row — Intake & Missing Info, visible for all relevant roles */}
+      {!staffNotAssigned && (() => {
+        const intakeStats = getIntakeStats(messages);
+        const missingStats = getMissingInfoStats(messages);
+        const showIntakeBtn = intakeStats.hasQuestions;
+        // Staff can compose new missing info requests
+        const showMissingInfoComposeBtn = role === 'Staff' && !isIntake
+          && request?.status !== 'Done' && request?.status !== 'Cancelled';
+        // Client & Staff see the answer form when MissingInfo questions exist
+        const showMissingInfoFormBtn = missingStats.hasQuestions
+          && request?.status !== 'Done' && request?.status !== 'Cancelled';
+        if (!showIntakeBtn && !showMissingInfoComposeBtn && !showMissingInfoFormBtn) return null;
+        return (
+          <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 flex items-center gap-2 flex-wrap">
+            {/* Intake trigger */}
+            {showIntakeBtn && (
+              <button
+                onClick={() => setShowIntakeModal(true)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all border ${
+                  intakeStats.answeredCount === intakeStats.totalCount
+                    ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10'
+                    : 'border-[var(--accent-primary)]/20 text-[var(--accent-primary)] bg-[var(--accent-primary)]/5 hover:bg-[var(--accent-primary)]/10'
+                }`}
+              >
+                <ClipboardDocumentListIcon className="h-3.5 w-3.5" />
+                {t('chat.intakeForm.title')}
+                <span className={`inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  intakeStats.answeredCount === intakeStats.totalCount
+                    ? 'bg-emerald-500/15 text-emerald-400'
+                    : 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]'
+                }`}>
+                  {intakeStats.answeredCount}/{intakeStats.totalCount}
+                </span>
+                {intakeStats.answeredCount < intakeStats.totalCount && (
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-primary)] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent-primary)]" />
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* Missing Info answer form trigger — Client & Staff */}
+            {showMissingInfoFormBtn && (
+              <button
+                onClick={() => setShowMissingInfoForm(true)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all border ${
+                  missingStats.answeredCount === missingStats.totalCount
+                    ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10'
+                    : 'border-amber-500/20 text-amber-400 bg-amber-500/5 hover:bg-amber-500/10'
+                }`}
+              >
+                <ExclamationTriangleIcon className="h-3.5 w-3.5" />
+                {t('chat.missingInfo.title', 'Bổ sung thông tin')}
+                <span className={`inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  missingStats.answeredCount === missingStats.totalCount
+                    ? 'bg-emerald-500/15 text-emerald-400'
+                    : 'bg-amber-500/15 text-amber-400'
+                }`}>
+                  {missingStats.answeredCount}/{missingStats.totalCount}
+                </span>
+                {missingStats.answeredCount < missingStats.totalCount && (
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* Missing Info compose trigger — Staff only */}
+            {showMissingInfoComposeBtn && (
+              <button
+                onClick={() => setShowMissingInfo(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 px-3 py-1.5 text-xs font-medium text-amber-400 bg-amber-500/5 transition-all hover:bg-amber-500/10 hover:border-amber-500/30"
+              >
+                <InformationCircleIcon className="h-3.5 w-3.5" />
+                {t('chat.missingInfoToggle')}
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Input */}
       {staffNotAssigned ? null : request?.status === 'Done' || request?.status === 'Cancelled' ? (
@@ -918,48 +987,80 @@ export default function RequestChatPage() {
             {t('chat.staffNotParticipant', 'Bạn không phải là staff được phân công cho yêu cầu này.')}
           </p>
         </div>
-      ) : showMissingInfo ? (
-        <MissingInfoComposer
-          onSend={async (content, questions) => {
-            const sentMsg = await messageService.sendMissingInfo(requestId, { content, questions });
-            setShowMissingInfo(false);
-            // Append message immediately (SignalR will dedupe if it arrives again)
-            setMessages((prev) => {
-              if (prev.some((m) => m.id === sentMsg.id)) return prev;
-              return [...prev, sentMsg];
-            });
-            // Refresh request status (changes to MissingInfo)
-            const updatedReq = await requestService.getById(requestId);
-            setRequest(updatedReq);
-          }}
-          onCancel={() => setShowMissingInfo(false)}
-        />
       ) : (
-        <div className="flex flex-col flex-shrink-0">
-          <ChatInput
-            onSend={handleSend}
-            onFileUpload={handleFileUpload}
-            onTyping={handleTypingInput}
-            replyToMessage={replyToMessage}
-            onCancelReply={() => setReplyToMessage(null)}
-            placeholder={t('chat.messagePlaceholder')}
-            disabled={sending}
-            isIntake={false}
-          />
-          {/* Missing Info toggle — Staff only, not Admin, not during Intake */}
-          {role === 'Staff' && !isIntake && (
-            <div className="border-t border-[var(--border)] bg-[var(--surface-1)] px-4 py-1.5 flex justify-end">
-              <button
-                onClick={() => setShowMissingInfo(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 px-3 py-1.5 text-xs font-medium text-amber-400 transition-all hover:bg-amber-500/10 hover:border-amber-500/30"
-              >
-                <ExclamationTriangleIcon className="h-3.5 w-3.5" />
-                {t('chat.missingInfoToggle')}
-              </button>
-            </div>
-          )}
-        </div>
+        <ChatInput
+          onSend={handleSend}
+          onFileUpload={handleFileUpload}
+          onTyping={handleTypingInput}
+          replyToMessage={replyToMessage}
+          onCancelReply={() => setReplyToMessage(null)}
+          placeholder={t('chat.messagePlaceholder')}
+          disabled={sending}
+          isIntake={false}
+        />
       )}
+
+      {/* ── Modal Overlays ── */}
+
+      {/* Intake Form Modal — Client & assigned Staff can edit, Admin & others read-only */}
+      {messages.some(m => m.type === 'IntakeQuestion') && (
+        <IntakeFormPanel
+          messages={messages}
+          requestId={requestId}
+          isOpen={showIntakeModal}
+          onClose={() => setShowIntakeModal(false)}
+          isReadOnly={
+            request?.status === 'Done' || request?.status === 'Cancelled'
+            || role === 'Admin'
+            || (role === 'Staff' && request?.assignedUser?.id !== user?.id)
+          }
+          onAnswerSubmit={async (content, questionMessageId) => {
+            const sentMsg = await messageService.send(requestId, {
+              content,
+              type: 'IntakeAnswer',
+              replyToId: questionMessageId,
+            });
+            setMessages((prev) => [...prev, sentMsg]);
+          }}
+          onAnswerEdit={handleEditMessage}
+        />
+      )}
+
+      {/* Missing Info Composer Modal — Staff creates new missing info requests */}
+      <MissingInfoComposer
+        isOpen={showMissingInfo}
+        onClose={() => setShowMissingInfo(false)}
+        onSend={async (content, questions) => {
+          const sentMsg = await messageService.sendMissingInfo(requestId, { content, questions });
+          setShowMissingInfo(false);
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === sentMsg.id)) return prev;
+            return [...prev, sentMsg];
+          });
+          const updatedReq = await requestService.getById(requestId);
+          setRequest(updatedReq);
+        }}
+      />
+
+      {/* Missing Info Form Modal — Client & Staff answer individual questions */}
+      <MissingInfoFormPanel
+        messages={messages}
+        requestId={requestId}
+        isOpen={showMissingInfoForm}
+        onClose={() => setShowMissingInfoForm(false)}
+        isReadOnly={
+          request?.status === 'Done' || request?.status === 'Cancelled'
+          || role === 'Admin'
+        }
+        onAnswer={async (messageId, questionId, answer) => {
+          const updatedMsg = await messageService.answerMissingInfo(requestId, messageId, questionId, answer);
+          // Update the message in local state with new metadata
+          setMessages((prev) => prev.map((m) => m.id === updatedMsg.id ? updatedMsg : m));
+          // Refresh request status (may change from MissingInfo to Pending)
+          const updatedReq = await requestService.getById(requestId);
+          setRequest(updatedReq);
+        }}
+      />
       {/* Conversation Summary Drawer */}
       {showSummary && (
         <ConversationSummaryDrawer

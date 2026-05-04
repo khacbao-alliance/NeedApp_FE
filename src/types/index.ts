@@ -229,6 +229,7 @@ export interface MissingInfoMetadata {
     id: string;
     question: string;
     answered: boolean;
+    answer?: string;
   }[];
 }
 

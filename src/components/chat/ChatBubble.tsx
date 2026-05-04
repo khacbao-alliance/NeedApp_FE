@@ -17,6 +17,7 @@ import {
   PencilIcon,
   ArrowUturnLeftIcon,
   XMarkIcon,
+  PaperClipIcon,
 } from '@heroicons/react/24/outline';
 
 // Thumbtack icon — cleaner style from Lucide
@@ -181,6 +182,7 @@ function ReactionPicker({ messageId, onReaction }: {
 
 // ── Reply preview inside bubble ────────────────────────────────────────────
 function ReplyPreview({ message, isOwn }: { message: MessageDto; isOwn: boolean }) {
+  const { t } = useTranslation();
   const { replyTo } = message;
   if (!replyTo) return null;
   return (
@@ -194,13 +196,13 @@ function ReplyPreview({ message, isOwn }: { message: MessageDto; isOwn: boolean 
       onClick={() => document.getElementById(`msg-${replyTo.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
       role="button"
       tabIndex={0}
-      title="Đi tới tin nhắn gốc"
+      title={t('chat.goToOriginal', 'Đi tới tin nhắn gốc')}
     >
       <p className={cn('font-semibold truncate text-[11px]', isOwn ? 'text-white/90' : 'text-[var(--text-secondary)]')}>
         {replyTo.senderName || 'Unknown'}
       </p>
       <p className={cn('truncate line-clamp-1', isOwn ? 'text-white/70' : 'text-[var(--text-muted)]')}>
-        {replyTo.content || '📎 File đính kèm'}
+        {replyTo.content || <><PaperClipIcon className="inline h-3 w-3" /> {t('chat.fileAttachment')}</>}
       </p>
     </div>
   );
